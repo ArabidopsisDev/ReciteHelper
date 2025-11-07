@@ -1,4 +1,7 @@
 ﻿using Microsoft.Win32;
+using ReciteHelper.Models;
+using System.IO;
+using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -6,46 +9,99 @@ namespace ReciteHelper
 {
     public partial class MainWindow : Window
     {
+        private List<RecentProject> recentProjects = new List<RecentProject>();
+        private string recentProjectsFile = "recent_projects.json";
+
         public MainWindow()
         {
             InitializeComponent();
             LoadRecentProjects();
+            PopulateRecentProjectsUI();
         }
 
         private void LoadRecentProjects()
         {
-            // 这里加载最近的项目列表
-            // 可以从设置文件或数据库中读取
-            // RecentProjectsPanel.Children.Clear();
-            // foreach (var project in recentProjects)
-            // {
-            //     AddRecentProjectItem(project);
-            // }
+            try
+            {
+                if (File.Exists(recentProjectsFile))
+                {
+                    string json = File.ReadAllText(recentProjectsFile);
+                    recentProjects = JsonSerializer.Deserialize<List<RecentProject>>(json) ?? new List<RecentProject>();
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"加载最近项目失败: {ex.Message}");
+                recentProjects = new List<RecentProject>();
+            }
+
+            // Add some samples
+            if (recentProjects.Count == 0)
+            {
+                recentProjects.Add(new RecentProject
+                {
+                    ProjectName = "智慧农业导论背诵.rhproj",
+                    ProjectPath = @"C:\Users\Username\Projects\iagr\sbsdau.rhproj",
+                    LastAccessed = DateTime.Now
+                });
+                recentProjects.Add(new RecentProject
+                {
+                    ProjectName = "土壤与肥料学.rhproj",
+                    ProjectPath = @"D:\Files\bitch\sdau.rhproj",
+                    LastAccessed = DateTime.Now.AddDays(-1)
+                });
+            }
         }
 
-        private void AddRecentProjectItem(string projectName, string projectPath)
+
+        private void SaveRecentProjects()
+        {
+            try
+            {
+                string json = JsonSerializer.Serialize(recentProjects, new JsonSerializerOptions { WriteIndented = true });
+                File.WriteAllText(recentProjectsFile, json);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"保存最近项目失败: {ex.Message}");
+            }
+        }
+
+        private void PopulateRecentProjectsUI()
+        {
+            RecentProjectsPanel.Children.Clear();
+
+            // Sort by visit time
+            recentProjects.Sort((x, y) => y.LastAccessed.CompareTo(x.LastAccessed));
+
+            foreach (var project in recentProjects)
+            {
+                AddRecentProjectToUI(project.ProjectName, project.ProjectPath);
+            }
+        }
+
+        private void AddRecentProjectToUI(string projectName, string projectPath)
         {
             var button = new Button
             {
-                Style = (Style)FindResource("RecentItemStyle")
+                Style = (Style)FindResource("RecentItemStyle"),
+                Tag = projectPath
             };
 
             var grid = new Grid();
             grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
             grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
 
-            // 项目图标
             var image = new Image
             {
                 Source = new System.Windows.Media.Imaging.BitmapImage(
-                    new System.Uri("pack://application:,,,/ReciteHelper;component/Images/project.png")),
+                    new Uri("pack://application:,,,/ReciteHelper;component/Images/project.png")),
                 Width = 24,
                 Height = 24,
                 Margin = new Thickness(0, 0, 12, 0)
             };
             Grid.SetColumn(image, 0);
 
-            // 项目信息
             var stackPanel = new StackPanel();
             Grid.SetColumn(stackPanel, 1);
 
@@ -72,46 +128,183 @@ namespace ReciteHelper
             grid.Children.Add(stackPanel);
 
             button.Content = grid;
-            button.Click += (s, e) => OpenProject(projectPath);
+            button.Click += RecentProject_Click;
 
             RecentProjectsPanel.Children.Add(button);
         }
 
+        public void AddRecentProject(string projectPath)
+        {
+            string projectName = Path.GetFileName(projectPath);
+
+            // Check if exists
+            var existingProject = recentProjects.Find(p => p.ProjectPath.Equals(projectPath, StringComparison.OrdinalIgnoreCase));
+            if (existingProject != null)
+            {
+                // Update visit time
+                existingProject.LastAccessed = DateTime.Now;
+            }
+            else
+            {
+                // Add new project
+                recentProjects.Add(new RecentProject
+                {
+                    ProjectName = projectName,
+                    ProjectPath = projectPath,
+                    LastAccessed = DateTime.Now
+                });
+
+                // Master~ I want to be ♡~ filled up!
+                if (recentProjects.Count > 10)
+                {
+                    recentProjects.Sort((x, y) => y.LastAccessed.CompareTo(x.LastAccessed));
+                    recentProjects = recentProjects.GetRange(0, 10);
+                }
+            }
+
+            // Update UI
+            SaveRecentProjects();
+            PopulateRecentProjectsUI();
+        }
+
+        private void RecentProject_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button button && button.Tag is string projectPath)
+            {
+                OpenProject(projectPath);
+            }
+        }
+
         private void CreateNewProject_Click(object sender, RoutedEventArgs e)
         {
-            // 创建新项目的逻辑
-            MessageBox.Show("创建新项目功能");
+            var dialog = new Microsoft.Win32.SaveFileDialog
+            {
+                Filter = "ReciteHelper项目文件 (*.rhproj)|*.rhproj",
+                DefaultExt = ".rhproj",
+                FileName = "新项目.rhproj"
+            };
+
+            if (dialog.ShowDialog() == true)
+            {
+                string projectPath = dialog.FileName;
+
+                // TODO: Add the logic for creating new projects here
+                CreateNewProject(projectPath);
+
+
+                // Add to recent projects
+                AddRecentProject(projectPath);
+
+                MessageBox.Show($"新项目已创建: {projectPath}");
+            }
         }
 
         private void LoadProject_Click(object sender, RoutedEventArgs e)
         {
-            // 加载项目的逻辑
             var openFileDialog = new Microsoft.Win32.OpenFileDialog
             {
-                Filter = "ReciteHelper项目文件 (*.rhproj)|*.rhproj"
+                Filter = "ReciteHelper项目文件 (*.rhproj)|*.rhproj",
+                Multiselect = false
             };
 
             if (openFileDialog.ShowDialog() == true)
             {
-                OpenProject(openFileDialog.FileName);
+                string projectPath = openFileDialog.FileName;
+                OpenProject(projectPath);
+
+                // Add to recent projects
+                AddRecentProject(projectPath);
             }
         }
 
         private void OpenFolder_Click(object sender, RoutedEventArgs e)
         {
-            // 打开文件夹的逻辑
             var dialog = new OpenFolderDialog();
+
             if (dialog.ShowDialog() == true)
             {
-                // 处理文件夹打开逻辑
-                MessageBox.Show($"打开文件夹: {dialog.FolderName}");
+                string folderPath = dialog.FolderName;
+
+                // Find the project file in the folder
+                var projectFiles = Directory.GetFiles(folderPath, "*.rhproj");
+                if (projectFiles.Length > 0)
+                {
+                    // If you find the project file, open the first one.
+                    OpenProject(projectFiles[0]);
+                    AddRecentProject(projectFiles[0]);
+                }
+                else
+                {
+                    MessageBox.Show("在选择的文件夹中未找到项目文件 (*.rhproj)", "提示",
+                        MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+
             }
         }
 
         private void OpenProject(string projectPath)
         {
-            // 打开项目的逻辑
-            MessageBox.Show($"打开项目: {projectPath}");
+            if (File.Exists(projectPath))
+            {
+                try
+                {
+                    // TODO: This section implements the logic for actually opening the project
+                    // e.g. Loading project data, switching to the main interface, etc
+
+                    var project = recentProjects.Find(p => p.ProjectPath.Equals(projectPath, StringComparison.OrdinalIgnoreCase));
+                    if (project != null)
+                    {
+                        project.LastAccessed = DateTime.Now;
+                        SaveRecentProjects();
+                        PopulateRecentProjectsUI();
+                    }
+
+                    MessageBox.Show($"项目已打开: {projectPath}", "成功",
+                        MessageBoxButton.OK, MessageBoxImage.Information);
+
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"打开项目失败: {ex.Message}", "错误",
+                        MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+            else
+            {
+                MessageBox.Show($"项目文件不存在: {projectPath}", "错误",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void CreateNewProject(string projectPath)
+        {
+            try
+            {
+                // Create the project directory (if it does not already exist)
+                string directory = Path.GetDirectoryName(projectPath);
+                if (!Directory.Exists(directory))
+                {
+                    Directory.CreateDirectory(directory);
+                }
+
+                // TODO: This section creates project files and data
+                // e.g. Create a default project configuration file
+                var projectData = new
+                {
+                    ProjectName = Path.GetFileNameWithoutExtension(projectPath),
+                    CreatedDate = DateTime.Now,
+                    Version = "1.0"
+                };
+
+                string json = JsonSerializer.Serialize(projectData, new JsonSerializerOptions { WriteIndented = true });
+                File.WriteAllText(projectPath, json);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"创建项目失败: {ex.Message}", "错误",
+                    MessageBoxButton.OK, MessageBoxImage.Error);
+                throw;
+            }
         }
     }
 }
