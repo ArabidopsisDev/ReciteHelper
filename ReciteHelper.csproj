@@ -9,6 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Images\background.png" />
     <None Remove="Images\create.png" />
     <None Remove="Images\folder.png" />
     <None Remove="Images\load.png" />
@@ -16,6 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="Images\background.png" />
     <Resource Include="Images\create.png" />
     <Resource Include="Images\folder.png" />
     <Resource Include="Images\load.png" />

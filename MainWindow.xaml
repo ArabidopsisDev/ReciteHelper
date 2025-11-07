@@ -13,7 +13,6 @@
     mc:Ignorable="d">
 
     <Window.Resources>
-        <!--  按钮样式  -->
         <Style x:Key="ActionButtonStyle" TargetType="Button">
             <Setter Property="Background" Value="White" />
             <Setter Property="BorderThickness" Value="0" />
@@ -240,7 +239,6 @@
                 </Grid>
             </Button>
 
-            <!--  底部信息  -->
             <Border
                 Margin="0,20,0,0"
                 Padding="8"
@@ -253,5 +251,10 @@
                     TextAlignment="Center" />
             </Border>
         </StackPanel>
+
+        <Image
+            Width="600"
+            Margin="0,400,0,0"
+            Source="/Images/background.png" />
     </Grid>
 </Window>
