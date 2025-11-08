@@ -14,8 +14,8 @@ public class Question
     [JsonPropertyName("text")]
     public string? Text { get; set; }
 
-    [JsonPropertyName("answer")]
-    public string? Answer { get; set; }
+    [JsonPropertyName("user_answer")]
+    public string? UserAnswer { get; set; } = null;
 
     [JsonPropertyName("correct_answer")]
     public string? CorrectAnswer { get; set; }

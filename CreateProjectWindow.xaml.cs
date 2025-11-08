@@ -1,8 +1,13 @@
 ﻿using Docnet.Core;
 using Docnet.Core.Models;
+using LlmTornado;
+using LlmTornado.Agents;
+using LlmTornado.Chat;
+using LlmTornado.Chat.Models;
 using Microsoft.Win32;
 using ReciteHelper.Models;
 using System.IO;
+using System.Text.Json;
 using System.Windows;
 
 namespace ReciteHelper;
@@ -176,7 +181,7 @@ public partial class CreateProjectWindow : Window
         }
     }
 
-    private void ConfirmButton_Click(object sender, RoutedEventArgs e)
+    private async void ConfirmButton_Click(object sender, RoutedEventArgs e)
     {
         if (!ConfirmButton.IsEnabled) return;
 
@@ -210,6 +215,51 @@ public partial class CreateProjectWindow : Window
             string json = System.Text.Json.JsonSerializer.Serialize(project,
                 new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
             File.WriteAllText(FullProjectPath, json);
+
+            // Start generating the question bank
+            var api = new TornadoApi("sk-975190102fde4eb19eee9f97162867f0");
+
+            var agent = new TornadoAgent(
+                client: api,
+                model: ChatModel.DeepSeek.Models.Chat,
+                name: "ArchitectBot",
+                instructions: "You are an assistant who is good at extracting knowledge."
+            );
+
+            var result = await agent.Run(
+                $"""
+                The following is the knowledge text provided by the user. 
+                Please generate fill in the blank questions for the user by extracting 
+                the knowledge points from each statement and replacing them with ________. 
+                If there are multiple knowledge points in a statement, 
+                generate multiple questions. The returned JSON format is as follows:
+
+                    public class Question
+                    /// <summary>
+                    /// The status of the answers is indicated by a value of null (no answer), 
+                    /// true (correct answer), and false (incorrect answer)
+                    /// </summary>
+                    [JsonPropertyName("status")]
+                    public bool? Status  get; set; 
+
+                    [JsonPropertyName("text")]
+                    public string? Text get; set; 
+
+                    [JsonPropertyName("user_answer")]
+                    public string? UserAnswer get; set; = null;
+
+                    [JsonPropertyName("correct_answer")]
+                    public string? CorrectAnswer get; set;
+
+                Fill in Text and CorrectAnswer, Return a JSON form of List<Question>.
+                below is the user's knowledge base: {ExtractAllTextFromPdf(QuestionBankPath)}
+                """
+            );
+
+            project.QuestionBank = 
+                JsonSerializer.Deserialize<List<Question>>(
+                    result.Messages.Last().Content!.Replace("`","").Replace("json","")
+            );
 
             DialogResult = true;
             Close();
@@ -269,7 +319,7 @@ public partial class CreateProjectWindow : Window
 
         var coff = 1.25d;
         var tokens = length * 1.3d * (1d + coff);
-        var price = length / 1_000_000 * 2 + length * coff / 1_000_000 * 3; 
+        var price = length / 1_000_000 * 2 + length * coff / 1_000_000 * 3;
 
 
         MessageBox.Show($"""
