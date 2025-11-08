@@ -1,0 +1,243 @@
+﻿<Window
+    x:Class="ReciteHelper.CreateProjectWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Title="创建新项目"
+    Width="500"
+    Height="450"
+    Background="#F6F6F6"
+    Icon="pack://application:,,,/ReciteHelper;component/Images/create.png"
+    ResizeMode="NoResize"
+    WindowStartupLocation="CenterOwner"
+    mc:Ignorable="d">
+
+    <Window.Resources>
+        <!--  输入框样式  -->
+        <Style x:Key="ModernTextBox" TargetType="TextBox">
+            <Setter Property="Background" Value="White" />
+            <Setter Property="BorderBrush" Value="#DDDDDD" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Padding" Value="8" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Style.Triggers>
+                <Trigger Property="IsFocused" Value="True">
+                    <Setter Property="BorderBrush" Value="#007ACC" />
+                    <Setter Property="BorderThickness" Value="2" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!--  浏览按钮样式  -->
+        <Style x:Key="BrowseButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#F0F0F0" />
+            <Setter Property="BorderBrush" Value="#DDDDDD" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Padding" Value="12,6" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#E0E0E0" />
+                    <Setter Property="BorderBrush" Value="#007ACC" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!--  功能按钮样式  -->
+        <Style x:Key="ActionButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#007ACC" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="20,10" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="MinWidth" Value="80" />
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#005A9E" />
+                </Trigger>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Background" Value="#CCCCCC" />
+                    <Setter Property="Foreground" Value="#888888" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <!--  标题区域  -->
+        <StackPanel
+            Grid.Row="0"
+            Margin="0,0,0,20"
+            Orientation="Horizontal">
+            <Image
+                Width="24"
+                Height="24"
+                Margin="0,0,10,0"
+                Source="pack://application:,,,/ReciteHelper;component/Images/create.png" />
+            <TextBlock
+                FontSize="18"
+                FontWeight="Bold"
+                Foreground="#333333"
+                Text="创建新项目" />
+        </StackPanel>
+
+        <StackPanel Grid.Row="1" Orientation="Vertical">
+            <StackPanel Orientation="Vertical">
+                <TextBlock
+                    FontWeight="SemiBold"
+                    Foreground="#333333"
+                    Text="项目名称" />
+                <TextBox
+                    x:Name="ProjectNameTextBox"
+                    Style="{StaticResource ModernTextBox}"
+                    TextChanged="ProjectNameTextBox_TextChanged"
+                    ToolTip="输入项目名称，将用于创建项目文件夹" />
+                <TextBlock
+                    x:Name="ProjectNameValidation"
+                    FontSize="11"
+                    Foreground="Red"
+                    Text=""
+                    Visibility="Collapsed" />
+            </StackPanel>
+
+            <StackPanel Orientation="Vertical">
+                <TextBlock
+                    FontWeight="SemiBold"
+                    Foreground="#333333"
+                    Text="存储路径" />
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBox
+                        x:Name="StoragePathTextBox"
+                        Grid.Column="0"
+                        Background="#F8F8F8"
+                        IsReadOnly="True"
+                        Style="{StaticResource ModernTextBox}"
+                        ToolTip="项目文件将保存在此路径下" />
+                    <Button
+                        x:Name="BrowseStoragePathButton"
+                        Grid.Column="1"
+                        Margin="5,0,0,0"
+                        Click="BrowseStoragePathButton_Click"
+                        Content="浏览..."
+                        Style="{StaticResource BrowseButtonStyle}" />
+                </Grid>
+                <TextBlock
+                    x:Name="StoragePathValidation"
+                    FontSize="11"
+                    Foreground="Red"
+                    Text=""
+                    Visibility="Collapsed" />
+            </StackPanel>
+
+            <StackPanel Orientation="Vertical">
+                <TextBlock
+                    FontWeight="SemiBold"
+                    Foreground="#333333"
+                    Text="题库文件 (PDF)" />
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBox
+                        x:Name="QuestionBankTextBox"
+                        Grid.Column="0"
+                        Background="#F8F8F8"
+                        IsReadOnly="True"
+                        Style="{StaticResource ModernTextBox}"
+                        ToolTip="选择包含题目的PDF文件" />
+                    <Button
+                        x:Name="BrowseQuestionBankButton"
+                        Grid.Column="1"
+                        Margin="5,0,0,0"
+                        Click="BrowseQuestionBankButton_Click"
+                        Content="浏览..."
+                        Style="{StaticResource BrowseButtonStyle}" />
+                </Grid>
+                <TextBlock
+                    x:Name="QuestionBankValidation"
+                    FontSize="11"
+                    Foreground="Red"
+                    Text=""
+                    Visibility="Collapsed" />
+            </StackPanel>
+
+            <Border
+                Margin="0,20,0,0"
+                Padding="12"
+                Background="#F0F7FF"
+                BorderBrush="#B3D7FF"
+                BorderThickness="1"
+                CornerRadius="4">
+                <StackPanel Orientation="Vertical">
+                    <TextBlock
+                        Margin="0,0,0,4"
+                        FontWeight="SemiBold"
+                        Foreground="#007ACC"
+                        Text="项目信息预览" />
+                    <TextBlock
+                        x:Name="ProjectPathPreview"
+                        FontSize="11"
+                        Foreground="#666666"
+                        Text="" />
+                    <TextBlock
+                        x:Name="QuestionBankPreview"
+                        FontSize="11"
+                        Foreground="#666666"
+                        Text="" />
+                </StackPanel>
+            </Border>
+        </StackPanel>
+
+        <Border
+            Grid.Row="2"
+            Margin="0,20,0,0"
+            Padding="0,16,0,0"
+            BorderBrush="#DDDDDD"
+            BorderThickness="0,1,0,0">
+            <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+                <Button
+                    x:Name="CountButton"
+                    Background="Transparent"
+                    BorderBrush="#DDDDDD"
+                    BorderThickness="1"
+                    Click="CountButton_Click"
+                    Content="估计价格"
+                    Foreground="#666666"
+                    Style="{StaticResource ActionButtonStyle}" />
+                <Button
+                    x:Name="CancelButton"
+                    Margin="20,0,0,0"
+                    Background="Transparent"
+                    BorderBrush="#DDDDDD"
+                    BorderThickness="1"
+                    Click="CancelButton_Click"
+                    Content="取消"
+                    Foreground="#666666"
+                    Style="{StaticResource ActionButtonStyle}" />
+                <Button
+                    x:Name="ConfirmButton"
+                    Margin="20,0,0,0"
+                    Click="ConfirmButton_Click"
+                    Content="确认创建"
+                    IsEnabled="False"
+                    Style="{StaticResource ActionButtonStyle}" />
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>

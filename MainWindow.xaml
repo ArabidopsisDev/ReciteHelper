@@ -126,7 +126,7 @@
                     <Border
                         Grid.Column="0"
                         Width="80"
-                        Background="#007ACC"
+                        Background="Green"
                         CornerRadius="4,0,0,4">
                         <Image
                             Width="32"
@@ -207,7 +207,6 @@
                         <ColumnDefinition Width="*" />
                     </Grid.ColumnDefinitions>
 
-                    <!--  图标区域  -->
                     <Border
                         Grid.Column="0"
                         Width="80"

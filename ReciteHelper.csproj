@@ -17,6 +17,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Docnet.Core" Version="2.6.0" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Resource Include="Images\background.png" />
     <Resource Include="Images\create.png" />
     <Resource Include="Images\folder.png" />

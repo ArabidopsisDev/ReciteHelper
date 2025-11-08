@@ -177,25 +177,14 @@ namespace ReciteHelper
 
         private void CreateNewProject_Click(object sender, RoutedEventArgs e)
         {
-            var dialog = new Microsoft.Win32.SaveFileDialog
+            var result = new CreateProjectWindow()
             {
-                Filter = "ReciteHelper项目文件 (*.rhproj)|*.rhproj",
-                DefaultExt = ".rhproj",
-                FileName = "新项目.rhproj"
-            };
+                Owner = this
+            }.ShowDialog();
 
-            if (dialog.ShowDialog() == true)
+            if (result == false)
             {
-                string projectPath = dialog.FileName;
-
-                // TODO: Add the logic for creating new projects here
-                CreateNewProject(projectPath);
-
-
-                // Add to recent projects
-                AddRecentProject(projectPath);
-
-                MessageBox.Show($"新项目已创建: {projectPath}");
+                MessageBox.Show("已放弃创建项目");
             }
         }
 
@@ -273,37 +262,6 @@ namespace ReciteHelper
             {
                 MessageBox.Show($"项目文件不存在: {projectPath}", "错误",
                     MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
-
-        private void CreateNewProject(string projectPath)
-        {
-            try
-            {
-                // Create the project directory (if it does not already exist)
-                string directory = Path.GetDirectoryName(projectPath);
-                if (!Directory.Exists(directory))
-                {
-                    Directory.CreateDirectory(directory);
-                }
-
-                // TODO: This section creates project files and data
-                // e.g. Create a default project configuration file
-                var projectData = new
-                {
-                    ProjectName = Path.GetFileNameWithoutExtension(projectPath),
-                    CreatedDate = DateTime.Now,
-                    Version = "1.0"
-                };
-
-                string json = JsonSerializer.Serialize(projectData, new JsonSerializerOptions { WriteIndented = true });
-                File.WriteAllText(projectPath, json);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"创建项目失败: {ex.Message}", "错误",
-                    MessageBoxButton.OK, MessageBoxImage.Error);
-                throw;
             }
         }
     }
