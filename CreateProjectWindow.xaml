@@ -211,8 +211,15 @@
             BorderBrush="#DDDDDD"
             BorderThickness="0,1,0,0">
             <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+                <Label
+                    Name="ProcessLabel"
+                    Margin="0,0,0,0"
+                    VerticalAlignment="Center"
+                    Content="进度：0/0"
+                    FontSize="14" />
                 <Button
                     x:Name="CountButton"
+                    Margin="60,0,0,0"
                     Background="Transparent"
                     BorderBrush="#DDDDDD"
                     BorderThickness="1"

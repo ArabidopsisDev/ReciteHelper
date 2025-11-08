@@ -1,0 +1,358 @@
+﻿<Window
+    x:Class="ReciteHelper.QuizWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Title="答题窗口 - ReciteHelper"
+    Width="1000"
+    Height="700"
+    Background="#F8F9FA"
+    WindowStartupLocation="CenterScreen"
+    mc:Ignorable="d">
+
+    <Window.Resources>
+        <Style x:Key="AnswerCardButtonStyle" TargetType="Button">
+            <Setter Property="Width" Value="40" />
+            <Setter Property="Height" Value="40" />
+            <Setter Property="Background" Value="#E9ECEF" />
+            <Setter Property="BorderBrush" Value="#DEE2E6" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Foreground" Value="#495057" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#DEE2E6" />
+                    <Setter Property="BorderBrush" Value="#007ACC" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style
+            x:Key="CorrectAnswerStyle"
+            BasedOn="{StaticResource AnswerCardButtonStyle}"
+            TargetType="Button">
+            <Setter Property="Background" Value="#D4EDDA" />
+            <Setter Property="BorderBrush" Value="#C3E6CB" />
+            <Setter Property="Foreground" Value="#155724" />
+        </Style>
+
+        <Style
+            x:Key="WrongAnswerStyle"
+            BasedOn="{StaticResource AnswerCardButtonStyle}"
+            TargetType="Button">
+            <Setter Property="Background" Value="#F8D7DA" />
+            <Setter Property="BorderBrush" Value="#F5C6CB" />
+            <Setter Property="Foreground" Value="#721C24" />
+        </Style>
+
+        <Style
+            x:Key="CurrentQuestionStyle"
+            BasedOn="{StaticResource AnswerCardButtonStyle}"
+            TargetType="Button">
+            <Setter Property="BorderBrush" Value="#007ACC" />
+            <Setter Property="BorderThickness" Value="3" />
+        </Style>
+
+        <Style x:Key="PrimaryButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#007ACC" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="20,10" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="MinWidth" Value="80" />
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#005A9E" />
+                </Trigger>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Background" Value="#CCCCCC" />
+                    <Setter Property="Foreground" Value="#888888" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="SecondaryButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="#666666" />
+            <Setter Property="BorderBrush" Value="#DDDDDD" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Padding" Value="20,10" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="MinWidth" Value="80" />
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#F8F9FA" />
+                    <Setter Property="BorderBrush" Value="#007ACC" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="AnswerResultStyle" TargetType="Border">
+            <Setter Property="Background" Value="#F8F9FA" />
+            <Setter Property="BorderBrush" Value="#E9ECEF" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="Padding" Value="16" />
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="220" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <Border
+            Grid.Column="0"
+            Background="White"
+            BorderBrush="#E9ECEF"
+            BorderThickness="0,0,1,0">
+            <DockPanel>
+                <Border
+                    Padding="16,12"
+                    Background="#F8F9FA"
+                    BorderBrush="#E9ECEF"
+                    BorderThickness="0,0,0,1"
+                    DockPanel.Dock="Top">
+                    <TextBlock
+                        FontSize="14"
+                        FontWeight="Bold"
+                        Foreground="#495057"
+                        Text="答题卡" />
+                </Border>
+
+                <ScrollViewer Padding="16" VerticalScrollBarVisibility="Auto">
+                    <ItemsControl x:Name="AnswerCardItemsControl">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel Orientation="Horizontal" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Button
+                                    Margin="4,4"
+                                    Click="SwitchButton_Click"
+                                    CommandParameter="{Binding Number}"
+                                    Content="{Binding Number}"
+                                    Style="{Binding StatusStyle}" />
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+
+                <Border
+                    Padding="16,12"
+                    Background="#F8F9FA"
+                    BorderBrush="#E9ECEF"
+                    BorderThickness="0,1,0,0"
+                    DockPanel.Dock="Bottom">
+                    <StackPanel>
+                        <TextBlock
+                            x:Name="StatsTextBlock"
+                            FontSize="12"
+                            Foreground="#6C757D"
+                            Text="总计: 0  正确: 0  错误: 0"
+                            TextAlignment="Center" />
+                        <ProgressBar
+                            x:Name="ProgressBar"
+                            Height="6"
+                            Margin="0,8,0,0"
+                            Background="#E9ECEF"
+                            Foreground="#28A745" />
+                    </StackPanel>
+                </Border>
+            </DockPanel>
+        </Border>
+
+        <Grid Grid.Column="1" Margin="20">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <Border
+                Grid.Row="0"
+                Padding="16"
+                Background="White"
+                BorderBrush="#E9ECEF"
+                BorderThickness="1"
+                CornerRadius="4">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel
+                        Grid.Column="0"
+                        VerticalAlignment="Center"
+                        Orientation="Horizontal">
+                        <TextBlock
+                            FontSize="13"
+                            Foreground="#6C757D"
+                            Text="第" />
+                        <TextBlock
+                            x:Name="CurrentQuestionText"
+                            Margin="4,0"
+                            FontSize="13"
+                            FontWeight="Bold"
+                            Foreground="#007ACC"
+                            Text="1" />
+                        <TextBlock
+                            Margin="4,0"
+                            FontSize="13"
+                            Foreground="#6C757D"
+                            Text="题 / 共" />
+                        <TextBlock
+                            x:Name="TotalQuestionsText"
+                            Margin="4,0"
+                            FontSize="13"
+                            FontWeight="Bold"
+                            Foreground="#495057"
+                            Text="20" />
+                        <TextBlock
+                            FontSize="13"
+                            Foreground="#6C757D"
+                            Text="题" />
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                        <Button
+                            x:Name="PrevButton"
+                            Click="PrevButton_Click"
+                            Content="上一题"
+                            Style="{StaticResource SecondaryButtonStyle}" />
+                        <Button
+                            x:Name="NextButton"
+                            Click="NextButton_Click"
+                            Content="下一题"
+                            Style="{StaticResource PrimaryButtonStyle}" />
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <Border
+                Grid.Row="1"
+                Margin="0,16,0,0"
+                Padding="20"
+                Background="White"
+                BorderBrush="#E9ECEF"
+                BorderThickness="1"
+                CornerRadius="4">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <TextBlock
+                        x:Name="QuestionTextBlock"
+                        FontSize="14"
+                        Foreground="#333333"
+                        LineHeight="24"
+                        Text="这里是题目内容..."
+                        TextWrapping="Wrap" />
+                </ScrollViewer>
+            </Border>
+
+            <Border
+                Grid.Row="2"
+                Margin="0,16,0,0"
+                Padding="20"
+                Background="White"
+                BorderBrush="#E9ECEF"
+                BorderThickness="1"
+                CornerRadius="4">
+                <StackPanel>
+                    <TextBlock
+                        Margin="0,0,0,12"
+                        FontSize="13"
+                        FontWeight="SemiBold"
+                        Foreground="#495057"
+                        Text="请输入答案：" />
+                    <TextBox
+                        x:Name="AnswerTextBox"
+                        Height="80"
+                        Padding="12"
+                        AcceptsReturn="True"
+                        BorderBrush="#DEE2E6"
+                        BorderThickness="1"
+                        FontSize="13"
+                        TextChanged="AnswerTextBox_TextChanged"
+                        TextWrapping="Wrap"
+                        VerticalScrollBarVisibility="Auto" />
+                    <StackPanel
+                        Margin="0,12,0,0"
+                        HorizontalAlignment="Right"
+                        Orientation="Horizontal">
+                        <Button
+                            x:Name="SubmitButton"
+                            Click="SubmitButton_Click"
+                            Content="提交答案"
+                            Style="{StaticResource PrimaryButtonStyle}" />
+                        <Button
+                            x:Name="SkipButton"
+                            Margin="20,0,0,0"
+                            Click="SkipButton_Click"
+                            Content="跳过"
+                            Style="{StaticResource SecondaryButtonStyle}" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <Border
+                x:Name="ResultArea"
+                Grid.Row="3"
+                Margin="0,16,0,0"
+                Style="{StaticResource AnswerResultStyle}"
+                Visibility="Collapsed">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <TextBlock
+                        x:Name="ResultTitleText"
+                        Grid.Row="0"
+                        Margin="0,0,0,8"
+                        FontSize="14"
+                        FontWeight="Bold"
+                        Text="回答正确！" />
+
+                    <StackPanel
+                        Grid.Row="1"
+                        Margin="0,0,0,4"
+                        Orientation="Horizontal">
+                        <TextBlock
+                            MinWidth="80"
+                            FontWeight="SemiBold"
+                            Foreground="#495057"
+                            Text="您的答案：" />
+                        <TextBlock
+                            x:Name="UserAnswerText"
+                            Foreground="#333333"
+                            Text=""
+                            TextWrapping="Wrap" />
+                    </StackPanel>
+
+                    <StackPanel Grid.Row="2" Orientation="Horizontal">
+                        <TextBlock
+                            MinWidth="80"
+                            FontWeight="SemiBold"
+                            Foreground="#495057"
+                            Text="正确答案：" />
+                        <TextBlock
+                            x:Name="CorrectAnswerText"
+                            Foreground="#333333"
+                            Text=""
+                            TextWrapping="Wrap" />
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+    </Grid>
+</Window>

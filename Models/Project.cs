@@ -15,4 +15,7 @@ public class Project
 
     [JsonPropertyName("bank")]
     public List<Question>? QuestionBank { get;  set; }
+
+    [JsonPropertyName("last_accessed")]
+    public DateTime LastAccessed { get; set; }
 }

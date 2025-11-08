@@ -240,16 +240,17 @@ namespace ReciteHelper
                     // TODO: This section implements the logic for actually opening the project
                     // e.g. Loading project data, switching to the main interface, etc
 
-                    var project = recentProjects.Find(p => p.ProjectPath.Equals(projectPath, StringComparison.OrdinalIgnoreCase));
+                    var jsonString = File.ReadAllText(projectPath);
+                    var project = JsonSerializer.Deserialize<Project>(jsonString!);
                     if (project != null)
                     {
                         project.LastAccessed = DateTime.Now;
+                        var quizWindow = new QuizWindow(project.QuestionBank!);
+                        quizWindow.Show();
+
                         SaveRecentProjects();
                         PopulateRecentProjectsUI();
                     }
-
-                    MessageBox.Show($"项目已打开: {projectPath}", "成功",
-                        MessageBoxButton.OK, MessageBoxImage.Information);
 
                 }
                 catch (Exception ex)

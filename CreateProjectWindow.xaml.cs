@@ -2,13 +2,13 @@
 using Docnet.Core.Models;
 using LlmTornado;
 using LlmTornado.Agents;
-using LlmTornado.Chat;
 using LlmTornado.Chat.Models;
 using Microsoft.Win32;
 using ReciteHelper.Models;
 using System.IO;
 using System.Text.Json;
 using System.Windows;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace ReciteHelper;
 
@@ -18,6 +18,7 @@ public partial class CreateProjectWindow : Window
     public string? StoragePath { get; private set; }
     public string? QuestionBankPath { get; private set; }
     public string? FullProjectPath { get; private set; }
+    public Project project;
 
     public CreateProjectWindow()
     {
@@ -204,7 +205,7 @@ public partial class CreateProjectWindow : Window
 
             // Create project files
             FullProjectPath = Path.Combine(projectDir, ProjectName + ".rhproj");
-            var project = new Project
+            project = new Project
             {
                 ProjectName = ProjectName,
                 QuestionBankPath = destQuestionBankPath,
@@ -212,27 +213,59 @@ public partial class CreateProjectWindow : Window
                 StoragePath = StoragePath
             };
 
+            project.QuestionBank = new();
+            ProcessLabel.Content = 
+                $"进度: 0/{(int)Math.Ceiling(ExtractAllTextFromPdf(QuestionBankPath!).Length / 1000d)}";
+
+            // Start generating the question bank
+            await ProcessQuestionsAsync();
+
+            MessageBox.Show("成功了...");
+
             string json = System.Text.Json.JsonSerializer.Serialize(project,
                 new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
             File.WriteAllText(FullProjectPath, json);
 
-            // Start generating the question bank
-            var api = new TornadoApi("sk-975190102fde4eb19eee9f97162867f0");
+            DialogResult = true;
+            Close();
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"创建项目失败: {ex.Message}", "错误",
+                MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
 
-            var agent = new TornadoAgent(
-                client: api,
-                model: ChatModel.DeepSeek.Models.Chat,
-                name: "ArchitectBot",
-                instructions: "You are an assistant who is good at extracting knowledge."
-            );
+    private async Task ProcessQuestionsAsync()
+    {
+        var api = new TornadoApi("sk-975190102fde4eb19eee9f97162867f0");
 
-            var result = await agent.Run(
+        var agent = new TornadoAgent(
+            client: api,
+            model: ChatModel.DeepSeek.Models.Chat,
+            name: "ArchitectBot",
+            instructions: "You are an assistant who is good at extracting knowledge."
+        );
+
+        var text = ExtractAllTextFromPdf(QuestionBankPath!);
+
+        try
+        {
+            int totalChunks = (int)Math.Ceiling(text.Length / 1000d);
+
+            for (int i = 0; i < totalChunks; i++)
+            {
+                int startIndex = i * 1000;
+                int length = Math.Min(1000, text.Length - startIndex);
+                string chunk = text.Substring(startIndex, length);
+
+                var result = await agent.Run(
                 $"""
-                The following is the knowledge text provided by the user. 
-                Please generate fill in the blank questions for the user by extracting 
-                the knowledge points from each statement and replacing them with ________. 
-                If there are multiple knowledge points in a statement, 
-                generate multiple questions. The returned JSON format is as follows:
+                    The following is the knowledge text provided by the user. 
+                    Please generate fill in the blank questions for the user by extracting 
+                    the knowledge points from each statement and replacing them with ________. 
+                    If there are multiple knowledge points in a statement, 
+                    generate multiple questions. The returned JSON format is as follows:
 
                     public class Question
                     /// <summary>
@@ -251,23 +284,46 @@ public partial class CreateProjectWindow : Window
                     [JsonPropertyName("correct_answer")]
                     public string? CorrectAnswer get; set;
 
-                Fill in Text and CorrectAnswer, Return a JSON form of List<Question>.
-                below is the user's knowledge base: {ExtractAllTextFromPdf(QuestionBankPath)}
+                    Fill in Text and CorrectAnswer, Return a JSON form of List<Question>.
+                    below is the user's knowledge base: 
+                    {chunk}
                 """
-            );
+                );
 
-            project.QuestionBank = 
-                JsonSerializer.Deserialize<List<Question>>(
-                    result.Messages.Last().Content!.Replace("`","").Replace("json","")
-            );
+                try
+                {
 
-            DialogResult = true;
-            Close();
+                    string jsonContent = result.Messages.Last().Content!
+                        .Replace("`", "")
+                        .Replace("json", "")
+                        .Trim();
+
+                    var questions = JsonSerializer.Deserialize<List<Question>>(jsonContent);
+
+                    if (questions != null && questions.Count > 0)
+                    {
+                        project.QuestionBank!.AddRange(questions);
+                    }
+                }
+                catch
+                {
+                    continue;
+                }
+                finally
+                {
+                    Dispatcher.Invoke(() =>
+                    {
+                        ProcessLabel.Content = $"进度: {i+1}/{totalChunks}";
+                    });
+                }
+            }
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"创建项目失败: {ex.Message}", "错误",
-                MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageBox.Show($"处理问题时发生错误: {ex.Message}", "错误",
+                           MessageBoxButton.OK, MessageBoxImage.Error);
+            DialogResult = false;
+            Close();
         }
     }
 
