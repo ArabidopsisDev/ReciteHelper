@@ -1,4 +1,5 @@
-﻿using ReciteHelper.Models;
+﻿using FuzzyString;
+using ReciteHelper.Models;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
@@ -51,7 +52,6 @@ namespace ReciteHelper
                 SwitchToQuestion(questionNumber);
             }
         }
-
 
         private void InitializeQuestions(List<Question> questions)
         {
@@ -199,7 +199,17 @@ namespace ReciteHelper
             var currentQuestion = _questions[_currentQuestionIndex];
             currentQuestion.UserAnswer = AnswerTextBox.Text.Trim();
 
-            bool isCorrect = currentQuestion.UserAnswer.Equals(currentQuestion.Question!.CorrectAnswer, StringComparison.OrdinalIgnoreCase);
+            // Determine whether the answer is roughly similar to the given answer
+            var tolerance = FuzzyStringComparisonTolerance.Strong;
+            var comparisonOptions = new List<FuzzyStringComparisonOptions>
+            {
+                FuzzyStringComparisonOptions.UseOverlapCoefficient,
+                FuzzyStringComparisonOptions.UseLongestCommonSubsequence,
+                FuzzyStringComparisonOptions.UseLongestCommonSubstring
+            };
+
+            bool isCorrect = currentQuestion.UserAnswer.ApproximatelyEquals(
+                currentQuestion.Question!.CorrectAnswer, comparisonOptions, tolerance);
             currentQuestion.Status = isCorrect ? AnswerStatus.Correct : AnswerStatus.Wrong;
 
             ShowResult(currentQuestion);

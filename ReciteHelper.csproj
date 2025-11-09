@@ -18,6 +18,7 @@
 
   <ItemGroup>
     <PackageReference Include="Docnet.Core" Version="2.6.0" />
+    <PackageReference Include="FuzzyString" Version="1.0.0" />
     <PackageReference Include="LlmTornado" Version="3.8.12" />
     <PackageReference Include="LlmTornado.Agents" Version="1.0.11" />
   </ItemGroup>
