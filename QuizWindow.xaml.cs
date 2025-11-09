@@ -1,6 +1,7 @@
 ﻿using ReciteHelper.Models;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.IO;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
@@ -15,13 +16,16 @@ namespace ReciteHelper
         private int _totalQuestions = 0;
         private int _correctCount = 0;
         private int _wrongCount = 0;
+        private Project project = new();
 
-        public QuizWindow(List<Question> questions)
+        public QuizWindow(Project project)
         {
             InitializeComponent();
             DataContext = this;
+            this.project = project;
 
-            InitializeQuestions(questions);
+            InitializeQuestions(project.QuestionBank!);
+            LocateCurrent();
             UpdateDisplay();
         }
 
@@ -59,13 +63,20 @@ namespace ReciteHelper
                 {
                     Number = i + 1,
                     Question = questions[i],
-                    Status = AnswerStatus.NotAnswered,
+                    Status = questions[i].Status switch
+                    {
+                        true => AnswerStatus.Correct,
+                        false => AnswerStatus.Wrong,
+                        null => AnswerStatus.NotAnswered
+                    },
+                    UserAnswer = questions[i].UserAnswer,
                     StatusStyle = (Style)FindResource("AnswerCardButtonStyle")
                 });
             }
 
             _totalQuestions = _questions.Count;
             AnswerCardItemsControl.ItemsSource = _questions;
+            UpdateAnswerCardStyles();
             UpdateStatistics();
         }
 
@@ -165,6 +176,17 @@ namespace ReciteHelper
             ProgressBar.Value = progress * 100;
         }
 
+        private void LocateCurrent()
+        {
+            for (int i = 0; i < _questions.Count(); i++)
+            {
+                if (_questions[i].Status == AnswerStatus.NotAnswered)
+                {
+                    _currentQuestionIndex = i;
+                    return;
+                }
+            }
+        }
 
         private void SubmitButton_Click(object sender, RoutedEventArgs e)
         {
@@ -177,7 +199,7 @@ namespace ReciteHelper
             var currentQuestion = _questions[_currentQuestionIndex];
             currentQuestion.UserAnswer = AnswerTextBox.Text.Trim();
 
-            bool isCorrect = currentQuestion.UserAnswer.Equals(currentQuestion.Question.CorrectAnswer, StringComparison.OrdinalIgnoreCase);
+            bool isCorrect = currentQuestion.UserAnswer.Equals(currentQuestion.Question!.CorrectAnswer, StringComparison.OrdinalIgnoreCase);
             currentQuestion.Status = isCorrect ? AnswerStatus.Correct : AnswerStatus.Wrong;
 
             ShowResult(currentQuestion);
@@ -221,22 +243,21 @@ namespace ReciteHelper
         public class QuestionItem : INotifyPropertyChanged
         {
             public int Number { get; set; }
-            public Question Question { get; set; }
+            public Question? Question { get; set; }
             public AnswerStatus Status { get; set; }
-            public string UserAnswer { get; set; }
+            public string? UserAnswer { get; set; }
 
-            private Style _statusStyle;
-            public Style StatusStyle
+            public Style? StatusStyle
             {
-                get => _statusStyle;
+                get => field;
                 set
                 {
-                    _statusStyle = value;
+                    field = value;
                     OnPropertyChanged();
                 }
             }
 
-            public event PropertyChangedEventHandler PropertyChanged;
+            public event PropertyChangedEventHandler? PropertyChanged;
             protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
             {
                 PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
@@ -254,6 +275,29 @@ namespace ReciteHelper
         protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        private void Window_Closing(object sender, CancelEventArgs e)
+        {
+            if (project is null) return;
+
+            // Save record
+            for (int i = 0; i < _questions.Count(); i++)
+            {
+                project.QuestionBank![i].UserAnswer = _questions[i].UserAnswer;
+                project.QuestionBank[i].Status = _questions[i].Status switch
+                {
+                    AnswerStatus.NotAnswered => null,
+                    AnswerStatus.Correct => true,
+                    AnswerStatus.Wrong => false,
+                    _ => throw new NotImplementedException("Fuck U")
+                };
+            }
+
+            var path = Path.Combine(project.StoragePath!, project.ProjectName!, project.ProjectName!);
+            var json = System.Text.Json.JsonSerializer.Serialize(project,
+                new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+            File.WriteAllText($"{path}.rhproj", json);
         }
     }
 }

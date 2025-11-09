@@ -74,8 +74,6 @@
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-
-        <!--  标题区域  -->
         <StackPanel
             Grid.Row="0"
             Margin="0,0,0,20"
@@ -90,6 +88,13 @@
                 FontWeight="Bold"
                 Foreground="#333333"
                 Text="创建新项目" />
+            <TextBlock
+                                Foreground="#333333"
+                Margin="190,0,0,0"
+                VerticalAlignment="Center"
+                FontSize="16"
+                FontWeight="SemiBold"
+                Text="已启用全并发模式" />
         </StackPanel>
 
         <StackPanel Grid.Row="1" Orientation="Vertical">

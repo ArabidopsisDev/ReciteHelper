@@ -5,6 +5,7 @@ using LlmTornado.Agents;
 using LlmTornado.Chat.Models;
 using Microsoft.Win32;
 using ReciteHelper.Models;
+using System.Collections.Concurrent;
 using System.IO;
 using System.Text.Json;
 using System.Windows;
@@ -24,9 +25,7 @@ public partial class CreateProjectWindow : Window
     {
         InitializeComponent();
 
-        string documentsPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
-        string defaultPath = Path.Combine(documentsPath, "ReciteHelper", "Projects");
-        StoragePathTextBox.Text = defaultPath;
+        StoragePathTextBox.Text = "D:\\";
 
         UpdatePreview();
     }
@@ -252,46 +251,58 @@ public partial class CreateProjectWindow : Window
         try
         {
             int totalChunks = (int)Math.Ceiling(text.Length / 1000d);
+            var chunks = new List<(int index, string content)>();
 
             for (int i = 0; i < totalChunks; i++)
             {
                 int startIndex = i * 1000;
                 int length = Math.Min(1000, text.Length - startIndex);
                 string chunk = text.Substring(startIndex, length);
+                chunks.Add((i, chunk));
+            }
 
-                var result = await agent.Run(
-                $"""
-                    The following is the knowledge text provided by the user. 
-                    Please generate fill in the blank questions for the user by extracting 
-                    the knowledge points from each statement and replacing them with ________. 
-                    If there are multiple knowledge points in a statement, 
-                    generate multiple questions. The returned JSON format is as follows:
+            var parallelOptions = new ParallelOptions
+            {
+                MaxDegreeOfParallelism = 3
+            };
 
-                    public class Question
-                    /// <summary>
-                    /// The status of the answers is indicated by a value of null (no answer), 
-                    /// true (correct answer), and false (incorrect answer)
-                    /// </summary>
-                    [JsonPropertyName("status")]
-                    public bool? Status  get; set; 
+            var allQuestions = new ConcurrentBag<Question>();
+            int processedCount = 0;
 
-                    [JsonPropertyName("text")]
-                    public string? Text get; set; 
-
-                    [JsonPropertyName("user_answer")]
-                    public string? UserAnswer get; set; = null;
-
-                    [JsonPropertyName("correct_answer")]
-                    public string? CorrectAnswer get; set;
-
-                    Fill in Text and CorrectAnswer, Return a JSON form of List<Question>.
-                    below is the user's knowledge base: 
-                    {chunk}
-                """
-                );
-
+            await Parallel.ForEachAsync(chunks, parallelOptions, async (chunk, cancellationToken) =>
+            {
                 try
                 {
+                    var result = await agent.Run(
+                    $"""
+                        The following is the knowledge text provided by the user. 
+                        Please generate fill in the blank questions for the user by extracting 
+                        the knowledge points from each statement and replacing them with ________. 
+                        If there are multiple knowledge points in a statement, 
+                        generate multiple questions. The returned JSON format is as follows:
+
+                        public class Question
+                        /// <summary>
+                        /// The status of the answers is indicated by a value of null (no answer), 
+                        /// true (correct answer), and false (incorrect answer)
+                        /// </summary>
+                        [JsonPropertyName("status")]
+                        public bool? Status  get; set; 
+
+                        [JsonPropertyName("text")]
+                        public string? Text get; set; 
+
+                        [JsonPropertyName("user_answer")]
+                        public string? UserAnswer get; set; = null;
+
+                        [JsonPropertyName("correct_answer")]
+                        public string? CorrectAnswer get; set;
+
+                        Fill in Text and CorrectAnswer, Return a JSON form of List<Question>.
+                        below is the user's knowledge base: 
+                        {chunk.content}
+                    """
+                    );
 
                     string jsonContent = result.Messages.Last().Content!
                         .Replace("`", "")
@@ -302,21 +313,28 @@ public partial class CreateProjectWindow : Window
 
                     if (questions != null && questions.Count > 0)
                     {
-                        project.QuestionBank!.AddRange(questions);
+                        foreach (var question in questions)
+                        {
+                            allQuestions.Add(question);
+                        }
                     }
                 }
                 catch
                 {
-                    continue;
+                    // continue;
                 }
                 finally
                 {
+                    var currentCount = Interlocked.Increment(ref processedCount);
                     Dispatcher.Invoke(() =>
                     {
-                        ProcessLabel.Content = $"进度: {i+1}/{totalChunks}";
+                        ProcessLabel.Content = $"进度: {currentCount}/{totalChunks}";
                     });
                 }
-            }
+            });
+
+            // Convergence
+            project.QuestionBank!.AddRange(allQuestions);
         }
         catch (Exception ex)
         {

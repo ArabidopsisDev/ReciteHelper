@@ -16,7 +16,16 @@ namespace ReciteHelper
         {
             InitializeComponent();
             LoadRecentProjects();
+            LoadSlogan();
             PopulateRecentProjectsUI();
+        }
+
+        private void LoadSlogan()
+        {
+            List<string> slogan = ["自力更生 艰苦奋斗", "为人民服务", "高质量发展是首要任务", 
+                "高水平科技自立自强", "人民城市人民建 人民城市为人民", "坚持融入日常、抓在经常",
+                "扎实推进乡村振兴战略", "保障粮食和重要农产品安全", "守护好中华民族的文化瑰宝"];
+            SloganLabel.Content = slogan[Random.Shared.Next(0, slogan.Count())];
         }
 
         private void LoadRecentProjects()
@@ -33,23 +42,6 @@ namespace ReciteHelper
             {
                 MessageBox.Show($"加载最近项目失败: {ex.Message}");
                 recentProjects = new List<RecentProject>();
-            }
-
-            // Add some samples
-            if (recentProjects.Count == 0)
-            {
-                recentProjects.Add(new RecentProject
-                {
-                    ProjectName = "智慧农业导论背诵.rhproj",
-                    ProjectPath = @"C:\Users\Username\Projects\iagr\sbsdau.rhproj",
-                    LastAccessed = DateTime.Now
-                });
-                recentProjects.Add(new RecentProject
-                {
-                    ProjectName = "土壤与肥料学.rhproj",
-                    ProjectPath = @"D:\Files\bitch\sdau.rhproj",
-                    LastAccessed = DateTime.Now.AddDays(-1)
-                });
             }
         }
 
@@ -245,7 +237,7 @@ namespace ReciteHelper
                     if (project != null)
                     {
                         project.LastAccessed = DateTime.Now;
-                        var quizWindow = new QuizWindow(project.QuestionBank!);
+                        var quizWindow = new QuizWindow(project);
                         quizWindow.Show();
 
                         SaveRecentProjects();

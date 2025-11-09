@@ -8,6 +8,7 @@
     Width="1000"
     Height="700"
     Background="#F8F9FA"
+    Closing="Window_Closing"
     WindowStartupLocation="CenterScreen"
     mc:Ignorable="d">
 

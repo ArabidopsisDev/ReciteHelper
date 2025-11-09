@@ -238,6 +238,23 @@
                 </Grid>
             </Button>
 
+            <Label
+                Margin="0,60,0,0"
+                HorizontalAlignment="Center"
+                Content="最高指示"
+                FontFamily="SimSun"
+                FontSize="24"
+                FontWeight="Bold"
+                Foreground="Red" />
+
+            <Label
+                Name="SloganLabel"
+                HorizontalAlignment="Center"
+                Content="自力更生，艰苦奋斗。"
+                FontFamily="KaiTi"
+                FontSize="20"
+                Foreground="Red" />
+
             <Border
                 Margin="0,20,0,0"
                 Padding="8"
