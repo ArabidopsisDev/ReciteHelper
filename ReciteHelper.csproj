@@ -6,6 +6,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
+    <ApplicationIcon>Images\icon.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
@@ -17,8 +18,13 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="Images\icon.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Docnet.Core" Version="2.6.0" />
     <PackageReference Include="FuzzyString" Version="1.0.0" />
+    <PackageReference Include="jieba.NET" Version="0.42.2" />
     <PackageReference Include="LlmTornado" Version="3.8.12" />
     <PackageReference Include="LlmTornado.Agents" Version="1.0.11" />
   </ItemGroup>
@@ -30,5 +36,21 @@
     <Resource Include="Images\load.png" />
     <Resource Include="Images\project.png" />
   </ItemGroup>
+
+    <Target Name="EnsureJiebaResources" BeforeTargets="Build">
+    <PropertyGroup>
+      <JiebaPackagePath>$(UserProfile)\.nuget\packages\jieba.net\$(JiebaNETVersion)\Resources</JiebaPackagePath>
+    </PropertyGroup>
+    
+    <ItemGroup>
+      <JiebaResources Include="$(JiebaPackagePath)\*.*" />
+    </ItemGroup>
+    
+    <Copy SourceFiles="@(JiebaResources)" 
+          DestinationFolder="$(OutputPath)Resources"
+          SkipUnchangedFiles="true" />
+          
+    <Message Text="已复制jieba资源文件到 $(OutputPath)Resources" Importance="high" />
+  </Target>
 
 </Project>

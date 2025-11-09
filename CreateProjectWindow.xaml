@@ -89,11 +89,11 @@
                 Foreground="#333333"
                 Text="创建新项目" />
             <TextBlock
-                                Foreground="#333333"
                 Margin="190,0,0,0"
                 VerticalAlignment="Center"
                 FontSize="16"
                 FontWeight="SemiBold"
+                Foreground="#333333"
                 Text="已启用全并发模式" />
         </StackPanel>
 

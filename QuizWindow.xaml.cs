@@ -1,5 +1,6 @@
 ﻿using FuzzyString;
 using ReciteHelper.Models;
+using ReciteHelper.Utils;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
@@ -141,6 +142,22 @@ namespace ReciteHelper
             }
         }
 
+        private void ClearButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (MessageBox.Show("是否确认清空答题记录？", "清空记录",
+                MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
+            {
+                for (int i = 0; i < _questions.Count(); i++)
+                {
+                    _questions[i].UserAnswer = null;
+                    _questions[i].Status = AnswerStatus.NotAnswered;
+                }
+            }
+
+            Window_Closing(sender, null!);
+            Close();
+        }
+
         private void ShowResult(QuestionItem question)
         {
             ResultArea.Visibility = Visibility.Visible;
@@ -200,6 +217,8 @@ namespace ReciteHelper
             currentQuestion.UserAnswer = AnswerTextBox.Text.Trim();
 
             // Determine whether the answer is roughly similar to the given answer
+
+            // Method 1: Traditional algorithms such as LCS
             var tolerance = FuzzyStringComparisonTolerance.Strong;
             var comparisonOptions = new List<FuzzyStringComparisonOptions>
             {
@@ -208,8 +227,14 @@ namespace ReciteHelper
                 FuzzyStringComparisonOptions.UseLongestCommonSubstring
             };
 
+            // Method 2: Calculate text cosine similarity
+            var similarity = new CosineSimilarity();
+            var score = similarity.Calculate(currentQuestion.UserAnswer,
+                currentQuestion.Question!.CorrectAnswer!);
+
             bool isCorrect = currentQuestion.UserAnswer.ApproximatelyEquals(
                 currentQuestion.Question!.CorrectAnswer, comparisonOptions, tolerance);
+            isCorrect = isCorrect | (score > .4);
             currentQuestion.Status = isCorrect ? AnswerStatus.Correct : AnswerStatus.Wrong;
 
             ShowResult(currentQuestion);

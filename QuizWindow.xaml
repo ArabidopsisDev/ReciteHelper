@@ -9,6 +9,7 @@
     Height="700"
     Background="#F8F9FA"
     Closing="Window_Closing"
+    Icon="/Images/project.png"
     WindowStartupLocation="CenterScreen"
     mc:Ignorable="d">
 
@@ -226,6 +227,12 @@
                     </StackPanel>
                     <StackPanel Grid.Column="1" Orientation="Horizontal">
                         <Button
+                            x:Name="ClearButton"
+                            Click="ClearButton_Click"
+                            Content="清空答题记录"
+                            Style="{StaticResource SecondaryButtonStyle}" />
+                        <Button
+                            Margin="50 0 0 0"
                             x:Name="PrevButton"
                             Click="PrevButton_Click"
                             Content="上一题"

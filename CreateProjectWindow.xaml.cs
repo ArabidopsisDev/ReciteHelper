@@ -263,7 +263,7 @@ public partial class CreateProjectWindow : Window
 
             var parallelOptions = new ParallelOptions
             {
-                MaxDegreeOfParallelism = 3
+                MaxDegreeOfParallelism = 5
             };
 
             var allQuestions = new ConcurrentBag<Question>();
@@ -401,7 +401,7 @@ public partial class CreateProjectWindow : Window
             coefficient: {coff:F2}
             tokens(pred tot.): {tokens:F0}
 
-            预计价格: {price:F2} 元
+            预计价格: {price*100:F2} 元
             """, "价格预计");
     }
 }

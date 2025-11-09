@@ -5,7 +5,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:ReciteHelper"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    Title="ReciteHelper"
+    Title="欢迎使用 Arabidopsis ReciteHelper"
     Width="900"
     Height="600"
     Background="#F6F6F6"
@@ -260,11 +260,12 @@
                 Padding="8"
                 Background="Transparent">
                 <TextBlock
-                    Margin="0,160,0,0"
+                    Margin="0,20,0,0"
                     FontSize="11"
                     Foreground="#888888"
                     Text="Copyright Arabidopsis© 2025. All rights reserved."
-                    TextAlignment="Center" />
+                    TextAlignment="Center"
+                    TextDecorations="Underline" />
             </Border>
         </StackPanel>
 
