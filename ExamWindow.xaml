@@ -160,9 +160,7 @@
             </Grid>
         </Border>
 
-        <!--  主要内容区域  -->
         <Grid Margin="0,50,0,0">
-            <!--  考试注意事项  -->
             <Border
                 x:Name="InstructionsPart"
                 Margin="20"
@@ -188,80 +186,114 @@
                             Source="pack://application:,,,/ReciteHelper;component/Images/exam.png" />
                         <TextBlock
                             Name="ExamText"
-                            FontFamily="Times New Roman,Microsoft YaHei UI"
+                            VerticalAlignment="Center"
+                            FontFamily="Times New Roman,华文中宋,Microsoft YaHei UI"
                             FontSize="22"
                             FontWeight="Bold"
                             Foreground="#333333"
                             Text="模拟考试注意事项" />
                     </StackPanel>
 
-                    <ScrollViewer
-                        Grid.Row="1"
-                        Padding="0,0,10,0"
-                        VerticalScrollBarVisibility="Auto">
-                        <StackPanel Margin="0,20,0,0">
-                            <TextBlock
-                                Margin="0,0,0,15"
-                                FontSize="16"
-                                FontWeight="SemiBold"
-                                Text="注意事项：" />
 
-                            <StackPanel Margin="20,10">
+                    <StackPanel Grid.Row="1" Orientation="Vertical">
+                        <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
+
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock FontFamily="Times New Roman,华文中宋,Microsoft YaHei UI" FontSize="16">课程代码：</TextBlock>
                                 <TextBlock
-                                    Margin="0,0,0,8"
-                                    FontFamily="Times New Roman,Microsoft YaHei UI"
-                                    FontSize="14"
-                                    Foreground="#333333"
-                                    Text="1. 本次考试共包含1大题30小题，满分100分，考试时间为60分钟。" />
-                                <TextBlock
-                                    Margin="0,0,0,8"
-                                    FontFamily="Times New Roman,Microsoft YaHei UI"
-                                    FontSize="14"
-                                    Foreground="#333333"
-                                    Text="2. 考试期间请勿刷新页面或关闭窗口，否则考试将自动结束并不计分数。" />
-                                <TextBlock
-                                    Margin="0,0,0,8"
-                                    FontFamily="Times New Roman,Microsoft YaHei UI"
-                                    FontSize="14"
-                                    Foreground="#333333"
-                                    Text="3. 答题过程中可以随时跳过题目，稍后返回作答。" />
-                                <TextBlock
-                                    Margin="0,0,0,8"
-                                    FontFamily="Times New Roman,Microsoft YaHei UI"
-                                    FontSize="14"
-                                    Foreground="#333333"
-                                    Text="4. 提交答案后不能修改，请仔细检查后再提交。" />
-                                <TextBlock
-                                    Margin="0,0,0,8"
-                                    FontFamily="Times New Roman,Microsoft YaHei UI"
-                                    FontSize="14"
-                                    Foreground="#333333"
-                                    Text="5. 考试结束后将显示您的得分和正确答案。" />
-                                <TextBlock
-                                    Margin="0,0,0,8"
-                                    FontFamily="Times New Roman,Microsoft YaHei UI"
-                                    FontSize="14"
-                                    Foreground="#333333"
-                                    Text="6. 请独立完成考试，不要查阅外部资料。" />
+                                    FontFamily="Times New Roman,华文中宋,Microsoft YaHei UI"
+                                    FontSize="18"
+                                    TextDecorations="Underline">
+                                    &#160;&#160;XF110114&#160;&#160;
+                                </TextBlock>
                             </StackPanel>
 
-                            <Border
-                                Margin="0,15"
-                                Padding="15,12"
-                                Background="#FFF3CD"
-                                BorderBrush="#FFEEBA"
-                                BorderThickness="1"
-                                CornerRadius="4">
+                            <StackPanel Margin="20,0,0,0" Orientation="Horizontal">
+                                <TextBlock FontFamily="Times New Roman,华文中宋,Microsoft YaHei UI" FontSize="16">考试时间：</TextBlock>
                                 <TextBlock
-                                    FontSize="12"
-                                    Foreground="#856404"
-                                    Text="💡 提示：考试过程中请保持专注，合理安排时间。遇到难题可先跳过，完成所有题目后再返回检查。"
-                                    TextWrapping="Wrap" />
-                            </Border>
-                        </StackPanel>
-                    </ScrollViewer>
+                                    FontFamily="Times New Roman,华文中宋,Microsoft YaHei UI"
+                                    FontSize="18"
+                                    TextDecorations="Underline">
+                                    &#160;&#160;60分钟&#160;&#160;
+                                </TextBlock>
+                            </StackPanel>
 
-                    <!--  开始考试按钮  -->
+                            <StackPanel Margin="20,0,0,0" Orientation="Horizontal">
+                                <TextBlock FontFamily="Times New Roman,华文中宋,Microsoft YaHei UI" FontSize="16">考试形式：</TextBlock>
+                                <TextBlock
+                                    FontFamily="Times New Roman,华文中宋,Microsoft YaHei UI"
+                                    FontSize="18"
+                                    TextDecorations="Underline">
+                                    &#160;&#160;闭卷&#160;&#160;
+                                </TextBlock>
+                            </StackPanel>
+
+                        </StackPanel>
+
+                        <ScrollViewer Padding="0,0,10,0" VerticalScrollBarVisibility="Auto">
+                            <StackPanel Margin="0,20,0,0">
+                                <TextBlock
+                                    Margin="0,0,0,15"
+                                    FontSize="16"
+                                    FontWeight="SemiBold"
+                                    Text="注意事项：" />
+
+                                <StackPanel Margin="20,10">
+                                    <TextBlock
+                                        Margin="0,0,0,8"
+                                        FontFamily="Times New Roman,Microsoft YaHei UI"
+                                        FontSize="14"
+                                        Foreground="#333333"
+                                        Text="1. 本次考试共包含1大题30小题，满分100分，考试时间为60分钟。" />
+                                    <TextBlock
+                                        Margin="0,0,0,8"
+                                        FontFamily="Times New Roman,Microsoft YaHei UI"
+                                        FontSize="14"
+                                        Foreground="#333333"
+                                        Text="2. 考试期间请勿刷新页面或关闭窗口，否则考试将自动结束并不计分数。" />
+                                    <TextBlock
+                                        Margin="0,0,0,8"
+                                        FontFamily="Times New Roman,Microsoft YaHei UI"
+                                        FontSize="14"
+                                        Foreground="#333333"
+                                        Text="3. 答题过程中可以随时跳过题目，稍后返回作答。" />
+                                    <TextBlock
+                                        Margin="0,0,0,8"
+                                        FontFamily="Times New Roman,Microsoft YaHei UI"
+                                        FontSize="14"
+                                        Foreground="#333333"
+                                        Text="4. 提交答案后不能修改，请仔细检查后再提交。" />
+                                    <TextBlock
+                                        Margin="0,0,0,8"
+                                        FontFamily="Times New Roman,Microsoft YaHei UI"
+                                        FontSize="14"
+                                        Foreground="#333333"
+                                        Text="5. 考试结束后将显示您的得分和正确答案。" />
+                                    <TextBlock
+                                        Margin="0,0,0,8"
+                                        FontFamily="Times New Roman,Microsoft YaHei UI"
+                                        FontSize="14"
+                                        Foreground="#333333"
+                                        Text="6. 请独立完成考试，不要查阅外部资料。" />
+                                </StackPanel>
+
+                                <Border
+                                    Margin="0,15"
+                                    Padding="15,12"
+                                    Background="#FFF3CD"
+                                    BorderBrush="#FFEEBA"
+                                    BorderThickness="1"
+                                    CornerRadius="4">
+                                    <TextBlock
+                                        FontSize="12"
+                                        Foreground="#856404"
+                                        Text="💡 提示：考试过程中请保持专注，合理安排时间。遇到难题可先跳过，完成所有题目后再返回检查。"
+                                        TextWrapping="Wrap" />
+                                </Border>
+                            </StackPanel>
+                        </ScrollViewer>
+                    </StackPanel>
+
                     <StackPanel
                         Grid.Row="2"
                         Margin="0,20,0,0"

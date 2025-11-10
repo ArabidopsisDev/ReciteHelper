@@ -411,6 +411,7 @@ public partial class ExamWindow : Window, INotifyPropertyChanged
 
     private void AgreeCheckBox_Click(object sender, RoutedEventArgs e)
     {
-        StartExamButton.IsEnabled = true;
+        if (AgreeCheckBox.IsChecked == true) StartExamButton.IsEnabled = true;
+        else StartExamButton?.IsEnabled = false;
     }
 }
