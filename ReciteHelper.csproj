@@ -12,9 +12,11 @@
   <ItemGroup>
     <None Remove="Images\background.png" />
     <None Remove="Images\create.png" />
+    <None Remove="Images\exam.png" />
     <None Remove="Images\folder.png" />
     <None Remove="Images\load.png" />
     <None Remove="Images\project.png" />
+    <None Remove="Images\result.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -32,9 +34,11 @@
   <ItemGroup>
     <Resource Include="Images\background.png" />
     <Resource Include="Images\create.png" />
+    <Resource Include="Images\exam.png" />
     <Resource Include="Images\folder.png" />
     <Resource Include="Images\load.png" />
     <Resource Include="Images\project.png" />
+    <Resource Include="Images\result.png" />
   </ItemGroup>
 
     <Target Name="EnsureJiebaResources" BeforeTargets="Build">
@@ -46,9 +50,7 @@
       <JiebaResources Include="$(JiebaPackagePath)\*.*" />
     </ItemGroup>
     
-    <Copy SourceFiles="@(JiebaResources)" 
-          DestinationFolder="$(OutputPath)Resources"
-          SkipUnchangedFiles="true" />
+    <Copy SourceFiles="@(JiebaResources)" DestinationFolder="$(OutputPath)Resources" SkipUnchangedFiles="true" />
           
     <Message Text="已复制jieba资源文件到 $(OutputPath)Resources" Importance="high" />
   </Target>

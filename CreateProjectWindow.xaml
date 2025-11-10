@@ -102,12 +102,12 @@
                 <TextBlock
                     FontWeight="SemiBold"
                     Foreground="#333333"
-                    Text="项目名称" />
+                    Text="课程名称" />
                 <TextBox
                     x:Name="ProjectNameTextBox"
                     Style="{StaticResource ModernTextBox}"
                     TextChanged="ProjectNameTextBox_TextChanged"
-                    ToolTip="输入项目名称，将用于创建项目文件夹" />
+                    ToolTip="输入课程名称，将用于创建背诵文件夹" />
                 <TextBlock
                     x:Name="ProjectNameValidation"
                     FontSize="11"

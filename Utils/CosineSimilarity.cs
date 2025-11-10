@@ -11,43 +11,28 @@ public class CosineSimilarity
         if (string.IsNullOrWhiteSpace(textA) || string.IsNullOrWhiteSpace(textB))
             return 0.0;
 
-        Console.WriteLine($"=== 短文本相似度计算 ===");
-        Console.WriteLine($"答案A: '{textA}'");
-        Console.WriteLine($"答案B: '{textB}'");
-
-        // 分词
         var tokensA = ChineseTokenize(textA);
         var tokensB = ChineseTokenize(textB);
 
-        Console.WriteLine($"分词A: [{string.Join(", ", tokensA)}]");
-        Console.WriteLine($"分词B: [{string.Join(", ", tokensB)}]");
-        Console.WriteLine($"分词数量 - A: {tokensA.Count}, B: {tokensB.Count}");
 
-        // 对于短文本，使用字符级相似度作为补充
         if (tokensA.Count <= 2 || tokensB.Count <= 2)
         {
             Console.WriteLine("检测到短文本，使用混合相似度计算");
             return CalculateMixedSimilarity(textA, textB, tokensA, tokensB);
         }
 
-        // 正常文本使用词级相似度
         return CalculateWordLevelSimilarity(tokensA, tokensB);
     }
 
+    // Danger: The effectiveness of the hybrid cosine similarity algorithm in processing
+    //         short texts has not been proven
     private double CalculateMixedSimilarity(string textA, string textB,
                                           List<string> tokensA, List<string> tokensB)
     {
-        // 1. 词级相似度 (权重 0.6)
         double wordSimilarity = CalculateWordLevelSimilarity(tokensA, tokensB);
 
-        // 2. 字符级相似度 (权重 0.4)
         double charSimilarity = CalculateCharLevelSimilarity(textA, textB);
-
-        Console.WriteLine($"词级相似度: {wordSimilarity:F4}");
-        Console.WriteLine($"字符级相似度: {charSimilarity:F4}");
-
         double finalScore = wordSimilarity * 0.6 + charSimilarity * 0.4;
-        Console.WriteLine($"混合相似度: {finalScore:F4}");
 
         return finalScore;
     }
@@ -62,14 +47,12 @@ public class CosineSimilarity
         var vectorB = CreateVector(tokensB, vocabulary);
 
         double similarity = ComputeCosineSimilarity(vectorA, vectorB);
-        Console.WriteLine($"词级余弦相似度: {similarity:F4}");
 
         return similarity;
     }
 
     private double CalculateCharLevelSimilarity(string textA, string textB)
     {
-        // 字符级别的Jaccard相似度
         var charsA = textA.Where(c => !char.IsWhiteSpace(c)).Distinct().ToList();
         var charsB = textB.Where(c => !char.IsWhiteSpace(c)).Distinct().ToList();
 
@@ -80,7 +63,6 @@ public class CosineSimilarity
         var union = charsA.Union(charsB).Count();
 
         double jaccard = union == 0 ? 0.0 : (double)intersection / union;
-        Console.WriteLine($"字符级Jaccard相似度: {jaccard:F4}");
 
         return jaccard;
     }

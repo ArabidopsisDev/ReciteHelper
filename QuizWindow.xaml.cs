@@ -1,6 +1,7 @@
 ﻿using FuzzyString;
 using ReciteHelper.Models;
 using ReciteHelper.Utils;
+using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
@@ -333,6 +334,18 @@ namespace ReciteHelper
             var json = System.Text.Json.JsonSerializer.Serialize(project,
                 new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
             File.WriteAllText($"{path}.rhproj", json);
+        }
+
+        private void SimulateButton_Click(object sender,RoutedEventArgs e)
+        {
+            var random = Random.Shared;
+            var examWindow = new ExamWindow(
+                _questions.Select(x => x.Question).OrderBy(x => random.Next()).Take(30).ToList()!,
+                project.ProjectName!
+            );
+
+            examWindow.Show();
+            Close();
         }
     }
 }

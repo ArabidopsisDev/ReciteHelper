@@ -1,0 +1,579 @@
+﻿<Window
+    x:Class="ReciteHelper.ExamWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:ReciteHelper"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Title="模拟考试系统 - ReciteHelper"
+    Width="900"
+    Height="700"
+    Background="#F5F7F9"
+    ResizeMode="NoResize"
+    WindowStartupLocation="CenterScreen"
+    mc:Ignorable="d">
+
+    <Window.Resources>
+        <!--  主按钮样式  -->
+        <Style x:Key="PrimaryButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#007ACC" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="20,12" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="MinWidth" Value="100" />
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#005A9E" />
+                </Trigger>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Background" Value="#CCCCCC" />
+                    <Setter Property="Foreground" Value="#888888" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!--  次要按钮样式  -->
+        <Style x:Key="SecondaryButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="#666666" />
+            <Setter Property="BorderBrush" Value="#DDDDDD" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Padding" Value="20,12" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="MinWidth" Value="100" />
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#F8F9FA" />
+                    <Setter Property="BorderBrush" Value="#007ACC" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!--  答题卡按钮样式  -->
+        <Style x:Key="ExamCardButtonStyle" TargetType="Button">
+            <Setter Property="Width" Value="36" />
+            <Setter Property="Height" Value="36" />
+            <Setter Property="Background" Value="#E9ECEF" />
+            <Setter Property="BorderBrush" Value="#DEE2E6" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Foreground" Value="#495057" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#DEE2E6" />
+                    <Setter Property="BorderBrush" Value="#007ACC" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!--  当前题目样式  -->
+        <Style
+            x:Key="CurrentExamQuestionStyle"
+            BasedOn="{StaticResource ExamCardButtonStyle}"
+            TargetType="Button">
+            <Setter Property="BorderBrush" Value="#007ACC" />
+            <Setter Property="BorderThickness" Value="2" />
+            <Setter Property="Background" Value="#E3F2FD" />
+        </Style>
+
+        <!--  已回答样式  -->
+        <Style
+            x:Key="AnsweredExamQuestionStyle"
+            BasedOn="{StaticResource ExamCardButtonStyle}"
+            TargetType="Button">
+            <Setter Property="Background" Value="#BBDEFB" />
+            <Setter Property="BorderBrush" Value="#64B5F6" />
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <!--  考试信息栏（始终显示）  -->
+        <Border
+            Height="50"
+            VerticalAlignment="Top"
+            Background="White"
+            BorderBrush="#E9ECEF"
+            BorderThickness="0,0,0,1">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel
+                    Grid.Column="0"
+                    Margin="20,0"
+                    VerticalAlignment="Center"
+                    Orientation="Horizontal">
+                    <TextBlock
+                        FontWeight="SemiBold"
+                        Foreground="#495057"
+                        Text="考生：" />
+                    <TextBlock
+                        x:Name="StudentNameText"
+                        Margin="5,0,20,0"
+                        Foreground="#333333"
+                        Text="考生0429" />
+                    <TextBlock
+                        FontWeight="SemiBold"
+                        Foreground="#495057"
+                        Text="准考证号：" />
+                    <TextBlock
+                        x:Name="ExamNumberText"
+                        Margin="5,0,0,0"
+                        Foreground="#333333"
+                        Text="" />
+                </StackPanel>
+
+                <StackPanel
+                    Grid.Column="1"
+                    Margin="0,0,10,0"
+                    VerticalAlignment="Center"
+                    Orientation="Horizontal">
+                    <TextBlock
+                        FontWeight="SemiBold"
+                        Foreground="#495057"
+                        Text="剩余时间：" />
+                    <TextBlock
+                        x:Name="TimeRemainingText"
+                        Margin="5,0,0,0"
+                        FontWeight="Bold"
+                        Foreground="#D9534F"
+                        Text="60:00" />
+                </StackPanel>
+
+                <Button
+                    x:Name="SubmitExamButton"
+                    Grid.Column="2"
+                    Margin="0,0,20,0"
+                    Click="SubmitExamButton_Click"
+                    Content="交卷"
+                    Style="{StaticResource PrimaryButtonStyle}"
+                    Visibility="Collapsed" />
+            </Grid>
+        </Border>
+
+        <!--  主要内容区域  -->
+        <Grid Margin="0,50,0,0">
+            <!--  考试注意事项  -->
+            <Border
+                x:Name="InstructionsPart"
+                Margin="20"
+                Background="White"
+                BorderBrush="#E9ECEF"
+                BorderThickness="1"
+                CornerRadius="8">
+                <Grid Margin="30">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <StackPanel
+                        Grid.Row="0"
+                        Margin="0,0,0,20"
+                        Orientation="Horizontal">
+                        <Image
+                            Width="32"
+                            Height="32"
+                            Margin="0,0,15,0"
+                            Source="pack://application:,,,/ReciteHelper;component/Images/exam.png" />
+                        <TextBlock
+                            Name="ExamText"
+                            FontFamily="Times New Roman,Microsoft YaHei UI"
+                            FontSize="22"
+                            FontWeight="Bold"
+                            Foreground="#333333"
+                            Text="模拟考试注意事项" />
+                    </StackPanel>
+
+                    <ScrollViewer
+                        Grid.Row="1"
+                        Padding="0,0,10,0"
+                        VerticalScrollBarVisibility="Auto">
+                        <StackPanel Margin="0,20,0,0">
+                            <TextBlock
+                                Margin="0,0,0,15"
+                                FontSize="16"
+                                FontWeight="SemiBold"
+                                Text="注意事项：" />
+
+                            <StackPanel Margin="20,10">
+                                <TextBlock
+                                    Margin="0,0,0,8"
+                                    FontFamily="Times New Roman,Microsoft YaHei UI"
+                                    FontSize="14"
+                                    Foreground="#333333"
+                                    Text="1. 本次考试共包含1大题30小题，满分100分，考试时间为60分钟。" />
+                                <TextBlock
+                                    Margin="0,0,0,8"
+                                    FontFamily="Times New Roman,Microsoft YaHei UI"
+                                    FontSize="14"
+                                    Foreground="#333333"
+                                    Text="2. 考试期间请勿刷新页面或关闭窗口，否则考试将自动结束并不计分数。" />
+                                <TextBlock
+                                    Margin="0,0,0,8"
+                                    FontFamily="Times New Roman,Microsoft YaHei UI"
+                                    FontSize="14"
+                                    Foreground="#333333"
+                                    Text="3. 答题过程中可以随时跳过题目，稍后返回作答。" />
+                                <TextBlock
+                                    Margin="0,0,0,8"
+                                    FontFamily="Times New Roman,Microsoft YaHei UI"
+                                    FontSize="14"
+                                    Foreground="#333333"
+                                    Text="4. 提交答案后不能修改，请仔细检查后再提交。" />
+                                <TextBlock
+                                    Margin="0,0,0,8"
+                                    FontFamily="Times New Roman,Microsoft YaHei UI"
+                                    FontSize="14"
+                                    Foreground="#333333"
+                                    Text="5. 考试结束后将显示您的得分和正确答案。" />
+                                <TextBlock
+                                    Margin="0,0,0,8"
+                                    FontFamily="Times New Roman,Microsoft YaHei UI"
+                                    FontSize="14"
+                                    Foreground="#333333"
+                                    Text="6. 请独立完成考试，不要查阅外部资料。" />
+                            </StackPanel>
+
+                            <Border
+                                Margin="0,15"
+                                Padding="15,12"
+                                Background="#FFF3CD"
+                                BorderBrush="#FFEEBA"
+                                BorderThickness="1"
+                                CornerRadius="4">
+                                <TextBlock
+                                    FontSize="12"
+                                    Foreground="#856404"
+                                    Text="💡 提示：考试过程中请保持专注，合理安排时间。遇到难题可先跳过，完成所有题目后再返回检查。"
+                                    TextWrapping="Wrap" />
+                            </Border>
+                        </StackPanel>
+                    </ScrollViewer>
+
+                    <!--  开始考试按钮  -->
+                    <StackPanel
+                        Grid.Row="2"
+                        Margin="0,20,0,0"
+                        HorizontalAlignment="Center"
+                        Orientation="Horizontal">
+                        <CheckBox
+                            x:Name="AgreeCheckBox"
+                            Margin="0,0,20,0"
+                            VerticalAlignment="Center"
+                            Click="AgreeCheckBox_Click"
+                            Content="我已阅读并同意以上考试规则"
+                            FontSize="13"
+                            Foreground="#495057" />
+                        <Button
+                            x:Name="StartExamButton"
+                            Click="StartExamButton_Click"
+                            Content="开始考试"
+                            IsEnabled="False"
+                            Style="{StaticResource PrimaryButtonStyle}" />
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <Border
+                x:Name="ExamPart"
+                Margin="20"
+                Background="White"
+                BorderBrush="#E9ECEF"
+                BorderThickness="1"
+                CornerRadius="8"
+                Visibility="Collapsed">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="200" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <Border
+                        Grid.Column="0"
+                        Background="#F8F9FA"
+                        BorderBrush="#E9ECEF"
+                        BorderThickness="0,0,1,0"
+                        CornerRadius="8,0,0,8">
+                        <DockPanel>
+                            <Border
+                                Padding="15,10"
+                                Background="#E9ECEF"
+                                DockPanel.Dock="Top">
+                                <TextBlock
+                                    FontSize="14"
+                                    FontWeight="Bold"
+                                    Foreground="#495057"
+                                    Text="答题卡" />
+                            </Border>
+
+                            <ScrollViewer Padding="15,10" VerticalScrollBarVisibility="Auto">
+                                <ItemsControl x:Name="ExamCardItemsControl">
+                                    <ItemsControl.ItemsPanel>
+                                        <ItemsPanelTemplate>
+                                            <WrapPanel Orientation="Horizontal" />
+                                        </ItemsPanelTemplate>
+                                    </ItemsControl.ItemsPanel>
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Button
+                                                Margin="4,4"
+                                                Click="ExamCardButton_Click"
+                                                CommandParameter="{Binding Number}"
+                                                Content="{Binding Number}"
+                                                Style="{Binding StatusStyle}" />
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+                        </DockPanel>
+                    </Border>
+
+                    <Grid Grid.Column="1" Margin="20">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <Border
+                            Grid.Row="0"
+                            Padding="15"
+                            Background="#F8F9FA"
+                            BorderBrush="#E9ECEF"
+                            BorderThickness="1"
+                            CornerRadius="4">
+                            <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
+                                <TextBlock
+                                    FontSize="13"
+                                    Foreground="#6C757D"
+                                    Text="第" />
+                                <TextBlock
+                                    x:Name="CurrentQuestionText"
+                                    Margin="4,0"
+                                    FontSize="13"
+                                    FontWeight="Bold"
+                                    Foreground="#007ACC"
+                                    Text="1" />
+                                <TextBlock
+                                    Margin="4,0"
+                                    FontSize="13"
+                                    Foreground="#6C757D"
+                                    Text="题 / 共" />
+                                <TextBlock
+                                    x:Name="TotalQuestionsText"
+                                    Margin="4,0"
+                                    FontSize="13"
+                                    FontWeight="Bold"
+                                    Foreground="#495057"
+                                    Text="20" />
+                                <TextBlock
+                                    FontSize="13"
+                                    Foreground="#6C757D"
+                                    Text="题" />
+                            </StackPanel>
+                        </Border>
+
+                        <Border
+                            Grid.Row="1"
+                            Margin="0,15,0,0"
+                            Padding="20"
+                            Background="White"
+                            BorderBrush="#E9ECEF"
+                            BorderThickness="1"
+                            CornerRadius="4">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                <TextBlock
+                                    x:Name="QuestionContentText"
+                                    FontSize="14"
+                                    Foreground="#333333"
+                                    LineHeight="24"
+                                    Text="这里是题目内容..."
+                                    TextWrapping="Wrap" />
+                            </ScrollViewer>
+                        </Border>
+
+                        <Border
+                            Grid.Row="2"
+                            Margin="0,15,0,0"
+                            Padding="20"
+                            Background="White"
+                            BorderBrush="#E9ECEF"
+                            BorderThickness="1"
+                            CornerRadius="4">
+                            <StackPanel>
+                                <TextBlock
+                                    Margin="0,0,0,12"
+                                    FontSize="13"
+                                    FontWeight="SemiBold"
+                                    Foreground="#495057"
+                                    Text="请输入答案：" />
+                                <TextBox
+                                    x:Name="AnswerInputTextBox"
+                                    Height="80"
+                                    Padding="12"
+                                    AcceptsReturn="True"
+                                    BorderBrush="#DEE2E6"
+                                    BorderThickness="1"
+                                    FontSize="13"
+                                    TextChanged="AnswerInputTextBox_TextChanged"
+                                    TextWrapping="Wrap"
+                                    VerticalScrollBarVisibility="Auto" />
+                                <StackPanel
+                                    Margin="0,12,0,0"
+                                    HorizontalAlignment="Right"
+                                    Orientation="Horizontal">
+                                    <Button
+                                        x:Name="ClearAnswerButton"
+                                        Click="ClearAnswerButton_Click"
+                                        Content="清空"
+                                        Style="{StaticResource SecondaryButtonStyle}" />
+                                    <Button
+                                        x:Name="SaveAnswerButton"
+                                        Margin="30,0,0,0"
+                                        Click="SaveAnswerButton_Click"
+                                        Content="保存答案"
+                                        Style="{StaticResource PrimaryButtonStyle}" />
+                                    <Button
+                                        x:Name="NextQuestionButton"
+                                        Margin="30,0,0,0"
+                                        Click="NextQuestionButton_Click"
+                                        Content="下一题"
+                                        Style="{StaticResource PrimaryButtonStyle}" />
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                </Grid>
+            </Border>
+
+            <Border
+                x:Name="ResultPart"
+                Margin="20"
+                Background="White"
+                BorderBrush="#E9ECEF"
+                BorderThickness="1"
+                CornerRadius="8"
+                Visibility="Collapsed">
+                <Grid Margin="30">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <StackPanel
+                        Grid.Row="0"
+                        Margin="0,0,0,20"
+                        Orientation="Horizontal">
+                        <Image
+                            Width="32"
+                            Height="32"
+                            Margin="0,0,15,0"
+                            Source="pack://application:,,,/ReciteHelper;component/Images/result.png" />
+                        <TextBlock
+                            FontSize="20"
+                            FontWeight="Bold"
+                            Foreground="#333333"
+                            Text="考试结果" />
+                    </StackPanel>
+
+                    <StackPanel
+                        Grid.Row="1"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        Orientation="Vertical">
+                        <Border
+                            Width="150"
+                            Height="150"
+                            Margin="0,0,0,30"
+                            Background="White"
+                            BorderBrush="#007ACC"
+                            BorderThickness="0"
+                            CornerRadius="100">
+                            <Viewbox>
+                                <TextBlock
+                                    x:Name="ScoreText"
+                                    FontWeight="Bold"
+                                    Foreground="Red"
+                                    Text="85" />
+                            </Viewbox>
+                        </Border>
+
+                        <StackPanel HorizontalAlignment="Center" Orientation="Vertical">
+                            <TextBlock
+                                x:Name="ScoreDetailText"
+                                Margin="0,0,0,10"
+                                HorizontalAlignment="Center"
+                                FontSize="16"
+                                FontWeight="SemiBold"
+                                Foreground="#495057"
+                                Text="正确率：85%" />
+                            <TextBlock
+                                x:Name="CorrectCountText"
+                                Margin="0,0,0,5"
+                                HorizontalAlignment="Center"
+                                FontSize="14"
+                                Foreground="#28A745"
+                                Text="答对：17题" />
+                            <TextBlock
+                                x:Name="WrongCountText"
+                                Margin="0,0,0,5"
+                                HorizontalAlignment="Center"
+                                FontSize="14"
+                                Foreground="#DC3545"
+                                Text="答错：3题" />
+                            <TextBlock
+                                x:Name="TimeUsedText"
+                                Margin="0,0,0,20"
+                                HorizontalAlignment="Center"
+                                FontSize="14"
+                                Foreground="#6C757D"
+                                Text="用时：45分30秒" />
+                        </StackPanel>
+
+                        <TextBlock
+                            x:Name="EncouragementText"
+                            HorizontalAlignment="Center"
+                            FontSize="14"
+                            FontWeight="SemiBold"
+                            Foreground="#007ACC"
+                            Text="表现不错！继续努力！" />
+                    </StackPanel>
+
+                    <StackPanel
+                        Grid.Row="2"
+                        Margin="0,20,0,0"
+                        HorizontalAlignment="Center"
+                        Orientation="Horizontal">
+                        <Button
+                            x:Name="ReviewAnswersButton"
+                            Click="ReviewAnswersButton_Click"
+                            Content="查看答案"
+                            Style="{StaticResource PrimaryButtonStyle}" />
+                        <Button
+                            x:Name="RetryExamButton"
+                            Click="RetryExamButton_Click"
+                            Content="再考一次"
+                            Style="{StaticResource SecondaryButtonStyle}" />
+                        <Button
+                            x:Name="CloseExamButton"
+                            Click="CloseExamButton_Click"
+                            Content="关闭"
+                            Style="{StaticResource SecondaryButtonStyle}" />
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+    </Grid>
+</Window>
