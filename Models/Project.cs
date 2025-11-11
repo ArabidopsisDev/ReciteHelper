@@ -13,8 +13,8 @@ public class Project
     [JsonPropertyName("bankfile")]
     public string? QuestionBankPath { get;  set; }
 
-    [JsonPropertyName("bank")]
-    public List<Question>? QuestionBank { get;  set; }
+    [JsonPropertyName("chapter")]
+    public List<Chapter>? Chapters { get; set; }
 
     [JsonPropertyName("last_accessed")]
     public DateTime LastAccessed { get; set; }

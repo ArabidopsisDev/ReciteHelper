@@ -3,10 +3,13 @@ using Docnet.Core.Models;
 using LlmTornado;
 using LlmTornado.Agents;
 using LlmTornado.Chat.Models;
+using LlmTornado.Moderation;
 using Microsoft.Win32;
 using ReciteHelper.Models;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.IO;
+using System.Net.Http.Json;
 using System.Text.Json;
 using System.Windows;
 using static System.Net.Mime.MediaTypeNames;
@@ -208,12 +211,12 @@ public partial class CreateProjectWindow : Window
             {
                 ProjectName = ProjectName,
                 QuestionBankPath = destQuestionBankPath,
-                QuestionBank = null,
+                Chapters = null,
                 StoragePath = StoragePath
             };
 
-            project.QuestionBank = new();
-            ProcessLabel.Content = 
+            project.Chapters = new();
+            ProcessLabel.Content =
                 $"进度: 0/{(int)Math.Ceiling(ExtractAllTextFromPdf(QuestionBankPath!).Length / 1000d)}";
 
             // Start generating the question bank
@@ -247,16 +250,17 @@ public partial class CreateProjectWindow : Window
         );
 
         var text = ExtractAllTextFromPdf(QuestionBankPath!);
+        var chunkSize = 1000;
 
         try
         {
-            int totalChunks = (int)Math.Ceiling(text.Length / 1000d);
+            int totalChunks = (int)Math.Ceiling((double)text.Length / chunkSize);
             var chunks = new List<(int index, string content)>();
 
             for (int i = 0; i < totalChunks; i++)
             {
-                int startIndex = i * 1000;
-                int length = Math.Min(1000, text.Length - startIndex);
+                int startIndex = i * chunkSize;
+                int length = Math.Min(chunkSize, text.Length - startIndex);
                 string chunk = text.Substring(startIndex, length);
                 chunks.Add((i, chunk));
             }
@@ -266,7 +270,7 @@ public partial class CreateProjectWindow : Window
                 MaxDegreeOfParallelism = 5
             };
 
-            var allQuestions = new ConcurrentBag<Question>();
+            var allChapter = new ConcurrentBag<List<Chapter>>();
             int processedCount = 0;
 
             await Parallel.ForEachAsync(chunks, parallelOptions, async (chunk, cancellationToken) =>
@@ -279,13 +283,23 @@ public partial class CreateProjectWindow : Window
                         Please generate fill in the blank questions for the user by extracting 
                         the knowledge points from each statement and replacing them with ________. 
                         If there are multiple knowledge points in a statement, 
-                        generate multiple questions. The returned JSON format is as follows:
+                        generate multiple questions. 
+                        You should divide the problem into several sections.
+                        The returned JSON format is as follows:
+
+                        public class Chapter
+                        [JsonPropertyName("name")]
+                        public string? Name  get; set; 
+
+                        [JsonPropertyName("number")]
+                        public int Number  get; set; 
+
+                        [JsonPropertyName("bank")]
+                        public List<Question>? Questions  get; set; 
 
                         public class Question
-                        /// <summary>
-                        /// The status of the answers is indicated by a value of null (no answer), 
-                        /// true (correct answer), and false (incorrect answer)
-                        /// </summary>
+                        // The status of the answers is indicated by a value of null (no answer), 
+                        // true (correct answer), and false (incorrect answer)
                         [JsonPropertyName("status")]
                         public bool? Status  get; set; 
 
@@ -298,7 +312,7 @@ public partial class CreateProjectWindow : Window
                         [JsonPropertyName("correct_answer")]
                         public string? CorrectAnswer get; set;
 
-                        Fill in Text and CorrectAnswer, Return a JSON form of List<Question>.
+                        Fill in Text and CorrectAnswer, Return a JSON form of List<Chapter>.
                         below is the user's knowledge base: 
                         {chunk.content}
                     """
@@ -309,15 +323,9 @@ public partial class CreateProjectWindow : Window
                         .Replace("json", "")
                         .Trim();
 
-                    var questions = JsonSerializer.Deserialize<List<Question>>(jsonContent);
-
-                    if (questions != null && questions.Count > 0)
-                    {
-                        foreach (var question in questions)
-                        {
-                            allQuestions.Add(question);
-                        }
-                    }
+                    var chapter = JsonSerializer.Deserialize<List<Chapter>>(jsonContent);
+                    if (chapter != null && chapter.Count > 0)
+                        allChapter.Add(chapter);
                 }
                 catch
                 {
@@ -333,8 +341,58 @@ public partial class CreateProjectWindow : Window
                 }
             });
 
-            // Convergence
-            project.QuestionBank!.AddRange(allQuestions);
+            // Since a block-based algorithm is used, a brute-force approach
+            // would be needed to solve for the relationships between blocks
+            // Here, NLP chapter clustering is used to handle this situation
+
+            List<string> chapterNames = [];
+            foreach (var chapter in allChapter)
+                foreach (var seg in chapter)
+                    chapterNames.Add(seg.Name!);
+            ProcessLabel.Content = $"分块聚类中...";
+
+            var clusterResult = await agent.Run($"""
+                        Below are some chapter titles. You should cluster chapters 
+                        with roughly the same meaning.
+
+                        If you encounter questions that are difficult to categorize, 
+                        such as "Chapter 1," please classify them under "杂项题目".
+
+                        Numbers should be sequentially numbered and should not be repeated.
+
+                        public class ChapterCluster
+
+                        [JsonPropertyName("names")]
+                        public List<string>? Chapters  get; set; 
+
+                        // Give these chapters a unified name
+                        [JsonPropertyName("uname")]
+                        public stirng? UnifiedName get; set; 
+
+                        [JsonPropertyName("number")]
+                        public int Number  get; set; 
+
+                        Return a List<ChapterCluster>, Below are the titles of all chapters:
+                        {chapterNames.Aggregate((l, r) => l + " " + r)}
+                        """);
+
+            var jsonContent = clusterResult.Messages.Last().Content!.Replace("`", "").Replace("json", "").Trim();
+            var cluster = JsonSerializer.Deserialize<List<ChapterCluster>>(jsonContent);
+
+            // Write down whatever dream about
+            foreach (var single in cluster!)
+            {
+                foreach (var individual in allChapter!)
+                {
+                    foreach (var seg in individual)
+                    {
+                        if (!single.Chapters!.Contains(seg.Name!)) continue;
+                        if (!project.Chapters!.Select(c => c.Name).Contains(single.UnifiedName))
+                            project.Chapters!.Add(new() { Name=single.UnifiedName, Number=single.Number, Questions=new() });
+                        project.Chapters!.Find(c => c.Name == single.UnifiedName)!.Questions!.AddRange(seg.Questions!);
+                    }
+                }
+            }
         }
         catch (Exception ex)
         {

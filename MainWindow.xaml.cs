@@ -238,7 +238,7 @@ namespace ReciteHelper
                     if (project != null)
                     {
                         project.LastAccessed = DateTime.Now;
-                        var quizWindow = new QuizWindow(project);
+                        var quizWindow = new SelectChapterWindow(project);
                         quizWindow.Show();
 
                         SaveRecentProjects();

@@ -1,7 +1,6 @@
 ﻿using FuzzyString;
 using ReciteHelper.Models;
 using ReciteHelper.Utils;
-using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
@@ -19,15 +18,18 @@ namespace ReciteHelper
         private int _totalQuestions = 0;
         private int _correctCount = 0;
         private int _wrongCount = 0;
-        private Project project = new();
+        private string _chapterName = "";
+        private Project _project = new();
 
-        public QuizWindow(Project project)
+        public QuizWindow(Project project, string chapterName)
         {
             InitializeComponent();
             DataContext = this;
-            this.project = project;
 
-            InitializeQuestions(project.QuestionBank!);
+            _project = project;
+            _chapterName= chapterName;
+
+            InitializeQuestions(project.Chapters!.Find(x => x.Name == chapterName)!.Questions!);
             LocateCurrent();
             UpdateDisplay();
         }
@@ -274,6 +276,7 @@ namespace ReciteHelper
         private void AnswerTextBox_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
         {
             // TODO: AI verification
+            // Spending this extra money is not worthwhile and requires further consideration.
         }
 
         public class QuestionItem : INotifyPropertyChanged
@@ -315,13 +318,14 @@ namespace ReciteHelper
 
         private void Window_Closing(object sender, CancelEventArgs e)
         {
-            if (project is null) return;
+            if (_project is null) return;
 
             // Save record
-            for (int i = 0; i < _questions.Count(); i++)
+            var chapter = _project.Chapters!.Find(x => x.Name == _chapterName)!;
+            for (int i = 0; i < _questions.Count; i++)
             {
-                project.QuestionBank![i].UserAnswer = _questions[i].UserAnswer;
-                project.QuestionBank[i].Status = _questions[i].Status switch
+                chapter.Questions![i].UserAnswer = _questions[i].UserAnswer;
+                chapter.Questions![i].Status = _questions[i].Status switch
                 {
                     AnswerStatus.NotAnswered => null,
                     AnswerStatus.Correct => true,
@@ -330,18 +334,18 @@ namespace ReciteHelper
                 };
             }
 
-            var path = Path.Combine(project.StoragePath!, project.ProjectName!, project.ProjectName!);
-            var json = System.Text.Json.JsonSerializer.Serialize(project,
+            var path = Path.Combine(_project.StoragePath!, _project.ProjectName!, _project.ProjectName!);
+            var json = System.Text.Json.JsonSerializer.Serialize(_project,
                 new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
             File.WriteAllText($"{path}.rhproj", json);
         }
 
-        private void SimulateButton_Click(object sender,RoutedEventArgs e)
+        private void SimulateButton_Click(object sender, RoutedEventArgs e)
         {
             var random = Random.Shared;
             var examWindow = new ExamWindow(
                 _questions.Select(x => x.Question).OrderBy(x => random.Next()).Take(30).ToList()!,
-                project.ProjectName!
+                _project.ProjectName!
             );
 
             examWindow.Show();
