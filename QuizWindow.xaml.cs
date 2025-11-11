@@ -339,17 +339,5 @@ namespace ReciteHelper
                 new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
             File.WriteAllText($"{path}.rhproj", json);
         }
-
-        private void SimulateButton_Click(object sender, RoutedEventArgs e)
-        {
-            var random = Random.Shared;
-            var examWindow = new ExamWindow(
-                _questions.Select(x => x.Question).OrderBy(x => random.Next()).Take(30).ToList()!,
-                _project.ProjectName!
-            );
-
-            examWindow.Show();
-            Close();
-        }
     }
 }

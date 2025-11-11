@@ -227,11 +227,6 @@
                     </StackPanel>
                     <StackPanel Grid.Column="1" Orientation="Horizontal">
                         <Button
-                            x:Name="SimulateButton"
-                            Click="SimulateButton_Click"
-                            Content="模拟考试"
-                            Style="{StaticResource SecondaryButtonStyle}" />
-                        <Button
                             x:Name="ClearButton"
                             Margin="20,0,0,0"
                             Click="ClearButton_Click"

@@ -14,7 +14,6 @@
     mc:Ignorable="d">
 
     <Window.Resources>
-        <!--  主按钮样式  -->
         <Style x:Key="PrimaryButtonStyle" TargetType="Button">
             <Setter Property="Background" Value="#007ACC" />
             <Setter Property="Foreground" Value="White" />
@@ -35,7 +34,6 @@
             </Style.Triggers>
         </Style>
 
-        <!--  次要按钮样式  -->
         <Style x:Key="SecondaryButtonStyle" TargetType="Button">
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="Foreground" Value="#666666" />
@@ -54,7 +52,6 @@
             </Style.Triggers>
         </Style>
 
-        <!--  答题卡按钮样式  -->
         <Style x:Key="ExamCardButtonStyle" TargetType="Button">
             <Setter Property="Width" Value="36" />
             <Setter Property="Height" Value="36" />
@@ -72,7 +69,6 @@
             </Style.Triggers>
         </Style>
 
-        <!--  当前题目样式  -->
         <Style
             x:Key="CurrentExamQuestionStyle"
             BasedOn="{StaticResource ExamCardButtonStyle}"
@@ -82,7 +78,6 @@
             <Setter Property="Background" Value="#E3F2FD" />
         </Style>
 
-        <!--  已回答样式  -->
         <Style
             x:Key="AnsweredExamQuestionStyle"
             BasedOn="{StaticResource ExamCardButtonStyle}"
@@ -93,7 +88,6 @@
     </Window.Resources>
 
     <Grid>
-        <!--  考试信息栏（始终显示）  -->
         <Border
             Height="50"
             VerticalAlignment="Top"
@@ -517,7 +511,7 @@
                             FontSize="20"
                             FontWeight="Bold"
                             Foreground="#333333"
-                            Text="考试结果" />
+                            Text="考试成绩" />
                     </StackPanel>
 
                     <StackPanel
@@ -536,6 +530,7 @@
                             <Viewbox>
                                 <TextBlock
                                     x:Name="ScoreText"
+                                    FontFamily="Times New Roman"
                                     FontWeight="Bold"
                                     Foreground="Red"
                                     Text="85" />
@@ -590,11 +585,13 @@
                         Orientation="Horizontal">
                         <Button
                             x:Name="ReviewAnswersButton"
+                            Margin="0,0,20,0"
                             Click="ReviewAnswersButton_Click"
                             Content="查看答案"
                             Style="{StaticResource PrimaryButtonStyle}" />
                         <Button
                             x:Name="RetryExamButton"
+                            Margin="0,0,20,0"
                             Click="RetryExamButton_Click"
                             Content="再考一次"
                             Style="{StaticResource SecondaryButtonStyle}" />

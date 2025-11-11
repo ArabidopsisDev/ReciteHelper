@@ -18,4 +18,12 @@ public class Project
 
     [JsonPropertyName("last_accessed")]
     public DateTime LastAccessed { get; set; }
+
+    public List<Question> ExportQuestions()
+    {
+        List<Question> questions = [];
+        foreach (var chapter in Chapters!)
+            questions.AddRange(chapter.Questions!);
+        return questions;
+    }
 }

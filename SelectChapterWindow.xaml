@@ -23,6 +23,24 @@
             <Setter Property="Padding" Value="0" />
         </Style>
 
+        <Style x:Key="SecondaryButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="#666666" />
+            <Setter Property="BorderBrush" Value="#DDDDDD" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Padding" Value="20,10" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="MinWidth" Value="80" />
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#F8F9FA" />
+                    <Setter Property="BorderBrush" Value="#007ACC" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
         <Style x:Key="ChapterButtonStyle" TargetType="Button">
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="BorderThickness" Value="0" />
@@ -65,19 +83,29 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
 
-                <StackPanel Grid.Column="0" Orientation="Vertical">
-                    <TextBlock
-                        x:Name="ProjectNameText"
-                        FontSize="18"
-                        FontWeight="Bold"
-                        Foreground="#333333"
-                        Text="项目名称" />
-                    <TextBlock
-                        x:Name="ProjectPathText"
-                        Margin="0,4,0,0"
-                        FontSize="12"
-                        Foreground="#666666"
-                        Text="项目路径" />
+                <StackPanel Grid.Column="0" Orientation="Horizontal">
+                    <StackPanel Orientation="Vertical">
+                        <TextBlock
+                            x:Name="ProjectNameText"
+                            FontSize="18"
+                            FontWeight="Bold"
+                            Foreground="#333333"
+                            Text="项目名称" />
+                        <TextBlock
+                            x:Name="ProjectPathText"
+                            Margin="0,4,0,0"
+                            FontSize="12"
+                            Foreground="#666666"
+                            Text="项目路径" />
+                    </StackPanel>
+
+                    <Button
+                        x:Name="SimulateButton"
+                        Margin="350,0,0,0"
+                        VerticalAlignment="Center"
+                        Click="SimulateButton_Click"
+                        Content="模拟考试"
+                        Style="{StaticResource SecondaryButtonStyle}" />
                 </StackPanel>
 
                 <StackPanel

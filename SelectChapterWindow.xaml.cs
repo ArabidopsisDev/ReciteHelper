@@ -115,6 +115,18 @@ public partial class SelectChapterWindow : Window, INotifyPropertyChanged
         RefreshMasteryLevels();
     }
 
+    private void SimulateButton_Click(object sender, RoutedEventArgs e)
+    {
+        var random = Random.Shared;
+        var examWindow = new ExamWindow(
+            _currentProject.ExportQuestions().OrderBy(x => random.Next()).Take(30).ToList()!,
+            _currentProject.ProjectName!
+        );
+
+        examWindow.Show();
+        Close();
+    }
+
     private void RefreshMasteryLevels()
     {
         foreach (var chapterVM in _chapters)
