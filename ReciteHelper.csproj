@@ -29,6 +29,7 @@
     <PackageReference Include="jieba.NET" Version="0.42.2" />
     <PackageReference Include="LlmTornado" Version="3.8.12" />
     <PackageReference Include="LlmTornado.Agents" Version="1.0.11" />
+    <PackageReference Include="Markdig.Wpf" Version="0.5.0.1" />
   </ItemGroup>
 
   <ItemGroup>

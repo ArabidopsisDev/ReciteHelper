@@ -12,4 +12,7 @@ public class Chapter
 
     [JsonPropertyName("bank")]
     public List<Question>? Questions { get; set; }
+
+    [JsonPropertyName("know")]
+    public List<KnowledgePoint>? KnowledgePoints { get; set; }
 }

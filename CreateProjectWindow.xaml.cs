@@ -3,16 +3,12 @@ using Docnet.Core.Models;
 using LlmTornado;
 using LlmTornado.Agents;
 using LlmTornado.Chat.Models;
-using LlmTornado.Moderation;
 using Microsoft.Win32;
 using ReciteHelper.Models;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.IO;
-using System.Net.Http.Json;
 using System.Text.Json;
 using System.Windows;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace ReciteHelper;
 
@@ -297,6 +293,9 @@ public partial class CreateProjectWindow : Window
                         [JsonPropertyName("bank")]
                         public List<Question>? Questions  get; set; 
 
+                        [JsonPropertyName("know")]
+                        public List<KnowledgePoint>? KnowledgePoints  get; set; 
+
                         public class Question
                         // The status of the answers is indicated by a value of null (no answer), 
                         // true (correct answer), and false (incorrect answer)
@@ -311,6 +310,22 @@ public partial class CreateProjectWindow : Window
 
                         [JsonPropertyName("correct_answer")]
                         public string? CorrectAnswer get; set;
+
+                        You also need to extract the key knowledge points, mark the titles 
+                        and specific content, ContentMarkdown is a summary of specific 
+                        knowledge points about this topic, presented in Markdown format, 
+                        and can be more detailed.
+
+                        [JsonPropertyName("name")]
+                        public string? Name  get; set; 
+
+                        [JsonPropertyName("content")]
+                        public string? ContentMarkdown  get; set; 
+
+                        /// <summary>
+                        /// Mark the knowledge point mastery status as false.
+                        /// </summary>
+                        public bool isMastered get; set;  = false;
 
                         Fill in Text and CorrectAnswer, Return a JSON form of List<Chapter>.
                         below is the user's knowledge base: 
@@ -388,8 +403,11 @@ public partial class CreateProjectWindow : Window
                     {
                         if (!single.Chapters!.Contains(seg.Name!)) continue;
                         if (!project.Chapters!.Select(c => c.Name).Contains(single.UnifiedName))
-                            project.Chapters!.Add(new() { Name=single.UnifiedName, Number=single.Number, Questions=new() });
-                        project.Chapters!.Find(c => c.Name == single.UnifiedName)!.Questions!.AddRange(seg.Questions!);
+                            project.Chapters!.Add(new() { Name=single.UnifiedName, Number=single.Number, Questions=new(),KnowledgePoints=new() });
+
+                        var cur = project.Chapters!.Find(c => c.Name == single.UnifiedName)!;
+                        cur.Questions!.AddRange(seg.Questions!);
+                        cur.KnowledgePoints!.AddRange(seg.KnowledgePoints!);
                     }
                 }
             }
@@ -401,6 +419,8 @@ public partial class CreateProjectWindow : Window
             DialogResult = false;
             Close();
         }
+
+        Console.WriteLine("Hello");
     }
 
     private void CancelButton_Click(object sender, RoutedEventArgs e)

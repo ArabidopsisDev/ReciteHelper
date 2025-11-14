@@ -160,14 +160,7 @@
                             x:Name="StatsTextBlock"
                             FontSize="12"
                             Foreground="#6C757D"
-                            Text="总计: 0  正确: 0  错误: 0"
                             TextAlignment="Center" />
-                        <ProgressBar
-                            x:Name="ProgressBar"
-                            Height="6"
-                            Margin="0,8,0,0"
-                            Background="#E9ECEF"
-                            Foreground="#28A745" />
                     </StackPanel>
                 </Border>
             </DockPanel>

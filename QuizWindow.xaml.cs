@@ -81,7 +81,6 @@ namespace ReciteHelper
             _totalQuestions = _questions.Count;
             AnswerCardItemsControl.ItemsSource = _questions;
             UpdateAnswerCardStyles();
-            UpdateStatistics();
         }
 
         private void UpdateDisplay()
@@ -185,17 +184,6 @@ namespace ReciteHelper
             CorrectAnswerText.Text = question.Question.CorrectAnswer;
         }
 
-        private void UpdateStatistics()
-        {
-            _correctCount = _questions.Count(q => q.Status == AnswerStatus.Correct);
-            _wrongCount = _questions.Count(q => q.Status == AnswerStatus.Wrong);
-
-            StatsTextBlock.Text = $"总计: {_totalQuestions}  正确: {_correctCount}  错误: {_wrongCount}";
-
-            double progress = _totalQuestions > 0 ? (double)(_correctCount + _wrongCount) / _totalQuestions : 0;
-            ProgressBar.Value = progress * 100;
-        }
-
         private void LocateCurrent()
         {
             for (int i = 0; i < _questions.Count(); i++)
@@ -242,7 +230,6 @@ namespace ReciteHelper
 
             ShowResult(currentQuestion);
             AnswerTextBox.IsEnabled = false;
-            UpdateStatistics();
             UpdateAnswerCardStyles();
         }
 
