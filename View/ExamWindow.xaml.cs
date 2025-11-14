@@ -1,5 +1,5 @@
 ﻿using FuzzyString;
-using ReciteHelper.Models;
+using ReciteHelper.Model;
 using ReciteHelper.Utils;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -9,7 +9,7 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Threading;
 
-namespace ReciteHelper;
+namespace ReciteHelper.View;
 
 public partial class ExamWindow : Window, INotifyPropertyChanged
 {

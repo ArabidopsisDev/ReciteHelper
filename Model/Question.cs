@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace ReciteHelper.Models;
+namespace ReciteHelper.Model;
 
 public class Question
 {

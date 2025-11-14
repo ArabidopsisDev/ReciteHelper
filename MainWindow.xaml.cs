@@ -1,5 +1,6 @@
 ﻿using Microsoft.Win32;
-using ReciteHelper.Models;
+using ReciteHelper.Model;
+using ReciteHelper.View;
 using System.IO;
 using System.Text.Json;
 using System.Windows;

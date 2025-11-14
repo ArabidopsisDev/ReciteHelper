@@ -1,7 +1,7 @@
-﻿using ReciteHelper.Models;
+﻿using ReciteHelper.Model;
 using System.ComponentModel;
 
-namespace ReciteHelper.ViewModels;
+namespace ReciteHelper.ViewModel;
 
 public class ChapterViewModel : INotifyPropertyChanged
 {

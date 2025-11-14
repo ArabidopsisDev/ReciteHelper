@@ -1,6 +1,6 @@
 ﻿using System.Windows;
 
-namespace ReciteHelper
+namespace ReciteHelper.View
 {
     /// <summary>
     /// Interaction logic for ExamReviewWindow.xaml

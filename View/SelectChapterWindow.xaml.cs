@@ -1,11 +1,11 @@
-﻿using ReciteHelper.Models;
-using ReciteHelper.ViewModels;
+﻿using ReciteHelper.Model;
+using ReciteHelper.ViewModel;
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Threading;
 
-namespace ReciteHelper;
+namespace ReciteHelper.View;
 
 public partial class SelectChapterWindow : Window, INotifyPropertyChanged
 {

@@ -4,13 +4,13 @@ using LlmTornado;
 using LlmTornado.Agents;
 using LlmTornado.Chat.Models;
 using Microsoft.Win32;
-using ReciteHelper.Models;
+using ReciteHelper.Model;
 using System.Collections.Concurrent;
 using System.IO;
 using System.Text.Json;
 using System.Windows;
 
-namespace ReciteHelper;
+namespace ReciteHelper.View;
 
 public partial class CreateProjectWindow : Window
 {
