@@ -8,6 +8,7 @@
     Title="欢迎使用 Arabidopsis ReciteHelper"
     Width="900"
     Height="600"
+    Closing="Window_Closing"
     Background="#F6F6F6"
     WindowStartupLocation="CenterScreen"
     mc:Ignorable="d">

@@ -23,7 +23,7 @@ namespace ReciteHelper
 
         private void LoadSlogan()
         {
-            List<string> slogan = ["自力更生 艰苦奋斗", "为人民服务", "高质量发展是首要任务", 
+            List<string> slogan = ["自力更生 艰苦奋斗", "为人民服务", "高质量发展是首要任务",
                 "高水平科技自立自强", "人民城市人民建 人民城市为人民", "坚持融入日常、抓在经常",
                 "扎实推进乡村振兴战略", "保障粮食和重要农产品安全", "守护好中华民族的文化瑰宝",
                 "反对大吃大喝 注意节约"];
@@ -52,7 +52,7 @@ namespace ReciteHelper
         {
             try
             {
-                string json = JsonSerializer.Serialize(recentProjects, new JsonSerializerOptions { WriteIndented = true });
+                var json = JsonSerializer.Serialize(recentProjects, new JsonSerializerOptions { WriteIndented = true });
                 File.WriteAllText(recentProjectsFile, json);
             }
             catch (Exception ex)
@@ -257,6 +257,30 @@ namespace ReciteHelper
             {
                 MessageBox.Show($"项目文件不存在: {projectPath}", "错误",
                     MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
+        {
+            // Delete projects that exist in name only
+            var change = false;
+
+            for (int i = 0; i < recentProjects.Count; i++)
+            {
+                var project = recentProjects[i];
+                var exist = File.Exists(project.ProjectPath);
+                if (!exist)
+                {
+                    recentProjects.Remove(project);
+                    change = true;
+                }
+
+            }
+
+            if (change)
+            {
+                var json = JsonSerializer.Serialize(recentProjects, new JsonSerializerOptions { WriteIndented = true });
+                File.WriteAllText(recentProjectsFile, json);
             }
         }
     }
