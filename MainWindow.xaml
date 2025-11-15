@@ -8,8 +8,8 @@
     Title="欢迎使用 Arabidopsis ReciteHelper"
     Width="900"
     Height="600"
-    Closing="Window_Closing"
     Background="#F6F6F6"
+    Closing="Window_Closing"
     WindowStartupLocation="CenterScreen"
     mc:Ignorable="d">
 
@@ -246,7 +246,8 @@
                 FontFamily="SimSun"
                 FontSize="24"
                 FontWeight="Bold"
-                Foreground="Red" />
+                Foreground="Red"
+                Opacity="0" />
 
             <Label
                 Name="SloganLabel"
