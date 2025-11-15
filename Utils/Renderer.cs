@@ -72,7 +72,7 @@ class Renderer(MarkdownViewer viewer, Dispatcher localThread)
 
         if (isHeading)
         {
-            paragraph.FontFamily = new FontFamily("Arial, 微软雅黑");
+            paragraph.FontFamily = new FontFamily("Arial, Microsoft YaHei UI");
             paragraph.FontWeight = FontWeights.Bold;
 
             if (paragraph.FontSize >= 20)
@@ -87,7 +87,7 @@ class Renderer(MarkdownViewer viewer, Dispatcher localThread)
         else
         {
             // Body text style
-            paragraph.FontFamily = new FontFamily("Times New Roman, 宋体");
+            paragraph.FontFamily = new FontFamily("Times New Roman, Simsun");
             paragraph.LineHeight = 1.6;
             paragraph.TextAlignment = TextAlignment.Left;
             paragraph.Foreground = new SolidColorBrush(Color.FromRgb(68, 68, 68));

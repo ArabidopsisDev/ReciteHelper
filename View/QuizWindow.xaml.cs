@@ -208,24 +208,7 @@ public partial class QuizWindow : Window, INotifyPropertyChanged
         currentQuestion.UserAnswer = AnswerTextBox.Text.Trim();
 
         // Determine whether the answer is roughly similar to the given answer
-
-        // Method 1: Traditional algorithms such as LCS
-        var tolerance = FuzzyStringComparisonTolerance.Strong;
-        var comparisonOptions = new List<FuzzyStringComparisonOptions>
-        {
-            FuzzyStringComparisonOptions.UseOverlapCoefficient,
-            FuzzyStringComparisonOptions.UseLongestCommonSubsequence,
-            FuzzyStringComparisonOptions.UseLongestCommonSubstring
-        };
-
-        // Method 2: Calculate text cosine similarity
-        var similarity = new CosineSimilarity();
-        var score = similarity.Calculate(currentQuestion.UserAnswer,
-            currentQuestion.Question!.CorrectAnswer!);
-
-        bool isCorrect = currentQuestion.UserAnswer.ApproximatelyEquals(
-            currentQuestion.Question!.CorrectAnswer, comparisonOptions, tolerance);
-        isCorrect = isCorrect | (score > .4);
+        var isCorrect = JudgeAnswer.Run(currentQuestion);
         currentQuestion.Status = isCorrect ? AnswerStatus.Correct : AnswerStatus.Wrong;
 
         ShowResult(currentQuestion);
@@ -266,37 +249,7 @@ public partial class QuizWindow : Window, INotifyPropertyChanged
         // Spending this extra money is not worthwhile and requires further consideration.
     }
 
-    public class QuestionItem : INotifyPropertyChanged
-    {
-        public int Number { get; set; }
-        public Question? Question { get; set; }
-        public AnswerStatus Status { get; set; }
-        public string? UserAnswer { get; set; }
-
-        public Style? StatusStyle
-        {
-            get => field;
-            set
-            {
-                field = value;
-                OnPropertyChanged();
-            }
-        }
-
-        public event PropertyChangedEventHandler? PropertyChanged;
-        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-    }
-
-    public enum AnswerStatus
-    {
-        NotAnswered,
-        Correct,
-        Wrong
-    }
-
+ 
     public event PropertyChangedEventHandler PropertyChanged;
     protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
     {

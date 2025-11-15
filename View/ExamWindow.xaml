@@ -588,7 +588,6 @@
                             Margin="0,0,20,0"
                             Click="ReviewAnswersButton_Click"
                             Content="查看答案"
-                            IsEnabled="False"
                             Style="{StaticResource PrimaryButtonStyle}" />
                         <Button
                             x:Name="RetryExamButton"

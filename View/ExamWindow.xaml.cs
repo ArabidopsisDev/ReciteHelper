@@ -162,29 +162,13 @@ public partial class ExamWindow : Window, INotifyPropertyChanged
     {
         _correctCount = 0;
 
-        var tolerance = FuzzyStringComparisonTolerance.Strong;
-        var comparisonOptions = new List<FuzzyStringComparisonOptions>
-            {
-                FuzzyStringComparisonOptions.UseOverlapCoefficient,
-                FuzzyStringComparisonOptions.UseLongestCommonSubsequence,
-                FuzzyStringComparisonOptions.UseLongestCommonSubstring
-            };
-        var similarity = new CosineSimilarity();
-
         foreach (var question in _questions)
         {
             if (string.IsNullOrEmpty(question.UserAnswer)) continue;
 
-            var cscore = similarity.Calculate(question.UserAnswer,
-                question.Question!.CorrectAnswer!);
-            bool isCorrect = question.UserAnswer.ApproximatelyEquals(
-                question.Question!.CorrectAnswer, comparisonOptions, tolerance);
-            isCorrect = isCorrect | (cscore > .5);
-
+            var isCorrect = JudgeAnswer.Run(question.UserAnswer,question.Question!.CorrectAnswer!);
             if (isCorrect)
-            {
                 _correctCount++;
-            }
         }
 
         var score = (_correctCount * 100.0) / _totalQuestions;
@@ -317,9 +301,9 @@ public partial class ExamWindow : Window, INotifyPropertyChanged
     }
 
     private void ReviewAnswersButton_Click(object sender, RoutedEventArgs e)
-    {
+    { 
         // Create a window to view the answers
-        var reviewWindow = new ExamReviewWindow(/*_questions.ToList()*/);
+        var reviewWindow = new ExamReviewWindow(_questions.ToList());
         reviewWindow.Owner = this;
         reviewWindow.ShowDialog();
     }
@@ -372,37 +356,7 @@ public partial class ExamWindow : Window, INotifyPropertyChanged
         }
     }
 
-    public class ExamQuestionItem : INotifyPropertyChanged
-    {
-        public int Number { get; set; }
-        public Question Question { get; set; }
-        public string UserAnswer { get; set; }
-        public ExamAnswerStatus Status { get; set; }
-
-        private Style _statusStyle;
-        public Style StatusStyle
-        {
-            get => _statusStyle;
-            set
-            {
-                _statusStyle = value;
-                OnPropertyChanged();
-            }
-        }
-
-        public event PropertyChangedEventHandler PropertyChanged;
-        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-    }
-
-    public enum ExamAnswerStatus
-    {
-        NotAnswered,
-        Answered
-    }
-
+    
     public event PropertyChangedEventHandler PropertyChanged;
     protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
     {
