@@ -247,7 +247,7 @@
                 FontSize="24"
                 FontWeight="Bold"
                 Foreground="Red"
-                Opacity="0" />
+                Opacity="100" />
 
             <Label
                 Name="SloganLabel"

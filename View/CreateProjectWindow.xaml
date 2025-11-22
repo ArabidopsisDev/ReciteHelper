@@ -14,7 +14,6 @@
     mc:Ignorable="d">
 
     <Window.Resources>
-        <!--  输入框样式  -->
         <Style x:Key="ModernTextBox" TargetType="TextBox">
             <Setter Property="Background" Value="White" />
             <Setter Property="BorderBrush" Value="#DDDDDD" />
@@ -88,13 +87,21 @@
                 FontWeight="Bold"
                 Foreground="#333333"
                 Text="创建新项目" />
-            <TextBlock
-                Margin="190,0,0,0"
-                VerticalAlignment="Center"
-                FontSize="16"
-                FontWeight="SemiBold"
-                Foreground="#333333"
-                Text="已启用全并发模式" />
+
+            <StackPanel Margin="100,0,0,0" Orientation="Horizontal">
+                <Image
+                    Width="75"
+                    Height="24"
+                    Margin="0,0,10,0"
+                    VerticalAlignment="Center"
+                    Source="pack://application:,,,/ReciteHelper;component/Images/hyper.png" />
+                <TextBlock
+                    VerticalAlignment="Center"
+                    FontSize="16"
+                    FontWeight="SemiBold"
+                    Foreground="#333333"
+                    Text="已启用全并发模式" />
+            </StackPanel>
         </StackPanel>
 
         <StackPanel Grid.Row="1" Orientation="Vertical">

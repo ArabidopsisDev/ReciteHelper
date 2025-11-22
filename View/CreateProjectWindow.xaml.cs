@@ -6,6 +6,7 @@ using LlmTornado.Chat.Models;
 using Microsoft.Win32;
 using ReciteHelper.Model;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.IO;
 using System.Text.Json;
 using System.Windows;
@@ -20,13 +21,15 @@ public partial class CreateProjectWindow : Window
     public string? FullProjectPath { get; private set; }
     public Project project;
 
+    const string LOCAL_DEEPSEEK_APIKEY = "sk-975190102fde4eb19eee9f97162867f0";
+    const int chunkSize = 500;
+
     public CreateProjectWindow()
     {
         InitializeComponent();
-
-        StoragePathTextBox.Text = "D:\\";
-
         UpdatePreview();
+
+        StoragePathTextBox.Text = @"D:\";
     }
 
     private void BrowseStoragePathButton_Click(object sender, RoutedEventArgs e)
@@ -180,7 +183,7 @@ public partial class CreateProjectWindow : Window
         }
     }
 
-    private async void ConfirmButton_Click(object sender, RoutedEventArgs e)
+    private async void ConfirmButton_Click(object sender, RoutedEventArgs e) /* noexcept */
     {
         if (!ConfirmButton.IsEnabled) return;
 
@@ -213,7 +216,7 @@ public partial class CreateProjectWindow : Window
 
             project.Chapters = new();
             ProcessLabel.Content =
-                $"进度: 0/{(int)Math.Ceiling(ExtractAllTextFromPdf(QuestionBankPath!).Length / 1000d)}";
+                $"进度: 0/{(int)Math.Ceiling(ExtractAllTextFromPdf(QuestionBankPath!).Length / (double)chunkSize)}";
 
             // Start generating the question bank
             await ProcessQuestionsAsync();
@@ -236,7 +239,7 @@ public partial class CreateProjectWindow : Window
 
     private async Task ProcessQuestionsAsync()
     {
-        var api = new TornadoApi("sk-975190102fde4eb19eee9f97162867f0");
+        var api = new TornadoApi(LOCAL_DEEPSEEK_APIKEY);
 
         var agent = new TornadoAgent(
             client: api,
@@ -246,7 +249,6 @@ public partial class CreateProjectWindow : Window
         );
 
         var text = ExtractAllTextFromPdf(QuestionBankPath!);
-        var chunkSize = 1000;
 
         try
         {
@@ -263,7 +265,7 @@ public partial class CreateProjectWindow : Window
 
             var parallelOptions = new ParallelOptions
             {
-                MaxDegreeOfParallelism = 5
+                MaxDegreeOfParallelism = 16
             };
 
             var allChapter = new ConcurrentBag<List<Chapter>>();
@@ -275,17 +277,24 @@ public partial class CreateProjectWindow : Window
                 {
                     var result = await agent.Run(
                     $"""
-                        The following is the knowledge text provided by the user. 
-                        Please generate fill in the blank questions for the user by extracting 
-                        the knowledge points from each statement and replacing them with ________. 
-                        If there are multiple knowledge points in a statement, 
-                        generate multiple questions. 
-                        You should divide the problem into several sections.
+                        The following is knowledge text provided by the user. 
+                        Please generate some questions based on the text content. 
+                        For fill-in-the-blank questions: extract the knowledge points 
+                        from each sentence and replace them with ________. 
+                        If a sentence contains multiple knowledge points, please 
+                        generate multiple questions, rather than filling in multiple 
+                        blanks in one question. For problem-solving questions: 
+                        simply write the question stem. If the document explicitly 
+                        indicates the presence of definition questions, these are 
+                        also problem-solving questions, and the question 
+                        stem should be uniformly formatted as: 名词解释: 名词.
+
+                        You should divide the problem into several chapters.
                         The returned JSON format is as follows:
 
                         public class Chapter
                         [JsonPropertyName("name")]
-                        public string? Name  get; set; 
+                        [NOTNULL] public string Name  get; set; 
 
                         [JsonPropertyName("number")]
                         public int Number  get; set; 
@@ -333,18 +342,38 @@ public partial class CreateProjectWindow : Window
                     """
                     );
 
-                    string jsonContent = result.Messages.Last().Content!
-                        .Replace("`", "")
-                        .Replace("json", "")
-                        .Trim();
+                    var jsonContent = string.Empty;
 
-                    var chapter = JsonSerializer.Deserialize<List<Chapter>>(jsonContent);
-                    if (chapter != null && chapter.Count > 0)
-                        allChapter.Add(chapter);
+                    foreach (var item in result.Messages)
+                    {
+                        if (item.Content is null) continue;
+
+                        if (item.Content.Contains("```json"))
+                        {
+                            jsonContent = result.Messages.Last().Content!
+                                                .Replace("`", "")
+                                                .Replace("json", "")
+                                                .Trim();
+                            break;
+                        }
+                    }
+
+                    try
+                    {
+                        var chapter = JsonSerializer.Deserialize<List<Chapter>>(jsonContent);
+                        if (chapter != null && chapter.Count > 0)
+                            allChapter.Add(chapter);
+                    }
+                    catch (FormatException fme)
+                    {
+                        // ignored
+                        Debug.WriteLine($"fuckyou:{fme.Message}");
+                    }
                 }
-                catch
+                catch (NullReferenceException nre)
                 {
-                    // continue;
+                    // ignored
+                    Debug.WriteLine($"fuckyou:{nre.Message}");
                 }
                 finally
                 {
@@ -364,6 +393,7 @@ public partial class CreateProjectWindow : Window
             foreach (var chapter in allChapter)
                 foreach (var seg in chapter)
                     chapterNames.Add(seg.Name!);
+
             ProcessLabel.Content = $"分块聚类中...";
 
             var clusterResult = await agent.Run($"""
@@ -403,7 +433,13 @@ public partial class CreateProjectWindow : Window
                     {
                         if (!single.Chapters!.Contains(seg.Name!)) continue;
                         if (!project.Chapters!.Select(c => c.Name).Contains(single.UnifiedName))
-                            project.Chapters!.Add(new() { Name=single.UnifiedName, Number=single.Number, Questions=new(),KnowledgePoints=new() });
+                            project.Chapters!.Add(new()
+                            {
+                                Name = single.UnifiedName,
+                                Number = single.Number,
+                                Questions = new(),
+                                KnowledgePoints = new()
+                            });
 
                         var cur = project.Chapters!.Find(c => c.Name == single.UnifiedName)!;
                         cur.Questions!.AddRange(seg.Questions!);
@@ -473,7 +509,7 @@ public partial class CreateProjectWindow : Window
         var tokens = length * 1.3d * (1d + coff);
         var price = length / 1_000_000 * 2 + length * coff / 1_000_000 * 3;
 
-
+        // Big capitalist
         MessageBox.Show($"""
             texts: {length:F0}
             coefficient: {coff:F2}

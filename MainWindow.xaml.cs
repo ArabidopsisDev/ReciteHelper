@@ -262,22 +262,13 @@ namespace ReciteHelper
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            // Delete projects that exist in name only
-            var change = false;
+            var originalCount = recentProjects.Count;
 
-            for (int i = 0; i < recentProjects.Count; i++)
-            {
-                var project = recentProjects[i];
-                var exist = File.Exists(project.ProjectPath);
-                if (!exist)
-                {
-                    recentProjects.Remove(project);
-                    change = true;
-                }
+            recentProjects = recentProjects
+                .Where(project => File.Exists(project.ProjectPath))
+                .ToList();
 
-            }
-
-            if (change)
+            if (recentProjects.Count != originalCount)
             {
                 var json = JsonSerializer.Serialize(recentProjects, new JsonSerializerOptions { WriteIndented = true });
                 File.WriteAllText(recentProjectsFile, json);

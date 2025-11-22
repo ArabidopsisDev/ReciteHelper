@@ -46,6 +46,7 @@ internal class JudgeAnswer
 
         bool isCorrect = question.UserAnswer.ApproximatelyEquals(
             question.Question!.CorrectAnswer, comparisonOptions, tolerance);
+        if (question.UserAnswer.Length >= 15) score -= .2d;
         isCorrect = isCorrect | (score > .4);
 
         return isCorrect;
