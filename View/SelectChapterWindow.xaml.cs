@@ -1,6 +1,9 @@
 ﻿using ReciteHelper.Model;
 using ReciteHelper.ViewModel;
 using System.ComponentModel;
+using System.IO;
+using System.IO.Compression;
+using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Threading;
@@ -150,6 +153,52 @@ public partial class SelectChapterWindow : Window, INotifyPropertyChanged
     {
         Close();
     }
+
+    private async void ExportButton_Click(object sender, RoutedEventArgs e)
+    {
+        if (_currentProject.StoragePath is null || _currentProject.ProjectName is null)
+            return;
+
+        // Create manifest file
+        var manifest = new Manifest()
+        {
+            ProjectFile = $"{_currentProject.ProjectName}_exp",
+            BankFile = _currentProject.QuestionBankPath,
+            Version = Config.Configure?.Version,
+        };
+        var manifestString = JsonSerializer.Serialize<Manifest>(manifest);
+        File.WriteAllText(_currentProject.StoragePath, manifestString);
+
+        // Create a new file for modification
+        var folderPath = Path.Combine(_currentProject.StoragePath, _currentProject.ProjectName);
+        var fnPath = Path.Combine(folderPath, $"{_currentProject.ProjectName}.json");
+        var destPath = fnPath.Replace(".json", "_exp.json");
+        File.Copy(fnPath, destPath, true);
+        
+        // Read record
+        var projectString = File.ReadAllText(destPath);
+        var record = JsonSerializer.Deserialize<Project>(projectString);
+
+        if (record is null || record.Chapters is null) return;
+        foreach (var chapter in record.Chapters)
+        {
+            if (chapter.Questions is null) continue;
+            foreach (var questions in chapter.Questions)
+            {
+                questions.Status = null;
+                questions.UserAnswer = "";
+            }
+        }
+
+        // Reset record
+        var clearText = JsonSerializer.Serialize(record);
+        await File.WriteAllTextAsync(_currentProject.StoragePath, clearText);
+
+        // Export compressed file
+        var zipPath = @"\result.zip";
+        await ZipFile.CreateFromDirectoryAsync(folderPath, zipPath);
+    }
+
 
     public Project CurrentProject
     {

@@ -10,6 +10,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Utils\OCRProvider.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Remove="Images\background.png" />
     <None Remove="Images\create.png" />
     <None Remove="Images\exam.png" />

@@ -70,9 +70,9 @@ public class CosineSimilarity
     private List<string> ChineseTokenize(string text)
     {
         return _segmenter.Cut(text)
-                        .Select(t => t.Trim())
-                        .Where(t => !string.IsNullOrEmpty(t))
-                        .ToList();
+                         .Select(t => t.Trim())
+                         .Where(t => !string.IsNullOrEmpty(t))
+                         .ToList();
     }
 
     private double[] CreateVector(List<string> tokens, List<string> vocabulary)

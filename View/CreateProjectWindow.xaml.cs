@@ -21,7 +21,6 @@ public partial class CreateProjectWindow : Window
     public string? FullProjectPath { get; private set; }
     public Project project;
 
-    const string LOCAL_DEEPSEEK_APIKEY = "sk-975190102fde4eb19eee9f97162867f0";
     const int chunkSize = 500;
 
     public CreateProjectWindow()
@@ -219,6 +218,13 @@ public partial class CreateProjectWindow : Window
                 $"进度: 0/{(int)Math.Ceiling(ExtractAllTextFromPdf(QuestionBankPath!).Length / (double)chunkSize)}";
 
             // Start generating the question bank
+            if (Config.Configure is null || Config.Configure.DeepSeekKey is null)
+            {
+                MessageBox.Show("您还未配置Deepseek...", "提示", 
+                    MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
             await ProcessQuestionsAsync();
 
             MessageBox.Show("成功了...");
@@ -239,7 +245,7 @@ public partial class CreateProjectWindow : Window
 
     private async Task ProcessQuestionsAsync()
     {
-        var api = new TornadoApi(LOCAL_DEEPSEEK_APIKEY);
+        var api = new TornadoApi(Config.Configure!.DeepSeekKey!);
 
         var agent = new TornadoAgent(
             client: api,
