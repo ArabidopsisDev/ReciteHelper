@@ -159,22 +159,29 @@ public partial class SelectChapterWindow : Window, INotifyPropertyChanged
         if (_currentProject.StoragePath is null || _currentProject.ProjectName is null)
             return;
 
+        // Create output directory
+        Directory.Delete(Path.Combine(_currentProject.StoragePath, _currentProject.ProjectName, "output"));
+        Directory.CreateDirectory(Path.Combine(_currentProject.StoragePath, _currentProject.ProjectName, "output"));
+
         // Create manifest file
         var manifest = new Manifest()
         {
-            ProjectFile = $"{_currentProject.ProjectName}_exp",
+            ProjectFile = $"{_currentProject.ProjectName}_exp.rhproj",
             BankFile = _currentProject.QuestionBankPath,
             Version = Config.Configure?.Version,
         };
-        var manifestString = JsonSerializer.Serialize<Manifest>(manifest);
-        File.WriteAllText(_currentProject.StoragePath, manifestString);
+        var manifestString = JsonSerializer.Serialize<Manifest>(manifest,
+            new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+        var manifestPath = Path.Combine(_currentProject.StoragePath, _currentProject.ProjectName, "output", "manifest.json");
+        File.WriteAllText(manifestPath, manifestString);
 
         // Create a new file for modification
         var folderPath = Path.Combine(_currentProject.StoragePath, _currentProject.ProjectName);
-        var fnPath = Path.Combine(folderPath, $"{_currentProject.ProjectName}.json");
-        var destPath = fnPath.Replace(".json", "_exp.json");
+        var outputFoldePath = Path.Combine(folderPath, "output");
+        var fnPath = Path.Combine(folderPath, $"{_currentProject.ProjectName}.rhproj");
+        var destPath = Path.Combine(outputFoldePath, $"{_currentProject.ProjectName}.rhproj").Replace(".rhproj", "_exp.rhproj");
         File.Copy(fnPath, destPath, true);
-        
+
         // Read record
         var projectString = File.ReadAllText(destPath);
         var record = JsonSerializer.Deserialize<Project>(projectString);
@@ -191,12 +198,13 @@ public partial class SelectChapterWindow : Window, INotifyPropertyChanged
         }
 
         // Reset record
-        var clearText = JsonSerializer.Serialize(record);
-        await File.WriteAllTextAsync(_currentProject.StoragePath, clearText);
+        var clearText = JsonSerializer.Serialize(record,
+            new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+        await File.WriteAllTextAsync(destPath, clearText);
 
         // Export compressed file
-        var zipPath = @"\result.zip";
-        await ZipFile.CreateFromDirectoryAsync(folderPath, zipPath);
+        var zipPath = @"rh_output.zip";
+        await ZipFile.CreateFromDirectoryAsync(outputFoldePath, Path.Combine(folderPath, zipPath));
     }
 
 

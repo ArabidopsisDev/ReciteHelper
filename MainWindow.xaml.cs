@@ -15,6 +15,8 @@ namespace ReciteHelper
 
         public MainWindow()
         {
+            Utils.Deformity.HorribleMethod();
+
             InitializeComponent();
             LoadRecentProjects();
             LoadSlogan();
