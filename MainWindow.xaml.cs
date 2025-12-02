@@ -1,7 +1,9 @@
 ﻿using Microsoft.Win32;
 using ReciteHelper.Model;
+using ReciteHelper.Utils;
 using ReciteHelper.View;
 using System.IO;
+using System.IO.Compression;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
@@ -71,9 +73,7 @@ namespace ReciteHelper
             recentProjects.Sort((x, y) => y.LastAccessed.CompareTo(x.LastAccessed));
 
             foreach (var project in recentProjects)
-            {
                 AddRecentProjectToUI(project.ProjectName, project.ProjectPath);
-            }
         }
 
         private void AddRecentProjectToUI(string projectName, string projectPath)
@@ -173,7 +173,7 @@ namespace ReciteHelper
 
         private void CreateNewProject_Click(object sender, RoutedEventArgs e)
         {
-            var result = new CreateProjectWindow()
+            var result = new CreateProjectWindow(CatchProject)
             {
                 Owner = this
             }.ShowDialog();
@@ -204,27 +204,55 @@ namespace ReciteHelper
 
         private void OpenFolder_Click(object sender, RoutedEventArgs e)
         {
-            var dialog = new OpenFolderDialog();
+            var dialog = new OpenFileDialog();
 
             if (dialog.ShowDialog() == true)
             {
-                string folderPath = dialog.FolderName;
-
-                // Find the project file in the folder
-                var projectFiles = Directory.GetFiles(folderPath, "*.rhproj");
-                if (projectFiles.Length > 0)
+                var exportFile = dialog.FileName;
+                try
                 {
-                    // If you find the project file, open the first one.
-                    OpenProject(projectFiles[0]);
-                    AddRecentProject(projectFiles[0]);
-                }
-                else
-                {
-                    MessageBox.Show("在选择的文件夹中未找到项目文件 (*.rhproj)", "提示",
-                        MessageBoxButton.OK, MessageBoxImage.Information);
-                }
+                    var baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
+                    var outputFolder = Path.Combine(baseDirectory, "temp");
 
+                    Directory.CreateDirectory(outputFolder);
+                    Directory.Clear(outputFolder);
+                    ZipFile.ExtractToDirectory(exportFile, outputFolder);
+
+                    // Why use a manifest file?
+                    // Because the manifest file will later need to include information
+                    // such as the author's name and a brief description of the document
+                    var manifestText = File.ReadAllText(Path.Combine(outputFolder, "manifest.json"));
+                    var manifest = JsonSerializer.Deserialize<Manifest?>(manifestText);
+
+                    if (manifest is null || manifest.ProjectFile is null)
+                        throw new ArgumentException("Incomplete manifest file");
+                    var projectFile = manifest.ProjectFile;
+
+                    // Release file
+                    var exactFolder = Path.Combine(baseDirectory, "imports", projectFile.Split('.')[0]);
+                    Directory.CreateDirectory(exactFolder);
+                    File.Copy($@"{outputFolder}\{projectFile}", $@"{exactFolder}\{projectFile.Replace("_exp", "")}", true);
+
+                    // Add to list
+                    CatchProject($@"{exactFolder}\{projectFile.Replace("_exp", "")}", manifest.ProjectFile.Replace("_exp", ""));
+
+                    // In theory, users should have space for choice.
+                    MessageBox.Show("项目导入成功", "导入成功", MessageBoxButton.OK, MessageBoxImage.Information); ;
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"文件类型不正确或已损坏。\n详细信息：{ex.Message}",
+                        "导入失败", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
             }
+        }
+
+        private void CatchProject(string path, string name)
+        {
+            // Display to user
+            recentProjects.Add(new() { ProjectPath=path, LastAccessed=DateTime.Now, ProjectName=name });
+            SaveRecentProjects();
+            PopulateRecentProjectsUI();
         }
 
         private void OpenProject(string projectPath)
@@ -233,9 +261,6 @@ namespace ReciteHelper
             {
                 try
                 {
-                    // TODO: This section implements the logic for actually opening the project
-                    // e.g. Loading project data, switching to the main interface, etc
-
                     var jsonString = File.ReadAllText(projectPath);
                     var project = JsonSerializer.Deserialize<Project>(jsonString!);
                     if (project != null)

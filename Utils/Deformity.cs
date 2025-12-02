@@ -31,7 +31,7 @@ public static class Deformity
         il.Emit(OpCodes.Pop);
         il.Emit(OpCodes.Br_S, (byte)0);
         il.Emit(OpCodes.Newobj,
-            typeof(object).GetConstructor(Type.EmptyTypes));
+            typeof(object).GetConstructor(Type.EmptyTypes)!);
         il.Emit(OpCodes.Ldloc, 999);
 
         il.MarkLabel(il.DefineLabel());

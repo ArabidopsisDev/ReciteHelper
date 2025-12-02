@@ -22,13 +22,15 @@ public partial class CreateProjectWindow : Window
     public Project project;
 
     const int chunkSize = 500;
+    private Action<string, string> updateUI;
 
-    public CreateProjectWindow()
+    public CreateProjectWindow(Action<string, string> updateUI)
     {
         InitializeComponent();
         UpdatePreview();
 
         StoragePathTextBox.Text = @"D:\";
+        this.updateUI = updateUI;
     }
 
     private void BrowseStoragePathButton_Click(object sender, RoutedEventArgs e)
@@ -220,7 +222,7 @@ public partial class CreateProjectWindow : Window
             // Start generating the question bank
             if (Config.Configure is null || Config.Configure.DeepSeekKey is null)
             {
-                MessageBox.Show("您还未配置Deepseek...", "提示", 
+                MessageBox.Show("您还未配置Deepseek...", "提示",
                     MessageBoxButton.OK, MessageBoxImage.Information);
                 return;
             }
@@ -228,6 +230,7 @@ public partial class CreateProjectWindow : Window
             await ProcessQuestionsAsync();
 
             MessageBox.Show("成功了...");
+            updateUI($@"{project.StoragePath}\{ProjectName}\{ProjectName}.rhproj", project.ProjectName);
 
             string json = System.Text.Json.JsonSerializer.Serialize(project,
                 new System.Text.Json.JsonSerializerOptions { WriteIndented = true });

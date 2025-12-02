@@ -136,7 +136,7 @@ public partial class KnowledgePointWindow : Window, INotifyPropertyChanged
     private void ShowKnowledgePointDetail(KnowledgePoint knowledgePoint)
     {
         _currentKnowledgePoint = knowledgePoint;
-        CurrentMarkdownContent = knowledgePoint.ContentMarkdown ?? "# 暂无内容\n\n该知识点还没有添加详细内容。";
+        CurrentMarkdownContent = knowledgePoint.ContentMarkdown ?? "### 暂无内容\n\n该知识点没有重要需记忆内容。";
 
         // Update UI
         KnowledgePointTitle.Text = knowledgePoint.Name ?? "未命名知识点";

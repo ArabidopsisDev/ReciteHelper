@@ -1,4 +1,5 @@
 ﻿using ReciteHelper.Model;
+using ReciteHelper.Utils;
 using ReciteHelper.ViewModel;
 using System.ComponentModel;
 using System.IO;
@@ -160,8 +161,9 @@ public partial class SelectChapterWindow : Window, INotifyPropertyChanged
             return;
 
         // Create output directory
-        Directory.Delete(Path.Combine(_currentProject.StoragePath, _currentProject.ProjectName, "output"));
-        Directory.CreateDirectory(Path.Combine(_currentProject.StoragePath, _currentProject.ProjectName, "output"));
+        var path = Path.Combine(_currentProject.StoragePath, _currentProject.ProjectName, "output");
+        Directory.Clear(path);
+        Directory.CreateDirectory(path);
 
         // Create manifest file
         var manifest = new Manifest()
@@ -204,7 +206,13 @@ public partial class SelectChapterWindow : Window, INotifyPropertyChanged
 
         // Export compressed file
         var zipPath = @"rh_output.zip";
-        await ZipFile.CreateFromDirectoryAsync(outputFoldePath, Path.Combine(folderPath, zipPath));
+        var absoluteFile = Path.Combine(folderPath, zipPath);
+        if (File.Exists(absoluteFile))
+            File.Delete(absoluteFile);
+        await ZipFile.CreateFromDirectoryAsync(outputFoldePath, absoluteFile);
+
+        System.Diagnostics.Process.Start("explorer.exe", folderPath);
+        MessageBox.Show("已导出至rh_output.zip。");
     }
 
 

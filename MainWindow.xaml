@@ -228,12 +228,12 @@
                             FontSize="14"
                             FontWeight="SemiBold"
                             Foreground="#333333"
-                            Text="打开文件夹" />
+                            Text="导入项目" />
                         <TextBlock
                             Margin="0,4,0,0"
                             FontSize="11"
                             Foreground="#666666"
-                            Text="浏览文件夹中的项目文件"
+                            Text="导入他人分享的复习项目"
                             TextWrapping="Wrap" />
                     </StackPanel>
                 </Grid>
