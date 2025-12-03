@@ -76,7 +76,7 @@ namespace ReciteHelper
                 AddRecentProjectToUI(project.ProjectName, project.ProjectPath);
         }
 
-        private void AddRecentProjectToUI(string projectName, string projectPath)
+        private void AddRecentProjectToUI(string? projectName, string? projectPath)
         {
             var button = new Button
             {

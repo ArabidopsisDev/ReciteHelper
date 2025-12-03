@@ -1,5 +1,4 @@
-﻿using FuzzyString;
-using ReciteHelper.Model;
+﻿using ReciteHelper.Model;
 using ReciteHelper.Utils;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
