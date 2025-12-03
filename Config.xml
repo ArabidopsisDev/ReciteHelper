@@ -1,6 +1,6 @@
 ﻿<Config>
 	<Version>2</Version>
-	<DeepSeekKey>sk-975190102fde4eb19eee9f97162867f0</DeepSeekKey>
+	<DeepSeekKey>%Environment.GetEnvironmentVariable("DSAPI")%</DeepSeekKey>
 	<OCRAccess></OCRAccess>
 	<OCRSecret></OCRSecret>
 </Config>

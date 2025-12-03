@@ -1,6 +1,5 @@
-﻿using System;
+﻿using ReciteHelper.Utils;
 using System.IO;
-using System.Runtime.ConstrainedExecution;
 using System.Xml.Serialization;
 
 namespace ReciteHelper.Model;
@@ -12,13 +11,16 @@ public class Config
     public string? OCRAccess { get; set; }
     public string? OCRSecret { get; set; }
 
-    public static Config? Configure { get; set; } = Create();
+    // Deadlock? Who JB cares?
+    public static Config? Configure { get; set; } = Create().GetAwaiter().GetResult();
 
-    private static Config? Create()
+    private static async Task<Config?> Create()
     {
         var serializer = new XmlSerializer(typeof(Config));
         using var reader = new StreamReader("Config.xml");
 
-        return (Config?)serializer.Deserialize(reader);
+        var originConfig = (Config?)serializer.Deserialize(reader);
+        originConfig!.DeepSeekKey = await Parser.ParseConfigText(originConfig.DeepSeekKey);
+        return originConfig;
     }
 }
