@@ -20,14 +20,11 @@ jobs:
     
     - name: Build
       run: dotnet build --configuration Release
-    
-    # 新增：发布应用程序
+
     - name: Publish Application
       run: |
-        # 找到主项目文件（通常是第一个csproj文件）
         $projectFile = Get-ChildItem -Path . -Filter *.csproj -Recurse | Select-Object -First 1
         if ($projectFile) {
-          # 发布为一个独立的、包含运行时的应用程序
           dotnet publish $projectFile.FullName `
             --configuration Release `
             --output ./publish `
@@ -35,11 +32,10 @@ jobs:
             --runtime win-x64 `
             /p:PublishSingleFile=true
         } else {
-          Write-Error "未找到项目文件 (.csproj)"
+          Write-Error "Could not find project file (.csproj)"
           exit 1
         }
     
-    # 新增：上传构建产物
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4
       with:
