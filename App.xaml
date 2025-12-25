@@ -2,7 +2,6 @@
     x:Class="ReciteHelper.App"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="clr-namespace:ReciteHelper"
-    StartupUri="MainWindow.xaml">
-    <Application.Resources />
-</Application>
+    DispatcherUnhandledException="OnDispatcherUnhandledException"
+    Startup="OnStartup"
+    StartupUri="MainWindow.xaml" />
