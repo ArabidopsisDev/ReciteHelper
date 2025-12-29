@@ -1,8 +1,8 @@
 # ReciteHelper User Manual
 
-**Version:** v2
+**Version:** v3-preview
 
-**Last Updated:** 2025.11.15
+**Last Updated:** 2025.12.29
 
 ## Introduction
 ReciteHelper is an AI-powered tool designed to help users efficiently memorize and review knowledge content. By providing various study and review methods, this project assists users in managing, reinforcing, and testing their study material. It is especially suitable for exam preparation, memorization, and knowledge point organization. The project supports multiple types of data input and output and can be flexibly customized according to users' needs.
@@ -43,15 +43,19 @@ Currently, fill-in-the-blank questions are supported, with plans to add multiple
 
 ### Mock Exam
 
-To simulate exam conditions, the software provides a mock exam function. In the current version, the mock exam automatically selects 30 random questions from knowledge points, with a 60-minute time limit. Future versions will support custom question types, two-way specification, and more. Click "Mock Exam" at the top right of the chapter selection to enter the exam mode.
+To simulate the exam environment, the software includes a simulated exam function. In the current version, the simulated exam will automatically randomly select 30 questions from various test points, with a time limit of 60 minutes. Subsequent versions will support custom question types, two-way item analysis question generation, etc. Click on the "Simulated Exam" page in the upper right corner of the chapter selection to enter the simulated exam, which will then open the exam configuration interface.
+
+![08](Resources/08-exam-setting.png)
+
+On this page, you can configure relevant exam settings, such as course number, exam time, number of questions, points per question, etc. You can use the sliders on the right to select questions from knowledge points proportionally. The total weight does not need to be 100%; the software will automatically calculate the weight ratio for question selection.
 
 ![05](Resources/05-simulate-capital.png)
 
-After agreeing to the exam rules, you can start the exam. Upon finishing, click the "Submit" button to see your score and wrong questions.
+After selecting "I have read and agree to the above exam rules," you can start the exam. After completing the questions, click the submit button in the upper right corner to view your score and incorrect answers.
 
 ![06](Resources/06-simulate-result.png)
 
-Click "View Answers" to review all questions, your answers, correct answers, and explanations. You can also choose to retake the exam to check your mastery.
+Clicking the "View Answers" button will open the exam answer review window, where you can view your answers to each question, the correct answers, and explanations. You can also choose to take the exam again to test your understanding of the knowledge covered in this exam.
 
 ![07](Resources/07-simulate-review.png)
 
@@ -72,12 +76,17 @@ A: In "Project Settings," you can export learning data in JSON format for progre
 
 ## Changelog
 
+### v3-preview (2025.12.29)
+- Added custom exam functionality
+- Added support for long PDFs using a replay algorithm
+
+(v3 is still under development)
+
 ### v2 (2025.11.15)
 - Added review answer feature for mock exams
 - Added knowledge point learning function
 - Added documentation and specifications
 
-(v2 is under active development)
 
 ### v1 (2025.11.11)
 - Support PDF import and automatic knowledge clustering

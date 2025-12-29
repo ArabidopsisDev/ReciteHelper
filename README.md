@@ -1,6 +1,9 @@
 # ReciteHelper
 
-ReciteHelper 是一个基于 AI 的开源桌面记忆辅助软件，能自动解析课程内容、聚合知识点，帮助用户进行高效学习和复习，适合学生、考研党、自学者等使用。  
+ReciteHelper 是一个基于 AI 的开源桌面记忆辅助软件，能自动解析课程内容、聚合知识点，帮助用户进行高效学习和复习，适合学生、考研党、自学者等使用。 
+
+ReciteHelper 承诺永久保持开源、免费的性质。如果您感觉该项目对您有帮助，点个 star 就是对开发者最大的支持。
+
 本项目使用 C# (.NET 10 / WPF) 开发。
 
 ---
@@ -26,7 +29,7 @@ ReciteHelper 是一个基于 AI 的开源桌面记忆辅助软件，能自动解
 
 ## 如何贡献
 
-非常欢迎社区贡献者参与！
+非常欢迎社区贡献者参与！您的贡献将被永久记录在项目 README 文件的特别感谢一栏中。只需要：
 
 1. Fork 本仓库，创建新分支进行开发；
 2. 遵循现有代码风格，建议任何改动都配上适当的注释说明；
@@ -61,8 +64,12 @@ ReciteHelper 是一个基于 AI 的开源桌面记忆辅助软件，能自动解
 - 邮箱：arab@methodbox.top
 - QQ讨论群：1053379975
 
-请阅读[行为准则](CODE_OF_CONDUCT.md)。
+贡献前，请阅读[行为准则](CODE_OF_CONDUCT.md)。
 
 欢迎提出建议、Bug 反馈或功能需求，PR 与 Issue 都会及时处理！
 
 ---
+
+## 星标历史
+
+[![Star History Chart](https://api.star-history.com/svg?repos=ArabidopsisDev/ReciteHelper&type=date&legend=top-left)](https://www.star-history.com/)
