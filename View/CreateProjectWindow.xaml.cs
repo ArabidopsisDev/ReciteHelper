@@ -3,12 +3,14 @@ using Docnet.Core.Models;
 using LlmTornado;
 using LlmTornado.Agents;
 using LlmTornado.Chat.Models;
+using LlmTornado.Common;
 using Microsoft.Win32;
 using ReciteHelper.Model;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.IO;
 using System.Text.Json;
+using System.Threading.Tasks;
 using System.Windows;
 
 namespace ReciteHelper.View;
@@ -246,7 +248,7 @@ public partial class CreateProjectWindow : Window
         }
     }
 
-    private async Task ProcessQuestionsAsync()
+    private TornadoAgent BuildAgent()
     {
         var api = new TornadoApi(Config.Configure!.DeepSeekKey!);
 
@@ -257,29 +259,80 @@ public partial class CreateProjectWindow : Window
             instructions: "You are an assistant who is good at extracting knowledge."
         );
 
+        return agent;
+    }
+
+    private List<Chunk> BuildChunks()
+    {
         var text = ExtractAllTextFromPdf(QuestionBankPath!);
+
+        var totalChunks = (int)Math.Ceiling((double)text.Length / chunkSize);
+        var chunks = new List<Chunk>();
 
         try
         {
-            int totalChunks = (int)Math.Ceiling((double)text.Length / chunkSize);
-            var chunks = new List<(int index, string content)>();
-
             for (int i = 0; i < totalChunks; i++)
             {
                 int startIndex = i * chunkSize;
                 int length = Math.Min(chunkSize, text.Length - startIndex);
                 string chunk = text.Substring(startIndex, length);
-                chunks.Add((i, chunk));
+                chunks.Add(new Chunk(i, chunk));
             }
+        }
+        catch
+        {
+            /*jjjjjjjjjjjjjjjjjjjfxzLOmwZLzxjrrxxxxxxnnnnnnn
+            jjjjjjjjjjjjjjjjjjjfvOkaooooo*ok0njrxxxxxnnnnnnn
+            jjjjjjjjjjjjjfjjjffXo*ahdppqqb#MWavjrrxxxxxnnnnn
+            ffffjjjjjjjjfjffjfjh#oohq0CJCmh#M&qjrrxxxxxxxnnn
+            fffjjfffjjjjjfjjfrU*#haakp0Lqdh##Whcrrrrxxxxxnnn
+            jffffffffffjfffffXpkMkmZZmwObmwqb#*pnrrrxxxxxnnn
+            fffffffffffffjfjfvZqMowOObqZkhpqhWhQjrrrxxxxxnnn
+            fffffffffffffjffffjxb*bqbqQQZbhb#bnrjrrxxxxxxxnn
+            fffffffffffffffffft/C#opwmJUQbboMYtjjjrrrxxxxnnn
+            fffffffffffffffffft/zooohdppdk#M#ctjjjjrrxxxxxnn
+            fffffffffffffffffruYOkbkaaaao#***Juxrjrrxxxxxxnn
+            ffffffftftjft//(|\nhapmmwqqphkbko#oXxjrrxxxxxxnn
+            fffftfrnzUZn()1{{}}xqZZZZwqdpppkahw){)|\/fnvxxxx
+            jffjzOqqqmZu}{}}}}}[f0QQQOmZZwpppdn}{})1))tqwZCc
+            ffxmdqO0QQ0u?{[]]]]]-1XQLQLCCQOmZn[}{}{1}{{Oqqdb
+            frqbmQJYYUCn?[}[]]]]?_?\X0QLCQQz(?][{}[{}}[vZ0md
+            fQbw0LJUUUQj-][[]]]]]?]-?(XLJc(]]]]][[[}}[}fZ0mp
+            xkbwZ0LCLC0}??][]]]]]?]]?[)zz)[]][[[[[[}{[{/ZZmp
+            xkkpppwZZpv_-??]?]]]]?]]]}}}}}[][[][[][[}[[\pwqb
+            uo*kkpqqbMx_--?]?]]{1)[?[]]]]?????]]]]]]]}}[qokk
+            L*akpwZZp8j_?????]_zmf|f[}f}|/t/|\1f/t(/f)[?U*kd
+            habqZ00OqM|?????-_u0|fuq[u0ut(Qu{{UQYrXJu([]xkbb
+            odpqm000dY)??]]?[CqxXvYmjQ|Q/vu/(rQ)UcrUZ)]]tbbb
+            *bdqZQO0dQ|????|cQYXUx}}1{[}1{}{}}[]1nzct}][(pkb
+            okdq0L0Zd@C_???][?{/|\()|{]?]]]??|/(/(][[}[}{mhd
+            *kdw00ZwhBQ-]??]]?jxl<-+<{x1]]?{j(il|t[}}[[}[Cad
+            *hdqZmqda@0-]?]??-(u?\un;"v(?]/t_{\:t([[[[[}}nab
+            okqqpbpqoBn]]??]?]?})r(:+f)?[v}"]x{;(n{[[[}{{toa
+            aqZwbdqp&W|]]]???]])j+;/u(1}[(/[}}1I-v}[][}{1f*#
+            wZmmmmZb%%c}]]]]??{n;;ju)+ft}}{)1ujl1v1[}[{))vW*/
 
-            var parallelOptions = new ParallelOptions
-            {
-                MaxDegreeOfParallelism = 16
-            };
+            /*  What can I say?  */
+        }
 
-            var allChapter = new ConcurrentBag<List<Chapter>>();
-            int processedCount = 0;
+        return chunks;
+    }
 
+    private async Task<Replay> SendChunkAsync(List<Chunk> chunks)
+    {
+        var sendChunks = chunks;
+        var agent = BuildAgent();
+        var allChapter = new ConcurrentBag<List<Chapter>>();
+
+        // Multi-threading: Not without its advantages for someone like me
+        // Process Scheduler: Please enter the text
+        var parallelOptions = new ParallelOptions
+        {
+            MaxDegreeOfParallelism = 2 * 2 * 2 * 2
+        };
+
+        try
+        {
             await Parallel.ForEachAsync(chunks, parallelOptions, async (chunk, cancellationToken) =>
             {
                 try
@@ -347,7 +400,7 @@ public partial class CreateProjectWindow : Window
 
                         Fill in Text and CorrectAnswer, Return a JSON form of List<Chapter>.
                         below is the user's knowledge base: 
-                        {chunk.content}
+                        {chunk.Content}
                     """
                     );
 
@@ -372,27 +425,67 @@ public partial class CreateProjectWindow : Window
                         var chapter = JsonSerializer.Deserialize<List<Chapter>>(jsonContent);
                         if (chapter != null && chapter.Count > 0)
                             allChapter.Add(chapter);
+                        chunk.IsSuccess = true;
                     }
-                    catch (FormatException fme)
+                    catch (Exception fme)
                     {
                         // ignored
                         Debug.WriteLine($"fuckyou:{fme.Message}");
                     }
                 }
-                catch (NullReferenceException nre)
+                catch (Exception nre)
                 {
                     // ignored
                     Debug.WriteLine($"fuckyou:{nre.Message}");
                 }
-                finally
-                {
-                    var currentCount = Interlocked.Increment(ref processedCount);
-                    Dispatcher.Invoke(() =>
-                    {
-                        ProcessLabel.Content = $"进度: {currentCount}/{totalChunks}";
-                    });
-                }
             });
+
+        }
+        catch (Exception e)
+        {
+            // You even know need to handle errors; you're actually a pretty nice person!
+            Console.WriteLine(e.Message);
+
+            // Has it been dealt with? (Referring to the Buddha...)
+        }
+
+        var replay = new Replay(sendChunks, allChapter);
+        return replay;
+    }
+
+    private async Task<List<List<Chapter>>> MergeChunkAsync(List<Chunk> chunks)
+    {
+        var result = new List<List<Chapter>>();
+
+        while (true)
+        {
+            var replay = await SendChunkAsync(chunks);
+            var failed = replay.Chunks.Where(x => !x.IsSuccess).ToList();
+
+            result.AddRange(replay.Chapters);
+            if (failed.Count == 0) break;
+
+        }
+
+        return result;
+    }
+
+
+    private async Task ProcessQuestionsAsync()
+    {
+
+        var agent = BuildAgent();
+        var chunks = BuildChunks();
+
+        try
+        {
+
+            var parallelOptions = new ParallelOptions
+            {
+                MaxDegreeOfParallelism = 16
+            };
+
+            var allChapter = await MergeChunkAsync(chunks);
 
             // Since a block-based algorithm is used, a brute-force approach
             // would be needed to solve for the relationships between blocks
