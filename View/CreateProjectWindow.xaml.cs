@@ -3,15 +3,14 @@ using Docnet.Core.Models;
 using LlmTornado;
 using LlmTornado.Agents;
 using LlmTornado.Chat.Models;
-using LlmTornado.Common;
 using Microsoft.Win32;
 using ReciteHelper.Model;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.IO;
 using System.Text.Json;
-using System.Threading.Tasks;
 using System.Windows;
+using static System.Net.WebRequestMethods;
 
 namespace ReciteHelper.View;
 
@@ -24,6 +23,7 @@ public partial class CreateProjectWindow : Window
     public Project project;
 
     const int chunkSize = 500;
+    private int progress = 0;
     private Action<string, string> updateUI;
 
     public CreateProjectWindow(Action<string, string> updateUI)
@@ -119,7 +119,7 @@ public partial class CreateProjectWindow : Window
             ShowValidationError(QuestionBankValidation, "请选择题库PDF文件");
             isValid = false;
         }
-        else if (!File.Exists(QuestionBankTextBox.Text))
+        else if (!System.IO.File.Exists(QuestionBankTextBox.Text))
         {
             ShowValidationError(QuestionBankValidation, "题库文件不存在");
             isValid = false;
@@ -140,7 +140,7 @@ public partial class CreateProjectWindow : Window
             string projectFileName = ProjectNameTextBox.Text.Trim() + ".rhproj";
             string fullPath = Path.Combine(StoragePathTextBox.Text, ProjectNameTextBox.Text.Trim(), projectFileName);
 
-            if (File.Exists(fullPath))
+            if (System.IO.File.Exists(fullPath))
             {
                 ShowValidationError(ProjectNameValidation, "该项目已存在");
                 isValid = false;
@@ -205,7 +205,7 @@ public partial class CreateProjectWindow : Window
 
             // Copy the question bank files to the project directory
             string destQuestionBankPath = Path.Combine(projectDir, Path.GetFileName(QuestionBankPath));
-            File.Copy(QuestionBankPath, destQuestionBankPath, true);
+            System.IO.File.Copy(QuestionBankPath, destQuestionBankPath, true);
 
             // Create project files
             FullProjectPath = Path.Combine(projectDir, ProjectName + ".rhproj");
@@ -220,6 +220,7 @@ public partial class CreateProjectWindow : Window
             project.Chapters = new();
             ProcessLabel.Content =
                 $"进度: 0/{(int)Math.Ceiling(ExtractAllTextFromPdf(QuestionBankPath!).Length / (double)chunkSize)}";
+            progress = 0;
 
             // Start generating the question bank
             if (Config.Configure is null || Config.Configure.DeepSeekKey is null)
@@ -236,7 +237,7 @@ public partial class CreateProjectWindow : Window
 
             string json = System.Text.Json.JsonSerializer.Serialize(project,
                 new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
-            File.WriteAllText(FullProjectPath, json);
+            System.IO.File.WriteAllText(FullProjectPath, json);
 
             DialogResult = true;
             Close();
@@ -312,7 +313,7 @@ public partial class CreateProjectWindow : Window
             aqZwbdqp&W|]]]???]])j+;/u(1}[(/[}}1I-v}[][}{1f*#
             wZmmmmZb%%c}]]]]??{n;;ju)+ft}}{)1ujl1v1[}[{))vW*/
 
-            /*  What can I say?  */
+            /*                What can I say?              */
         }
 
         return chunks;
@@ -426,6 +427,12 @@ public partial class CreateProjectWindow : Window
                         if (chapter != null && chapter.Count > 0)
                             allChapter.Add(chapter);
                         chunk.IsSuccess = true;
+
+                        Interlocked.Increment(ref progress);
+                        Dispatcher.Invoke(() =>
+                        {
+                            ProcessLabel.Content = $"进度: {progress}/{chunks.Count}";
+                        });
                     }
                     catch (Exception fme)
                     {
@@ -456,6 +463,7 @@ public partial class CreateProjectWindow : Window
     private async Task<List<List<Chapter>>> MergeChunkAsync(List<Chunk> chunks)
     {
         var result = new List<List<Chapter>>();
+        var send = chunks;
 
         while (true)
         {
@@ -463,8 +471,14 @@ public partial class CreateProjectWindow : Window
             var failed = replay.Chunks.Where(x => !x.IsSuccess).ToList();
 
             result.AddRange(replay.Chapters);
-            if (failed.Count == 0) break;
+            if (failed.Count == 0 || Config.Configure!.Strategy == Config.MissingStrategy.Ignore) break;
+            send = [.. replay.Chunks.Where(x => !x.IsSuccess)];
 
+            progress = 0;
+            Dispatcher.Invoke(() =>
+            {
+                ProcessLabel.Content = $"进度: {progress}/{send.Count}";
+            });
         }
 
         return result;
@@ -479,12 +493,6 @@ public partial class CreateProjectWindow : Window
 
         try
         {
-
-            var parallelOptions = new ParallelOptions
-            {
-                MaxDegreeOfParallelism = 16
-            };
-
             var allChapter = await MergeChunkAsync(chunks);
 
             // Since a block-based algorithm is used, a brute-force approach
@@ -519,12 +527,24 @@ public partial class CreateProjectWindow : Window
                         [JsonPropertyName("number")]
                         public int Number  get; set; 
 
-                        Return a List<ChapterCluster>, Below are the titles of all chapters:
+                        Return a List<ChapterCluster0>0,0 0B0e0l0o0w0 0a0r0e0 0t0h0e0 0t0i0tles of all chapters:
                         {chapterNames.Aggregate((l, r) => l + " " + r)}
                         """);
 
             var jsonContent = clusterResult.Messages.Last().Content!.Replace("`", "").Replace("json", "").Trim();
-            var cluster = JsonSerializer.Deserialize<List<ChapterCluster>>(jsonContent);
+
+        // There’s a certain bravado in coding right after waking up
+        bitch_sdau:
+            List<ChapterCluster> cluster;
+            try
+            {
+                cluster = JsonSerializer.Deserialize<List<ChapterCluster>>(jsonContent)!;
+                if (cluster is null) throw new Exception();
+            }
+            catch
+            {
+                goto bitch_sdau;
+            }
 
             // Write down whatever dream about
             foreach (var single in cluster!)
@@ -539,13 +559,17 @@ public partial class CreateProjectWindow : Window
                             {
                                 Name = single.UnifiedName,
                                 Number = single.Number,
-                                Questions = new(),
-                                KnowledgePoints = new()
+                                Questions = [],
+                                KnowledgePoints = []
                             });
 
                         var cur = project.Chapters!.Find(c => c.Name == single.UnifiedName)!;
-                        cur.Questions!.AddRange(seg.Questions!);
-                        cur.KnowledgePoints!.AddRange(seg.KnowledgePoints!);
+
+                        if (seg.Questions is not null)
+                            cur.Questions!.AddRange(seg.Questions!);
+
+                        if (seg.KnowledgePoints is not null)
+                            cur.KnowledgePoints!.AddRange(seg.KnowledgePoints);
                     }
                 }
             }
@@ -557,8 +581,6 @@ public partial class CreateProjectWindow : Window
             DialogResult = false;
             Close();
         }
-
-        Console.WriteLine("Hello");
     }
 
     private void CancelButton_Click(object sender, RoutedEventArgs e)
@@ -609,15 +631,15 @@ public partial class CreateProjectWindow : Window
 
         var coff = 1.25d;
         var tokens = length * 1.3d * (1d + coff);
-        var price = length / 1_000_000 * 2 + length * coff / 1_000_000 * 3;
+        var price = length / 1_000_000 * 2.5 + length * coff / 1_000_000 * 3;
 
-        // Big capitalist
+        // He became a communist...
         MessageBox.Show($"""
             texts: {length:F0}
             coefficient: {coff:F2}
             tokens(pred tot.): {tokens:F0}
 
-            预计价格: {price*100:F2} 元
+            预计价格: {price:F2} 元
             """, "价格预计");
     }
 }

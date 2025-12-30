@@ -2,9 +2,9 @@
 
 **版本号：v3-preview**
 
-**更新日期：2025.12.29**
+**更新日期：2025.12.30**
 
-## 简介s
+## 简介
 ReciteHelper 是一款AI驱动的、旨在帮助用户高效记忆和复习知识内容的工具。通过提供多种学习与复习方法，该项目可以辅助用户管理、巩固和测试自己的学习内容，尤其适用于考试、背诵和知识点梳理等应用场景。本项目支持多种类型的数据输入与输出，并可根据用户需求进行灵活定制。
 
 ---
@@ -16,6 +16,7 @@ ReciteHelper 是一款AI驱动的、旨在帮助用户高效记忆和复习知�
 <Config>
 	<Version>2</Version>
 	<DeepSeekKey>%Environment.GetEnvironmentVariable("DSAPI")%</DeepSeekKey>
+	<MissingStrategy>Ignore</MissingStrategy>
 	<OCRAccess></OCRAccess>
 	<OCRSecret></OCRSecret>
 </Config>
@@ -24,6 +25,8 @@ ReciteHelper 是一款AI驱动的、旨在帮助用户高效记忆和复习知�
 必须配置项是 `DeepSeekKey`，从官网的开发平台获取 Key 后（格式：`sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx`），直接替换其中的%符号和其中的所有字符，改为这个 Key 即可。
 
 当然，如果担心安全问题，您可以将 Key 配置到环境变量中，之后将 `%Environment.GetEnvironmentVariable("DSAPI")%` 中的 DSAPI 改为自己配置的环境变量名称。
+
+配置项 `MissingStrategy` 表示如果部分知识点因为AI产生幻觉而被迫舍弃后的行为，默认为 `Ignore`。`Ignore` 表示被舍弃后不做任何操作，可能会产生小于10%的知识点丢失，但是速度相对较快；`Replay` 表示对舍弃知识点进行提取后重放，保证所有内容均被保留，但相应的可能会占用更多时间。在测试中，缺失的一小部分也会被分块补全大部分，如无特殊情况，强烈不建议修改该项。
 
 ---
 

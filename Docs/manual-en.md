@@ -2,10 +2,32 @@
 
 **Version:** v3-preview
 
-**Last Updated:** 2025.12.29
+**Last Updated:** 2025.12.30
 
 ## Introduction
 ReciteHelper is an AI-powered tool designed to help users efficiently memorize and review knowledge content. By providing various study and review methods, this project assists users in managing, reinforcing, and testing their study material. It is especially suitable for exam preparation, memorization, and knowledge point organization. The project supports multiple types of data input and output and can be flexibly customized according to users' needs.
+
+---
+
+## Before Use
+
+Before using the software, you should complete the configuration. Open the Config.xml file in the file directory using Notepad or another text editor. You will see the following content:
+
+```xml
+<Config>
+<Version>2</Version>
+<DeepSeekKey>%Environment.GetEnvironmentVariable("DSAPI")%</DeepSeekKey>
+<MissingStrategy>Ignore</MissingStrategy>
+<OCRAccess></OCRAccess>
+<OCRSecret></OCRSecret>
+</Config>
+```
+
+The required configuration item is `DeepSeekKey`. After obtaining the Key from the official website's developer platform (format: `sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx`), directly replace the `%` symbols and all the characters within them with this Key.
+
+Of course, if you are concerned about security issues, you can configure the Key in your environment variables, and then change `DSAPI` in `%Environment.GetEnvironmentVariable("DSAPI")%` to the name of your configured environment variable.
+
+The `MissingStrategy` configuration item indicates the behavior if some knowledge points are discarded due to AI hallucinations. The default is `Ignore`. `Ignore` means no action is taken after discarding, which may result in less than 10% loss of knowledge points, but the speed is relatively faster; `Replay` means that the discarded knowledge points are extracted and replayed, ensuring that all content is retained, but this may take more time.
 
 ---
 

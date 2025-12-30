@@ -11,6 +11,8 @@ public class Config
     public string? OCRAccess { get; set; }
     public string? OCRSecret { get; set; }
 
+    public MissingStrategy Strategy { get; set; }
+
     // Deadlock? Who JB cares?
     public static Config? Configure { get; set; } = Create().GetAwaiter().GetResult();
 
@@ -22,5 +24,11 @@ public class Config
         var originConfig = (Config?)serializer.Deserialize(reader);
         originConfig!.DeepSeekKey = await Parser.ParseConfigText(originConfig.DeepSeekKey);
         return originConfig;
+    }
+
+    public enum MissingStrategy
+    {
+        Ignore,
+        Replay
     }
 }

@@ -1,6 +1,7 @@
 ﻿<Config>
 	<Version>2</Version>
 	<DeepSeekKey>%Environment.GetEnvironmentVariable("DSAPI")%</DeepSeekKey>
+	<MissingStrategy>Ignore</MissingStrategy>
 	<OCRAccess></OCRAccess>
 	<OCRSecret></OCRSecret>
 </Config>

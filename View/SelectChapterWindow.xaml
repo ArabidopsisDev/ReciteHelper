@@ -101,7 +101,7 @@
 
                     <Button
                         x:Name="SimulateButton"
-                        Margin="280,0,0,0"
+                        Margin="220,0,0,0"
                         VerticalAlignment="Center"
                         Click="SimulateButton_Click"
                         Content="模拟考试"
