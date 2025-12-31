@@ -23,6 +23,9 @@
     <None Remove="Images\load.png" />
     <None Remove="Images\project.png" />
     <None Remove="Images\result.png" />
+    <None Remove="Images\search.png" />
+    <None Remove="Images\type_card.png" />
+    <None Remove="Images\type_classical.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -51,6 +54,9 @@
     <Resource Include="Images\load.png" />
     <Resource Include="Images\project.png" />
     <Resource Include="Images\result.png" />
+    <Resource Include="Images\search.png" />
+    <Resource Include="Images\type_card.png" />
+    <Resource Include="Images\type_classical.png" />
   </ItemGroup>
 
     <Target Name="EnsureJiebaResources" BeforeTargets="Build">

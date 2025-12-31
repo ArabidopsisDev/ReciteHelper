@@ -7,6 +7,7 @@ using System.IO.Compression;
 using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
+using static ReciteHelper.Model.ProjectType;
 
 namespace ReciteHelper
 {
@@ -27,11 +28,24 @@ namespace ReciteHelper
 
         private void LoadSlogan()
         {
-            List<string> slogan = ["自力更生 艰苦奋斗", "为人民服务", "高质量发展是首要任务",
-                "高水平科技自立自强", "人民城市人民建 人民城市为人民", "坚持融入日常、抓在经常",
-                "扎实推进乡村振兴战略", "保障粮食和重要农产品安全", "守护好中华民族的文化瑰宝",
-                "反对大吃大喝 注意节约"];
+            List<string> slogan = ["你一定会坚持到底的", "常回家看看", "我有卡SPFA症",
+                "向上的路没有同伴", "咕咕，咕咕，咕咕咕！", "坚持融入日常、抓在经常",
+                "我真的是一个很坏的雪莉吗", "你好多宝宝，你开幼儿园算了", "对的对的对的，哦不对！",
+                "Vive la France"];
             SloganLabel.Content = slogan[Random.Shared.Next(0, slogan.Count())];
+
+            if (DateTime.Now.Hour > 14 && Random.Shared.Next(1, 10) > 8)
+                SloganLabel.Content = "哇塞，睡得跟猪头一样";
+            if (DateTime.Now.Hour > 14 && Random.Shared.Next(1, 10) > 8)
+                SloganLabel.Content = "每天睡得屁股都挪不动了吧";
+            if (DateTime.Now.Hour > 10 && Random.Shared.Next(1, 10) > 8)
+                SloganLabel.Content = "又不学习，你去spa";
+            if (DateTime.Now.Hour > 10 && Random.Shared.Next(1, 10) > 8)
+                SloganLabel.Content = "别躺在床上刷手机啃苹果了";
+            if (Random.Shared.Next(1, 10) > 8)
+                SloganLabel.Content = "我读到生词怎么办，跳过";
+            if (Random.Shared.Next(1, 10) > 8)
+                SloganLabel.Content = "每天都在屋子里面滑狗";
         }
 
         private void LoadRecentProjects()
@@ -173,10 +187,21 @@ namespace ReciteHelper
 
         private void CreateNewProject_Click(object sender, RoutedEventArgs e)
         {
-            var result = new CreateProjectWindow(CatchProject)
+            var select = new ProjectTypeSelectionWindow();
+            var dialogResult = select.ShowDialog();
+            var type = new ProjectType();
+            bool? result = false;
+
+            if (dialogResult == true)
+                type = select.SelectedProjectType;
+
+            if (type.TemplateType == ProjectTemplateType.ClassicalReview)
             {
-                Owner = this
-            }.ShowDialog();
+                result = new CreateProjectWindow(CatchProject)
+                {
+                    Owner = this
+                }.ShowDialog();
+            }
 
             if (result == false)
             {

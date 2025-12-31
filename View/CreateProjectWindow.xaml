@@ -178,7 +178,7 @@
                         Grid.Column="1"
                         Margin="5,0,0,0"
                         Click="BrowseQuestionBankButton_Click"
-                        Content="浏览..."
+                        Content="添加..."
                         Style="{StaticResource BrowseButtonStyle}" />
                 </Grid>
                 <TextBlock

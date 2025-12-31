@@ -242,8 +242,8 @@
             <Label
                 Margin="0,60,0,0"
                 HorizontalAlignment="Center"
-                Content="最高指示"
-                FontFamily="SimSun"
+                Content="TIPS"
+                FontFamily="Times New Roman"
                 FontSize="24"
                 FontWeight="Bold"
                 Foreground="Red"
@@ -253,7 +253,7 @@
                 Name="SloganLabel"
                 HorizontalAlignment="Center"
                 Content="自力更生，艰苦奋斗。"
-                FontFamily="KaiTi"
+                FontFamily="Times New Roman, KaiTi"
                 FontSize="20"
                 Foreground="Red" />
 

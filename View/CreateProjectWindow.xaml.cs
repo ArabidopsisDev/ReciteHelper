@@ -8,9 +8,9 @@ using ReciteHelper.Model;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.IO;
+using System.Text;
 using System.Text.Json;
 using System.Windows;
-using static System.Net.WebRequestMethods;
 
 namespace ReciteHelper.View;
 
@@ -52,12 +52,12 @@ public partial class CreateProjectWindow : Window
         var openFileDialog = new OpenFileDialog
         {
             Filter = "PDF文件 (*.pdf)|*.pdf",
-            Title = "选择题库PDF文件"
+            Title = "添加题库PDF文件"
         };
 
         if (openFileDialog.ShowDialog() == true)
         {
-            QuestionBankTextBox.Text = openFileDialog.FileName;
+            QuestionBankTextBox.Text += openFileDialog.FileName + ';';
             ValidateInputs();
             UpdatePreview();
         }
@@ -119,19 +119,29 @@ public partial class CreateProjectWindow : Window
             ShowValidationError(QuestionBankValidation, "请选择题库PDF文件");
             isValid = false;
         }
-        else if (!System.IO.File.Exists(QuestionBankTextBox.Text))
-        {
-            ShowValidationError(QuestionBankValidation, "题库文件不存在");
-            isValid = false;
-        }
-        else if (Path.GetExtension(QuestionBankTextBox.Text).ToLower() != ".pdf")
-        {
-            ShowValidationError(QuestionBankValidation, "请选择PDF文件");
-            isValid = false;
-        }
         else
         {
-            HideValidationError(QuestionBankValidation);
+            var files = QuestionBankTextBox.Text.Split(';');
+            var success = true;
+
+            foreach (var file in files)
+            {
+                if (file == string.Empty) continue;
+
+                if (!System.IO.File.Exists(file))
+                {
+                    ShowValidationError(QuestionBankValidation, "题库文件不存在");
+                    success = isValid = false;
+                }
+                else if (Path.GetExtension(file).ToLower() != ".pdf")
+                {
+                    ShowValidationError(QuestionBankValidation, "请选择PDF文件");
+                    success = isValid = false;
+                }
+            }
+
+            if (success)
+                HideValidationError(QuestionBankValidation);
         }
 
         // Check if the project already exists
@@ -263,9 +273,30 @@ public partial class CreateProjectWindow : Window
         return agent;
     }
 
+    private string LoadTexts(string pathString)
+    {
+        var questionBank = pathString.Split(';');
+        var totalText = new StringBuilder();
+
+        foreach (var path in questionBank)
+        {
+            try
+            {
+                if (path is not null)
+                    totalText.AppendLine(ExtractAllTextFromPdf(path));
+            }
+            catch
+            {
+                continue;
+            }
+        }
+
+        return totalText.ToString();
+    }
+
     private List<Chunk> BuildChunks()
     {
-        var text = ExtractAllTextFromPdf(QuestionBankPath!);
+        var text = LoadTexts(project.QuestionBankPath!);
 
         var totalChunks = (int)Math.Ceiling((double)text.Length / chunkSize);
         var chunks = new List<Chunk>();
