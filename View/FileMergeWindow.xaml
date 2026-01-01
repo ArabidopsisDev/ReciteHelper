@@ -1,0 +1,466 @@
+﻿<Window
+    x:Class="ReciteHelper.View.FileMergeWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:c="clr-namespace:ReciteHelper.Utils.Converter"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Title="文件合并项目"
+    Width="800"
+    Height="600"
+    Background="#F5F7F9"
+    ResizeMode="NoResize"
+    WindowStartupLocation="CenterOwner"
+    mc:Ignorable="d">
+
+    <Window.Resources>
+        <!--  File Item Style  -->
+        <Style x:Key="FileItemStyle" TargetType="Border">
+            <Setter Property="Background" Value="White" />
+            <Setter Property="BorderBrush" Value="#E9ECEF" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="Margin" Value="0,0,0,8" />
+            <Setter Property="Padding" Value="0" />
+        </Style>
+
+        <Style x:Key="PrimaryButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#007ACC" />
+            <Setter Property="Foreground" Value="White" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="20,12" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="MinWidth" Value="100" />
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#005A9E" />
+                </Trigger>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Background" Value="#CCCCCC" />
+                    <Setter Property="Foreground" Value="#888888" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="SecondaryButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="#666666" />
+            <Setter Property="BorderBrush" Value="#DDDDDD" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Padding" Value="15,8" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="MinWidth" Value="80" />
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#F8F9FA" />
+                    <Setter Property="BorderBrush" Value="#007ACC" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="FileIconStyle" TargetType="Border">
+            <Setter Property="Width" Value="36" />
+            <Setter Property="Height" Value="36" />
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="HorizontalAlignment" Value="Center" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+
+        <c:FileExtensionToIconConverter x:Key="FileExtensionToIconConverter" />
+        <c:FileExtensionToColorConverter x:Key="FileExtensionToColorConverter" />
+    </Window.Resources>
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <StackPanel
+            Grid.Row="0"
+            Margin="0,0,0,20"
+            Orientation="Horizontal">
+            <TextBlock
+                FontSize="20"
+                FontWeight="Bold"
+                Foreground="#333333"
+                Text="文件合并项目" />
+            <TextBlock
+                Margin="10,0,0,0"
+                VerticalAlignment="Bottom"
+                FontSize="14"
+                Foreground="#666666"
+                Text=" - 支持合并docx、pptx、pdf、txt等文件" />
+        </StackPanel>
+
+        <Border
+            Grid.Row="1"
+            Background="White"
+            BorderBrush="#E9ECEF"
+            BorderThickness="1"
+            CornerRadius="8">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <Border
+                    Grid.Row="0"
+                    Padding="20,15"
+                    Background="#F8F9FA"
+                    BorderBrush="#E9ECEF"
+                    BorderThickness="0,0,0,1">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0" Orientation="Horizontal">
+                            <TextBlock
+                                VerticalAlignment="Center"
+                                FontSize="12"
+                                Foreground="#666666"
+                                Text="支持的文件格式：" />
+                            <StackPanel Margin="10,0,0,0" Orientation="Horizontal">
+                                <Border
+                                    Width="45"
+                                    Height="40"
+                                    Padding="6,2"
+                                    Background="#E3F2FD"
+                                    CornerRadius="4">
+                                    <TextBlock
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        FontSize="11"
+                                        FontWeight="SemiBold"
+                                        Foreground="#007ACC"
+                                        Text=".docx" />
+                                </Border>
+                                <Border
+                                    Width="45"
+                                    Height="40"
+                                    Margin="10,0,0,0"
+                                    Padding="6,2"
+                                    Background="#FFF3CD"
+                                    CornerRadius="4">
+                                    <TextBlock
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        FontSize="11"
+                                        FontWeight="SemiBold"
+                                        Foreground="#856404"
+                                        Text=".pptx" />
+                                </Border>
+                                <Border
+                                    Width="40"
+                                    Height="40"
+                                    Margin="10,0,0,0"
+                                    Padding="6,2"
+                                    Background="#F8D7DA"
+                                    CornerRadius="4">
+                                    <TextBlock
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        FontSize="11"
+                                        FontWeight="SemiBold"
+                                        Foreground="#721C24"
+                                        Text=".pdf" />
+                                </Border>
+                                <Border
+                                    Width="40"
+                                    Height="40"
+                                    Margin="10,0,0,0"
+                                    Padding="6,2"
+                                    Background="#e8d6fe"
+                                    CornerRadius="4">
+                                    <TextBlock
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        FontSize="11"
+                                        FontWeight="SemiBold"
+                                        Foreground="#6259a1"
+                                        Text=".meg" />
+                                </Border>
+
+                                <Border
+                                    Width="40"
+                                    Height="40"
+                                    Margin="10,0,0,0"
+                                    Padding="6,2"
+                                    Background="#D4EDDA"
+                                    CornerRadius="4">
+                                    <TextBlock
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        FontSize="11"
+                                        FontWeight="SemiBold"
+                                        Foreground="#155724"
+                                        Text=".txt" />
+                                </Border>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <Button
+                            Grid.Column="1"
+                            Click="AddFilesButton_Click"
+                            Content="添加文件"
+                            Style="{StaticResource PrimaryButtonStyle}">
+                            <Button.ToolTip>
+                                <ToolTip>
+                                    <TextBlock Text="添加docx、pptx、pdf、txt文件" />
+                                </ToolTip>
+                            </Button.ToolTip>
+                        </Button>
+                    </Grid>
+                </Border>
+
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                    <Grid>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+
+                        <Border
+                            Grid.Row="0"
+                            Padding="20,12"
+                            Background="#F8F9FA"
+                            BorderBrush="#E9ECEF"
+                            BorderThickness="0,0,0,1">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <TextBlock
+                                    Grid.Column="0"
+                                    Width="30"
+                                    FontWeight="SemiBold"
+                                    Foreground="#666666"
+                                    Text="#" />
+                                <TextBlock
+                                    Grid.Column="1"
+                                    FontWeight="SemiBold"
+                                    Foreground="#666666"
+                                    Text="文件名" />
+                                <TextBlock
+                                    Grid.Column="2"
+                                    Width="60"
+                                    FontWeight="SemiBold"
+                                    Foreground="#666666"
+                                    Text="类型" />
+                                <TextBlock
+                                    Grid.Column="3"
+                                    Width="80"
+                                    FontWeight="SemiBold"
+                                    Foreground="#666666"
+                                    Text="大小" />
+                                <TextBlock
+                                    Grid.Column="4"
+                                    Width="120"
+                                    FontWeight="SemiBold"
+                                    Foreground="#666666"
+                                    Text="修改时间" />
+                                <TextBlock
+                                    Grid.Column="5"
+                                    Width="60"
+                                    FontWeight="SemiBold"
+                                    Foreground="#666666"
+                                    Text="操作" />
+                            </Grid>
+                        </Border>
+
+                        <ItemsControl
+                            x:Name="FilesItemsControl"
+                            Grid.Row="1"
+                            Margin="20,10,20,20">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border Style="{StaticResource FileItemStyle}">
+                                        <Grid Margin="15,10">
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="Auto" />
+                                            </Grid.ColumnDefinitions>
+
+                                            <TextBlock
+                                                Grid.Column="0"
+                                                Width="30"
+                                                VerticalAlignment="Center"
+                                                FontSize="13"
+                                                Foreground="#666666"
+                                                Text="{Binding Index}" />
+
+                                            <StackPanel
+                                                Grid.Column="1"
+                                                VerticalAlignment="Center"
+                                                Orientation="Horizontal">
+                                                <Border Background="{Binding FileExtension, Converter={StaticResource FileExtensionToColorConverter}}" Style="{StaticResource FileIconStyle}">
+                                                    <TextBlock
+                                                        HorizontalAlignment="Center"
+                                                        VerticalAlignment="Center"
+                                                        FontSize="16"
+                                                        FontWeight="Bold"
+                                                        Foreground="White"
+                                                        Text="{Binding FileExtension, Converter={StaticResource FileExtensionToIconConverter}}" />
+                                                </Border>
+                                                <StackPanel Margin="12,0,0,0" Orientation="Vertical">
+                                                    <TextBlock
+                                                        FontSize="13"
+                                                        FontWeight="SemiBold"
+                                                        Foreground="#333333"
+                                                        Text="{Binding FileName}" />
+                                                    <TextBlock
+                                                        MaxWidth="300"
+                                                        FontSize="11"
+                                                        Foreground="#888888"
+                                                        Text="{Binding FilePath}"
+                                                        TextTrimming="CharacterEllipsis" />
+                                                </StackPanel>
+                                            </StackPanel>
+
+                                            <TextBlock
+                                                Grid.Column="2"
+                                                Width="60"
+                                                VerticalAlignment="Center"
+                                                FontSize="12"
+                                                Foreground="#666666"
+                                                Text="{Binding FileExtension, StringFormat='{}{0}文件'}" />
+
+                                            <TextBlock
+                                                Grid.Column="3"
+                                                Width="80"
+                                                VerticalAlignment="Center"
+                                                FontSize="12"
+                                                Foreground="#666666"
+                                                Text="{Binding FileSize}" />
+
+                                            <TextBlock
+                                                Grid.Column="4"
+                                                Width="120"
+                                                VerticalAlignment="Center"
+                                                FontSize="12"
+                                                Foreground="#666666"
+                                                Text="{Binding LastModified}" />
+
+                                            <Button
+                                                Grid.Column="5"
+                                                Padding="8,4"
+                                                Click="RemoveFileButton_Click"
+                                                Content="移除"
+                                                FontSize="11"
+                                                Style="{StaticResource SecondaryButtonStyle}"
+                                                Tag="{Binding FilePath}">
+                                                <Button.ToolTip>
+                                                    <ToolTip>
+                                                        <TextBlock Text="从列表中移除此文件" />
+                                                    </ToolTip>
+                                                </Button.ToolTip>
+                                            </Button>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <Border
+                            x:Name="EmptyStatePanel"
+                            Grid.Row="1"
+                            Margin="20"
+                            Padding="40"
+                            Background="White"
+                            Visibility="Visible">
+                            <StackPanel
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Orientation="Vertical">
+                                <Image
+                                    Width="64"
+                                    Height="64"
+                                    Margin="0,0,0,20"
+                                    Opacity="0.5"
+                                    Source="pack://application:,,,/ReciteHelper;component/Images/merge.png" />
+                                <TextBlock
+                                    Margin="0,0,0,8"
+                                    FontSize="16"
+                                    FontWeight="SemiBold"
+                                    Foreground="#666666"
+                                    Text="还没有添加文件" />
+                                <TextBlock
+                                    FontSize="13"
+                                    Foreground="#888888"
+                                    Text="点击上方添加文件按钮添加要合并的文件"
+                                    TextAlignment="Center" />
+                                <TextBlock
+                                    Margin="0,5,0,0"
+                                    FontSize="12"
+                                    Foreground="#888888"
+                                    Text="支持docx、pptx、pdf、txt格式"
+                                    TextAlignment="Center" />
+                            </StackPanel>
+                        </Border>
+                    </Grid>
+                </ScrollViewer>
+            </Grid>
+        </Border>
+
+        <Border
+            Grid.Row="2"
+            Margin="0,20,0,0"
+            Padding="0,20,0,0"
+            Background="White"
+            BorderBrush="#E9ECEF"
+            BorderThickness="0,1,0,0">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <StackPanel Grid.Column="0" Orientation="Vertical">
+                    <TextBlock
+                        x:Name="FilesCountText"
+                        FontSize="13"
+                        Foreground="#666666"
+                        Text="已添加 0 个文件" />
+                    <TextBlock
+                        x:Name="TotalSizeText"
+                        Margin="0,2,0,0"
+                        FontSize="12"
+                        Foreground="#888888"
+                        Text="总大小：0 KB" />
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <Button
+                        x:Name="ClearAllButton"
+                        Click="ClearAllButton_Click"
+                        Content="清空列表"
+                        IsEnabled="False"
+                        Style="{StaticResource SecondaryButtonStyle}" />
+                    <Button
+                        x:Name="MergeButton"
+                        Click="MergeButton_Click"
+                        Content="开始合并"
+                        Style="{StaticResource PrimaryButtonStyle}" />
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>

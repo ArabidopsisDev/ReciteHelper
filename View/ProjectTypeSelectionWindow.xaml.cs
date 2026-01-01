@@ -42,6 +42,14 @@ namespace ReciteHelper.View
                     Description = "适用于需要快速记忆和检测的场景，以及无明确主题的零散知识点的记忆。将根据复习资料生成知识点卡片进行记忆。",
                     IconPath = "pack://application:,,,/ReciteHelper;component/Images/type_card.png",
                     TemplateType = ProjectTemplateType.FlashCard
+                },
+                new ProjectType
+                {
+                    Id = 3,
+                    TypeName = "题库文件创建",
+                    Description = "适用于资料被分为多个文件的，以及文件类型繁杂不易被处理的情况，该项目将把所有的资料文件合并为一个文件供创建其它项目使用。",
+                    IconPath = "pack://application:,,,/ReciteHelper;component/Images/type_pdf.png",
+                    TemplateType = ProjectTemplateType.PDFMerge
                 }
             };
 

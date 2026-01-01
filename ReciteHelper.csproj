@@ -26,6 +26,7 @@
     <None Remove="Images\search.png" />
     <None Remove="Images\type_card.png" />
     <None Remove="Images\type_classical.png" />
+    <None Remove="Images\type_pdf.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -37,6 +38,8 @@
 
   <ItemGroup>
     <PackageReference Include="Docnet.Core" Version="2.6.0" />
+    <PackageReference Include="FreeSpire.Doc" Version="12.2.0" />
+    <PackageReference Include="FreeSpire.Presentation" Version="9.3.0" />
     <PackageReference Include="FuzzyString" Version="1.0.0" />
     <PackageReference Include="jieba.NET" Version="0.42.2" />
     <PackageReference Include="LlmTornado" Version="3.8.12" />
@@ -57,6 +60,7 @@
     <Resource Include="Images\search.png" />
     <Resource Include="Images\type_card.png" />
     <Resource Include="Images\type_classical.png" />
+    <Resource Include="Images\type_pdf.png" />
   </ItemGroup>
 
     <Target Name="EnsureJiebaResources" BeforeTargets="Build">

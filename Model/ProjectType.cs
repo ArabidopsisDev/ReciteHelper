@@ -85,6 +85,7 @@ public class ProjectType : INotifyPropertyChanged
     public enum ProjectTemplateType
     {
         ClassicalReview,
-        FlashCard
+        FlashCard,
+        PDFMerge
     }
 }

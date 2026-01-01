@@ -34,6 +34,7 @@ namespace ReciteHelper
                 "Vive la France"];
             SloganLabel.Content = slogan[Random.Shared.Next(0, slogan.Count())];
 
+            // The following section is messy, but that's intentional
             if (DateTime.Now.Hour > 14 && Random.Shared.Next(1, 10) > 8)
                 SloganLabel.Content = "哇塞，睡得跟猪头一样";
             if (DateTime.Now.Hour > 14 && Random.Shared.Next(1, 10) > 8)
@@ -194,6 +195,8 @@ namespace ReciteHelper
 
             if (dialogResult == true)
                 type = select.SelectedProjectType;
+            else
+                return;
 
             if (type.TemplateType == ProjectTemplateType.ClassicalReview)
             {
@@ -202,10 +205,20 @@ namespace ReciteHelper
                     Owner = this
                 }.ShowDialog();
             }
+            else if (type.TemplateType == ProjectTemplateType.PDFMerge)
+            {
+                new FileMergeWindow().Show();
+                result = true;
+            }
+            else
+            {
+                MessageBox.Show("该项目类型暂不可用", "无法创建", MessageBoxButton.OK, MessageBoxImage.Information);
+                result = true;
+            }
 
             if (result == false)
             {
-                MessageBox.Show("已放弃创建项目");
+                MessageBox.Show("已放弃创建项目", "放弃创建", MessageBoxButton.OK, MessageBoxImage.Information);
             }
         }
 

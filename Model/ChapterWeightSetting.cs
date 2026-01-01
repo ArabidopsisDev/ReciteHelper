@@ -11,36 +11,32 @@ namespace ReciteHelper.Model;
 /// clients when property values change.</remarks>
 public class ChapterWeightSetting : INotifyPropertyChanged
 {
-    private string _chapterName;
-    private int _questionCount;
-    private double _weight;
-
     public string ChapterName
     {
-        get => _chapterName;
+        get => field;
         set
         {
-            _chapterName = value;
+            field = value;
             OnPropertyChanged(nameof(ChapterName));
         }
     }
 
     public int QuestionCount
     {
-        get => _questionCount;
+        get => field;
         set
         {
-            _questionCount = value;
+            field = value;
             OnPropertyChanged(nameof(QuestionCount));
         }
     }
 
     public double Weight
     {
-        get => _weight;
+        get => field;
         set
         {
-            _weight = value;
+            field = value;
             OnPropertyChanged(nameof(Weight));
         }
     }

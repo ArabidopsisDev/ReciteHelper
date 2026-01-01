@@ -5,6 +5,7 @@ using LlmTornado.Agents;
 using LlmTornado.Chat.Models;
 using Microsoft.Win32;
 using ReciteHelper.Model;
+using ReciteHelper.Utils;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.IO;
@@ -57,7 +58,7 @@ public partial class CreateProjectWindow : Window
 
         if (openFileDialog.ShowDialog() == true)
         {
-            QuestionBankTextBox.Text += openFileDialog.FileName + ';';
+            QuestionBankTextBox.Text = openFileDialog.FileName;
             ValidateInputs();
             UpdatePreview();
         }
@@ -214,22 +215,30 @@ public partial class CreateProjectWindow : Window
             }
 
             // Copy the question bank files to the project directory
-            string destQuestionBankPath = Path.Combine(projectDir, Path.GetFileName(QuestionBankPath));
-            System.IO.File.Copy(QuestionBankPath, destQuestionBankPath, true);
+            var questionBanks = new StringBuilder();
+            foreach (var bankPath in QuestionBankPath.Split(';'))
+            {
+                if (bankPath == string.Empty) continue;
+
+                string destQuestionBankPath = Path.Combine(projectDir, Path.GetFileName(bankPath));
+                System.IO.File.Copy(bankPath, destQuestionBankPath, true);
+
+                questionBanks.Append($"{destQuestionBankPath};");
+            }
 
             // Create project files
             FullProjectPath = Path.Combine(projectDir, ProjectName + ".rhproj");
             project = new Project
             {
                 ProjectName = ProjectName,
-                QuestionBankPath = destQuestionBankPath,
+                QuestionBankPath = questionBanks.ToString(),
                 Chapters = null,
                 StoragePath = StoragePath
             };
 
             project.Chapters = new();
             ProcessLabel.Content =
-                $"进度: 0/{(int)Math.Ceiling(ExtractAllTextFromPdf(QuestionBankPath!).Length / (double)chunkSize)}";
+                $"进度: 0/{(int)Math.Ceiling(ExtractText.FromAutomatic(QuestionBankPath!).Length / (double)chunkSize)}";
             progress = 0;
 
             // Start generating the question bank
@@ -240,7 +249,7 @@ public partial class CreateProjectWindow : Window
                 return;
             }
 
-            await ProcessQuestionsAsync();
+            await ClusterQuestionsAsync();
 
             MessageBox.Show("成功了...");
             updateUI($@"{project.StoragePath}\{ProjectName}\{ProjectName}.rhproj", project.ProjectName);
@@ -283,7 +292,7 @@ public partial class CreateProjectWindow : Window
             try
             {
                 if (path is not null)
-                    totalText.AppendLine(ExtractAllTextFromPdf(path));
+                    totalText.AppendLine(ExtractText.FromAutomatic(path));
             }
             catch
             {
@@ -296,7 +305,7 @@ public partial class CreateProjectWindow : Window
 
     private List<Chunk> BuildChunks()
     {
-        var text = LoadTexts(project.QuestionBankPath!);
+        var text = LoadTexts(QuestionBankTextBox.Text);
 
         var totalChunks = (int)Math.Ceiling((double)text.Length / chunkSize);
         var chunks = new List<Chunk>();
@@ -350,7 +359,7 @@ public partial class CreateProjectWindow : Window
         return chunks;
     }
 
-    private async Task<Replay> SendChunkAsync(List<Chunk> chunks)
+    private async Task<Replay> SendChunksAsync(List<Chunk> chunks)
     {
         var sendChunks = chunks;
         var agent = BuildAgent();
@@ -375,6 +384,21 @@ public partial class CreateProjectWindow : Window
                         Please generate some questions based on the text content. 
                         For fill-in-the-blank questions: extract the knowledge points 
                         from each sentence and replace them with ________. 
+
+                        If you believe there's no need for rote memorization in some question, 
+                        provide four options, labeled A, B, C, and D, for the fill-in-the-blank 
+                        questions, and set the correct answer as the corresponding option. 
+                        Note: This option is only applicable to some questions.
+                        Don't let all the questions be single-choice questions, 
+                        nor should there be no single-choice questions at all.
+
+                        For this type of question, the stem you should generate is:
+                        Question _____ example.
+                        A. aaa
+                        B. bbb
+                        C. ccc
+                        D. ddd
+                        
                         If a sentence contains multiple knowledge points, please 
                         generate multiple questions, rather than filling in multiple 
                         blanks in one question. For problem-solving questions: 
@@ -491,14 +515,14 @@ public partial class CreateProjectWindow : Window
         return replay;
     }
 
-    private async Task<List<List<Chapter>>> MergeChunkAsync(List<Chunk> chunks)
+    private async Task<List<List<Chapter>>> MergeChunksAsync(List<Chunk> chunks)
     {
         var result = new List<List<Chapter>>();
         var send = chunks;
 
         while (true)
         {
-            var replay = await SendChunkAsync(chunks);
+            var replay = await SendChunksAsync(chunks);
             var failed = replay.Chunks.Where(x => !x.IsSuccess).ToList();
 
             result.AddRange(replay.Chapters);
@@ -516,7 +540,7 @@ public partial class CreateProjectWindow : Window
     }
 
 
-    private async Task ProcessQuestionsAsync()
+    private async Task ClusterQuestionsAsync()
     {
 
         var agent = BuildAgent();
@@ -524,7 +548,7 @@ public partial class CreateProjectWindow : Window
 
         try
         {
-            var allChapter = await MergeChunkAsync(chunks);
+            var allChapter = await MergeChunksAsync(chunks);
 
             // Since a block-based algorithm is used, a brute-force approach
             // would be needed to solve for the relationships between blocks
@@ -620,29 +644,6 @@ public partial class CreateProjectWindow : Window
         Close();
     }
 
-    public static string ExtractAllTextFromPdf(string filePath)
-    {
-        var docNetInstance = DocLib.Instance;
-        var pageDimensions = new PageDimensions(1080, 1920);
-
-        string fullText = "";
-
-        // Start reading the document
-        using (var docReader = docNetInstance.GetDocReader(filePath, pageDimensions))
-        {
-            int pageCount = docReader.GetPageCount();
-
-            for (int pageIndex = 0; pageIndex < pageCount; pageIndex++)
-            {
-                using var pageReader = docReader.GetPageReader(pageIndex);
-                string pageText = pageReader.GetText();
-                fullText += pageText + "\n";
-            }
-        }
-
-        return fullText;
-    }
-
     private void CountButton_Click(object sender, RoutedEventArgs e)
     {
         if (QuestionBankTextBox.Text is null)
@@ -652,7 +653,8 @@ public partial class CreateProjectWindow : Window
 
         try
         {
-            length = ExtractAllTextFromPdf(QuestionBankTextBox.Text).Length;
+
+            length = LoadTexts(QuestionBankTextBox.Text).Length;
         }
         catch
         {
