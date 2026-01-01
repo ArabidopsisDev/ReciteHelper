@@ -52,7 +52,7 @@ public partial class CreateProjectWindow : Window
     {
         var openFileDialog = new OpenFileDialog
         {
-            Filter = "PDF文件 (*.pdf)|*.pdf",
+            Filter = "PDF文件 (*.pdf)|*.pdf|合并文件 (*.meg)|*.meg",
             Title = "添加题库PDF文件"
         };
 
@@ -134,9 +134,9 @@ public partial class CreateProjectWindow : Window
                     ShowValidationError(QuestionBankValidation, "题库文件不存在");
                     success = isValid = false;
                 }
-                else if (Path.GetExtension(file).ToLower() != ".pdf")
+                else if (Path.GetExtension(file).ToLower() != ".pdf" && Path.GetExtension(file).ToLower() != ".meg")
                 {
-                    ShowValidationError(QuestionBankValidation, "请选择PDF文件");
+                    ShowValidationError(QuestionBankValidation, "请选择PDF或MEG文件");
                     success = isValid = false;
                 }
             }

@@ -2,8 +2,6 @@
 using Docnet.Core.Models;
 using Spire.Doc;
 using Spire.Presentation;
-using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Text;
 
@@ -39,7 +37,7 @@ public class ExtractText
         // If you are not sure whether a method works or not, just assume that it works well
         using var presentation = new Presentation();
 
-        presentation.LoadFromFile("海市蜃楼是如何形成的？.pptx");
+        presentation.LoadFromFile(filePath);
         StringBuilder text = new StringBuilder();
 
         foreach (ISlide slide in presentation.Slides)

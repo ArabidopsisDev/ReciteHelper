@@ -160,7 +160,7 @@
                 <TextBlock
                     FontWeight="SemiBold"
                     Foreground="#333333"
-                    Text="复习资料 (PDF)" />
+                    Text="复习资料 (PDF、MEG)" />
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
