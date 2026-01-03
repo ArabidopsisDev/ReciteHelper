@@ -1,6 +1,4 @@
-﻿using Docnet.Core;
-using Docnet.Core.Models;
-using LlmTornado;
+﻿using LlmTornado;
 using LlmTornado.Agents;
 using LlmTornado.Chat.Models;
 using Microsoft.Win32;
@@ -249,7 +247,8 @@ public partial class CreateProjectWindow : Window
                 return;
             }
 
-            await ClusterQuestionsAsync();
+            var result = await ClusterQuestionsAsync(      "fixing", null!     );
+            project.Chapters = result;
 
             MessageBox.Show("成功了...");
             updateUI($@"{project.StoragePath}\{ProjectName}\{ProjectName}.rhproj", project.ProjectName);
@@ -265,6 +264,23 @@ public partial class CreateProjectWindow : Window
         {
             MessageBox.Show($"创建项目失败: {ex.Message}", "错误",
                 MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
+    private async Task<List<Chapter>?> ProcessFileAsync(string filePath, ProgressWindow proBar)
+    {
+        var text = ExtractText.FromAutomatic(QuestionBankTextBox.Text!);
+
+        try
+        {
+            SetCount(proBar, 0, (int)Math.Ceiling(text.Length / (double)chunkSize));
+
+            var result = await ClusterQuestionsAsync(text, proBar);
+            return result;
+        }
+        catch
+        {
+            return null;
         }
     }
 
@@ -303,10 +319,8 @@ public partial class CreateProjectWindow : Window
         return totalText.ToString();
     }
 
-    private List<Chunk> BuildChunks()
+    private List<Chunk> BuildChunks(string text)
     {
-        var text = LoadTexts(QuestionBankTextBox.Text);
-
         var totalChunks = (int)Math.Ceiling((double)text.Length / chunkSize);
         var chunks = new List<Chunk>();
 
@@ -359,7 +373,7 @@ public partial class CreateProjectWindow : Window
         return chunks;
     }
 
-    private async Task<Replay> SendChunksAsync(List<Chunk> chunks)
+    private async Task<Replay> SendChunksAsync(List<Chunk> chunks, ProgressWindow proBar)
     {
         var sendChunks = chunks;
         var agent = BuildAgent();
@@ -484,21 +498,18 @@ public partial class CreateProjectWindow : Window
                         chunk.IsSuccess = true;
 
                         Interlocked.Increment(ref progress);
-                        Dispatcher.Invoke(() =>
-                        {
-                            ProcessLabel.Content = $"进度: {progress}/{chunks.Count}";
-                        });
+                        SetCount(proBar, progress);
                     }
                     catch (Exception fme)
                     {
                         // ignored
-                        Debug.WriteLine($"fuckyou:{fme.Message}");
+                        Debug.WriteLine($"Pretend that I handled the exception: {fme.Message}");
                     }
                 }
                 catch (Exception nre)
                 {
                     // ignored
-                    Debug.WriteLine($"fuckyou:{nre.Message}");
+                    Debug.WriteLine($"Pretend that I handled the exception: {nre.Message}");
                 }
             });
 
@@ -515,40 +526,49 @@ public partial class CreateProjectWindow : Window
         return replay;
     }
 
-    private async Task<List<List<Chapter>>> MergeChunksAsync(List<Chunk> chunks)
+    private void SetCount(ProgressWindow proBar, int progress, int total = -1)
+    {
+        proBar.RoundCurrent = progress;
+
+        if (total != -1)
+            proBar.RoundTotal = total;
+    }
+
+    private async Task<List<List<Chapter>>> MergeChunksAsync(List<Chunk> chunks, ProgressWindow proBar)
     {
         var result = new List<List<Chapter>>();
         var send = chunks;
 
         while (true)
         {
-            var replay = await SendChunksAsync(chunks);
+            var replay = await SendChunksAsync(chunks, proBar);
             var failed = replay.Chunks.Where(x => !x.IsSuccess).ToList();
 
             result.AddRange(replay.Chapters);
             if (failed.Count == 0 || Config.Configure!.Strategy == Config.MissingStrategy.Ignore) break;
             send = [.. replay.Chunks.Where(x => !x.IsSuccess)];
 
-            progress = 0;
-            Dispatcher.Invoke(() =>
-            {
-                ProcessLabel.Content = $"进度: {progress}/{send.Count}";
-            });
+            //progress = 0;
+            //Dispatcher.Invoke(() =>
+            //{
+            //    ProcessLabel.Content = $"进度: {progress}/{send.Count}";
+            //});
         }
 
         return result;
     }
 
 
-    private async Task ClusterQuestionsAsync()
+    private async Task<List<Chapter>> ClusterQuestionsAsync(string text, ProgressWindow proBar)
     {
 
         var agent = BuildAgent();
-        var chunks = BuildChunks();
+        var chunks = BuildChunks(text);
+        var chapters = new List<Chapter>();
 
         try
         {
-            var allChapter = await MergeChunksAsync(chunks);
+            var allChapter = await MergeChunksAsync(chunks, proBar);
 
             // Since a block-based algorithm is used, a brute-force approach
             // would be needed to solve for the relationships between blocks
@@ -609,8 +629,8 @@ public partial class CreateProjectWindow : Window
                     foreach (var seg in individual)
                     {
                         if (!single.Chapters!.Contains(seg.Name!)) continue;
-                        if (!project.Chapters!.Select(c => c.Name).Contains(single.UnifiedName))
-                            project.Chapters!.Add(new()
+                        if (!chapters!.Select(c => c.Name).Contains(single.UnifiedName))
+                            chapters!.Add(new()
                             {
                                 Name = single.UnifiedName,
                                 Number = single.Number,
@@ -618,7 +638,7 @@ public partial class CreateProjectWindow : Window
                                 KnowledgePoints = []
                             });
 
-                        var cur = project.Chapters!.Find(c => c.Name == single.UnifiedName)!;
+                        var cur = chapters!.Find(c => c.Name == single.UnifiedName)!;
 
                         if (seg.Questions is not null)
                             cur.Questions!.AddRange(seg.Questions!);
@@ -636,6 +656,8 @@ public partial class CreateProjectWindow : Window
             DialogResult = false;
             Close();
         }
+
+        return chapters;
     }
 
     private void CancelButton_Click(object sender, RoutedEventArgs e)

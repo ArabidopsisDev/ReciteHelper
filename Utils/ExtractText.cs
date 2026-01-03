@@ -1,9 +1,11 @@
 ﻿using Docnet.Core;
 using Docnet.Core.Models;
+using ReciteHelper.Model;
 using Spire.Doc;
 using Spire.Presentation;
 using System.IO;
 using System.Text;
+using System.Text.Json;
 
 namespace ReciteHelper.Utils;
 
@@ -62,19 +64,28 @@ public class ExtractText
         return File.ReadAllText(filePath);
     }
 
-    public static string FromAutomatic(string filePath)
+    private static MergeFile FromMergeFile(string filePath)
+    {
+        var mergeFile = JsonSerializer.Deserialize<MergeFile>(filePath)!;
+
+        return mergeFile;
+    }
+
+    public static dynamic FromAutomatic(string filePath)
     {
         // In fact, dependency inversion would be better
         // but there aren't that many types of files to support, right?
 
         var extension = Path.GetExtension(filePath).ToLower();
 
-        var text = extension[1..] switch
+        // Fucking, How vulgar!
+        dynamic text = extension[1..] switch
         {
             "pdf" => ExtractText.FromPDF(filePath),
             "docx" or "doc" => ExtractText.FromDocument(filePath),
             "pptx" or "ppt" => ExtractText.FromPresentation(filePath),
-            "txt" or "meg" => ExtractText.FromText(filePath),
+            "txt" => ExtractText.FromText(filePath),
+            "meg" => ExtractText.FromMergeFile(filePath),
             _ => string.Empty
         };
 

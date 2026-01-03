@@ -207,17 +207,26 @@
                             </StackPanel>
                         </StackPanel>
 
-                        <Button
-                            Grid.Column="1"
-                            Click="AddFilesButton_Click"
-                            Content="添加文件"
-                            Style="{StaticResource PrimaryButtonStyle}">
-                            <Button.ToolTip>
-                                <ToolTip>
-                                    <TextBlock Text="添加docx、pptx、pdf、txt文件" />
-                                </ToolTip>
-                            </Button.ToolTip>
-                        </Button>
+                        <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+                            <Button
+                                Name="ModeButton"
+                                Click="ModeButton_Click"
+                                Content="模式：Sequential"
+                                Style="{StaticResource SecondaryButtonStyle}" />
+
+                            <Button
+                                Grid.Column="1"
+                                Margin="20,0,0,0"
+                                Click="AddFilesButton_Click"
+                                Content="添加文件"
+                                Style="{StaticResource PrimaryButtonStyle}">
+                                <Button.ToolTip>
+                                    <ToolTip>
+                                        <TextBlock Text="添加docx、pptx、pdf、txt文件" />
+                                    </ToolTip>
+                                </Button.ToolTip>
+                            </Button>
+                        </StackPanel>
                     </Grid>
                 </Border>
 

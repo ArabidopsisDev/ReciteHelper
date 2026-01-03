@@ -31,7 +31,7 @@ namespace ReciteHelper
             List<string> slogan = ["你一定会坚持到底的", "常回家看看", "我有卡SPFA症",
                 "向上的路没有同伴", "咕咕，咕咕，咕咕咕！", "坚持融入日常、抓在经常",
                 "我真的是一个很坏的雪莉吗", "你好多宝宝，你开幼儿园算了", "对的对的对的，哦不对！",
-                "Vive la France"];
+                "Vive la France", "\\o/ \\o/ \\o/ \\o/ \\o/", "二楼一定要盖在一楼上"];
             SloganLabel.Content = slogan[Random.Shared.Next(0, slogan.Count())];
 
             // The following section is messy, but that's intentional

@@ -4,7 +4,7 @@ using ReciteHelper.Utils;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
-using System.Text;
+using System.Text.Json;
 using System.Windows;
 using System.Windows.Controls;
 
@@ -91,7 +91,8 @@ public partial class FileMergeWindow : Window, INotifyPropertyChanged
 
     private string FormatFileSize(long bytes)
     {
-        string[] sizes = { "B", "KB", "MB", "GB" };
+        // Go get that 1TB, I'll wait
+        string[] sizes = [ "B", "KB", "MB", "GB" ];
         double len = bytes;
         int order = 0;
 
@@ -142,8 +143,22 @@ public partial class FileMergeWindow : Window, INotifyPropertyChanged
             return;
         }
 
-        var content = new StringBuilder();
-        _fileItems.ToList().ForEach(x => content.AppendLine(ExtractText.FromAutomatic(x.FilePath)));
+        var files = new MergeFile();
+        if (ModeButton.Content.ToString()!.Contains("Sequential")) files.ClusterType = FileClusterType.Sequential;
+        else files.ClusterType = FileClusterType.Discrete;
+
+        foreach (var item in _fileItems)
+        {
+            if (item.FileExtension == ".meg")
+            {
+                var megFile = (MergeFile)ExtractText.FromAutomatic(item.FilePath);
+                files.Contents.AddRange(megFile.Contents);
+            }
+            else
+            {
+                files.Contents.Add(ExtractText.FromAutomatic(item.FilePath));
+            }
+        }
 
         var saveFileDialog = new SaveFileDialog
         {
@@ -154,7 +169,7 @@ public partial class FileMergeWindow : Window, INotifyPropertyChanged
 
         if (saveFileDialog.ShowDialog() == true)
         {
-            File.WriteAllText(saveFileDialog.FileName, content.ToString());
+            File.WriteAllText(saveFileDialog.FileName, JsonSerializer.Serialize<MergeFile>(files));
             MessageBox.Show("文件合并成功！", "合并成功",
                 MessageBoxButton.OK, MessageBoxImage.Information);
         }
@@ -194,5 +209,13 @@ public partial class FileMergeWindow : Window, INotifyPropertyChanged
     protected virtual void OnPropertyChanged(string propertyName = null)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+
+    private void ModeButton_Click(object sender, RoutedEventArgs e)
+    {
+        if ((string)ModeButton.Content == "模式：Sequential")
+            ModeButton.Content = "模式：Discrete";
+        else
+            ModeButton.Content = "模式：Sequential";
     }
 }
