@@ -30,7 +30,7 @@ internal class JudgeAnswer
     {
         if (string.IsNullOrEmpty(question.UserAnswer)) return false;
 
-        // Traditional algorithm
+        // Are the traditionalists still refusing to admit defeat?
         var tolerance = FuzzyStringComparisonTolerance.Strong;
         var comparisonOptions = new List<FuzzyStringComparisonOptions>
         {

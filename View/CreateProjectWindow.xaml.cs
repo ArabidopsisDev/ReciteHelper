@@ -234,10 +234,8 @@ public partial class CreateProjectWindow : Window
                 StoragePath = StoragePath
             };
 
+            var proBar = new ProgressWindow();
             project.Chapters = new();
-            ProcessLabel.Content =
-                $"进度: 0/{(int)Math.Ceiling(ExtractText.FromAutomatic(QuestionBankPath!).Length / (double)chunkSize)}";
-            progress = 0;
 
             // Start generating the question bank
             if (Config.Configure is null || Config.Configure.DeepSeekKey is null)
@@ -247,10 +245,24 @@ public partial class CreateProjectWindow : Window
                 return;
             }
 
-            var result = await ClusterQuestionsAsync(      "fixing", null!     );
-            project.Chapters = result;
+            proBar.Show();
+
+            // Oops, I broke this part during a previous refactoring
+            if (Path.GetExtension(questionBanks.ToString())[1..].ToLower()[..^1] == "pdf")
+            {
+                proBar.RoundTotal = 1;
+                proBar.RoundCurrent = 0;
+
+                // Something bad is going to happen in this place sooner or later
+                var result = await ProcessFileAsync(
+                    ExtractText.FromAutomatic(questionBanks.ToString()[..^1]), proBar);
+                project.Chapters = result;
+
+                proBar.RoundCurrent++;
+            }
 
             MessageBox.Show("成功了...");
+            proBar.Close();
             updateUI($@"{project.StoragePath}\{ProjectName}\{ProjectName}.rhproj", project.ProjectName);
 
             string json = System.Text.Json.JsonSerializer.Serialize(project,
@@ -273,7 +285,7 @@ public partial class CreateProjectWindow : Window
 
         try
         {
-            SetCount(proBar, 0, (int)Math.Ceiling(text.Length / (double)chunkSize));
+            SetCount(proBar, 1, (int)Math.Ceiling(text.Length / (double)chunkSize));
 
             var result = await ClusterQuestionsAsync(text, proBar);
             return result;
@@ -498,7 +510,7 @@ public partial class CreateProjectWindow : Window
                         chunk.IsSuccess = true;
 
                         Interlocked.Increment(ref progress);
-                        SetCount(proBar, progress);
+                        SetCount(proBar, progress + 1);
                     }
                     catch (Exception fme)
                     {
@@ -528,10 +540,13 @@ public partial class CreateProjectWindow : Window
 
     private void SetCount(ProgressWindow proBar, int progress, int total = -1)
     {
-        proBar.RoundCurrent = progress;
+        proBar.ScanCurrent = progress;
+
+        proBar.ClusterTotal = proBar.RoundTotal * proBar.ScanTotal;
+        proBar.ClusterCurrent = (proBar.RoundCurrent + 1) * progress;
 
         if (total != -1)
-            proBar.RoundTotal = total;
+            proBar.ScanTotal = total;
     }
 
     private async Task<List<List<Chapter>>> MergeChunksAsync(List<Chunk> chunks, ProgressWindow proBar)
@@ -684,9 +699,10 @@ public partial class CreateProjectWindow : Window
             return;
         }
 
+        // Practice is the sole criterion for testing truth
         var coff = 1.25d;
         var tokens = length * 1.3d * (1d + coff);
-        var price = length / 1_000_000 * 2.5 + length * coff / 1_000_000 * 3;
+        var price = length / 1_000_000 * 2.5 + length * coff / 1_000_000 * 3 * 2.10d;
 
         // He became a communist...
         MessageBox.Show($"""

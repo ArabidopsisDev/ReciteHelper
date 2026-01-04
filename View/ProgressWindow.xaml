@@ -146,7 +146,7 @@
                     <TextBlock
                         Grid.Column="0"
                         Style="{StaticResource ProgressLabel}"
-                        Text="聚类处理" />
+                        Text="总计数" />
 
                     <TextBlock Grid.Column="2" Style="{StaticResource ProgressValue}">
                         <Run Text="{Binding ClusterCurrent, Mode=OneWay}" />
