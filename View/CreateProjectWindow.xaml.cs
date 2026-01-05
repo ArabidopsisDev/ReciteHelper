@@ -23,6 +23,8 @@ public partial class CreateProjectWindow : Window
 
     const int chunkSize = 500;
     private int progress = 0;
+
+    // zhe wan yi shi shen me lai zhe
     private Action<string, string> updateUI;
 
     public CreateProjectWindow(Action<string, string> updateUI)
@@ -199,90 +201,103 @@ public partial class CreateProjectWindow : Window
     {
         if (!ConfirmButton.IsEnabled) return;
 
-        try
+        ProjectName = ProjectNameTextBox.Text.Trim();
+        StoragePath = StoragePathTextBox.Text;
+        QuestionBankPath = QuestionBankTextBox.Text;
+
+        // Create project directory
+        string projectDir = Path.Combine(StoragePath, ProjectName);
+        if (!Directory.Exists(projectDir))
         {
-            ProjectName = ProjectNameTextBox.Text.Trim();
-            StoragePath = StoragePathTextBox.Text;
-            QuestionBankPath = QuestionBankTextBox.Text;
-
-            // Create project directory
-            string projectDir = Path.Combine(StoragePath, ProjectName);
-            if (!Directory.Exists(projectDir))
-            {
-                Directory.CreateDirectory(projectDir);
-            }
-
-            // Copy the question bank files to the project directory
-            var questionBanks = new StringBuilder();
-            foreach (var bankPath in QuestionBankPath.Split(';'))
-            {
-                if (bankPath == string.Empty) continue;
-
-                string destQuestionBankPath = Path.Combine(projectDir, Path.GetFileName(bankPath));
-                System.IO.File.Copy(bankPath, destQuestionBankPath, true);
-
-                questionBanks.Append($"{destQuestionBankPath};");
-            }
-
-            // Create project files
-            FullProjectPath = Path.Combine(projectDir, ProjectName + ".rhproj");
-            project = new Project
-            {
-                ProjectName = ProjectName,
-                QuestionBankPath = questionBanks.ToString(),
-                Chapters = null,
-                StoragePath = StoragePath
-            };
-
-            var proBar = new ProgressWindow();
-            project.Chapters = new();
-
-            // Start generating the question bank
-            if (Config.Configure is null || Config.Configure.DeepSeekKey is null)
-            {
-                MessageBox.Show("您还未配置Deepseek...", "提示",
-                    MessageBoxButton.OK, MessageBoxImage.Information);
-                return;
-            }
-
-            proBar.Show();
-
-            // Oops, I broke this part during a previous refactoring
-            if (Path.GetExtension(questionBanks.ToString())[1..].ToLower()[..^1] == "pdf")
-            {
-                proBar.RoundTotal = 1;
-                proBar.RoundCurrent = 0;
-
-                // Something bad is going to happen in this place sooner or later
-                var result = await ProcessFileAsync(
-                    ExtractText.FromAutomatic(questionBanks.ToString()[..^1]), proBar);
-                project.Chapters = result;
-
-                proBar.RoundCurrent++;
-            }
-
-            MessageBox.Show("成功了...");
-            proBar.Close();
-            updateUI($@"{project.StoragePath}\{ProjectName}\{ProjectName}.rhproj", project.ProjectName);
-
-            string json = System.Text.Json.JsonSerializer.Serialize(project,
-                new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
-            System.IO.File.WriteAllText(FullProjectPath, json);
-
-            DialogResult = true;
-            Close();
+            Directory.CreateDirectory(projectDir);
         }
-        catch (Exception ex)
+
+        // Copy the question bank files to the project directory
+        var questionBanks = new StringBuilder();
+        foreach (var bankPath in QuestionBankPath.Split(';'))
         {
-            MessageBox.Show($"创建项目失败: {ex.Message}", "错误",
-                MessageBoxButton.OK, MessageBoxImage.Error);
+            if (bankPath == string.Empty) continue;
+
+            string destQuestionBankPath = Path.Combine(projectDir, Path.GetFileName(bankPath));
+            System.IO.File.Copy(bankPath, destQuestionBankPath, true);
+
+            questionBanks.Append($"{destQuestionBankPath};");
         }
+
+        // Create project files
+        FullProjectPath = Path.Combine(projectDir, ProjectName + ".rhproj");
+        project = new Project
+        {
+            ProjectName = ProjectName,
+            QuestionBankPath = questionBanks.ToString(),
+            Chapters = null,
+            StoragePath = StoragePath
+        };
+
+        var proBar = new ProgressWindow();
+        project.Chapters = new();
+
+        // Start generating the question bank
+        if (Config.Configure is null || Config.Configure.DeepSeekKey is null)
+        {
+            MessageBox.Show("您还未配置Deepseek...", "提示",
+                MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+
+        proBar.Show();
+
+        // Oops, I broke this part during a previous refactoring
+        if (Path.GetExtension(questionBanks.ToString())[1..].ToLower()[..^1] == "pdf")
+        {
+            proBar.RoundTotal = 1;
+            proBar.RoundCurrent = 1;
+
+            // Something bad is going to happen in this place sooner or later
+            var result = await ProcessFileAsync(ExtractText.FromAutomatic(QuestionBankTextBox.Text), proBar);
+            project.Chapters = result;
+        }
+        else if (Path.GetExtension(questionBanks.ToString())[1..].ToLower()[..^1] == "meg")
+        {
+            MergeFile mergeFile = ExtractText.FromAutomatic(questionBanks.ToString()[..^1]);
+
+            if (mergeFile is null) throw new InvalidOperationException("题库文件已损坏！");
+
+            if (mergeFile.ClusterType == FileClusterType.Sequential)
+            {
+                proBar.RoundTotal = mergeFile.Contents.Count;
+                proBar.RoundCurrent = 1;
+
+                // This concurrent execution will definitely cause a die
+                // I'll think about what to do later
+                var result = new List<Chapter>();
+                foreach (var item in mergeFile.Contents)
+                {
+                    var cluster = await ProcessFileAsync(item, proBar);
+
+                    if (cluster is not null)
+                        result.AddRange(cluster);
+
+                    proBar.RoundCurrent++;
+                }
+            }
+        }
+
+        MessageBox.Show("成功了...");
+        proBar.Close();
+        updateUI($@"{project.StoragePath}\{ProjectName}\{ProjectName}.rhproj", project.ProjectName);
+
+        string json = System.Text.Json.JsonSerializer.Serialize(project,
+            new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
+        System.IO.File.WriteAllText(FullProjectPath, json);
+
+        DialogResult = true;
+        Close();
+
     }
 
-    private async Task<List<Chapter>?> ProcessFileAsync(string filePath, ProgressWindow proBar)
+    private async Task<List<Chapter>?> ProcessFileAsync(string text, ProgressWindow proBar)
     {
-        var text = ExtractText.FromAutomatic(QuestionBankTextBox.Text!);
-
         try
         {
             SetCount(proBar, 1, (int)Math.Ceiling(text.Length / (double)chunkSize));
@@ -419,7 +434,7 @@ public partial class CreateProjectWindow : Window
                         nor should there be no single-choice questions at all.
 
                         For this type of question, the stem you should generate is:
-                        Question _____ example.
+                        Here is a question _____ example.
                         A. aaa
                         B. bbb
                         C. ccc
@@ -486,6 +501,9 @@ public partial class CreateProjectWindow : Window
                     """
                     );
 
+                    if (ComputerInfo.GetComputerBrand().Equals("HUAWEI", StringComparison.CurrentCultureIgnoreCase))
+                        WonAgain();
+
                     var jsonContent = string.Empty;
 
                     foreach (var item in result.Messages)
@@ -538,12 +556,17 @@ public partial class CreateProjectWindow : Window
         return replay;
     }
 
+    private static void WonAgain()
+    {
+        Thread.Sleep(2 * 1000);
+    }
+
     private void SetCount(ProgressWindow proBar, int progress, int total = -1)
     {
         proBar.ScanCurrent = progress;
 
         proBar.ClusterTotal = proBar.RoundTotal * proBar.ScanTotal;
-        proBar.ClusterCurrent = (proBar.RoundCurrent + 1) * progress;
+        proBar.ClusterCurrent = (proBar.RoundCurrent - 1) * proBar.ScanTotal + progress;
 
         if (total != -1)
             proBar.ScanTotal = total;
@@ -581,22 +604,21 @@ public partial class CreateProjectWindow : Window
         var chunks = BuildChunks(text);
         var chapters = new List<Chapter>();
 
-        try
-        {
-            var allChapter = await MergeChunksAsync(chunks, proBar);
 
-            // Since a block-based algorithm is used, a brute-force approach
-            // would be needed to solve for the relationships between blocks
-            // Here, NLP chapter clustering is used to handle this situation
+        var allChapter = await MergeChunksAsync(chunks, proBar);
 
-            List<string> chapterNames = [];
-            foreach (var chapter in allChapter)
-                foreach (var seg in chapter)
-                    chapterNames.Add(seg.Name!);
+        // Since a block-based algorithm is used, a brute-force approach
+        // would be needed to solve for the relationships between blocks
+        // Here, NLP chapter clustering is used to handle this situation
 
-            ProcessLabel.Content = $"分块聚类中...";
+        List<string> chapterNames = [];
+        foreach (var chapter in allChapter)
+            foreach (var seg in chapter)
+                chapterNames.Add(seg.Name!);
 
-            var clusterResult = await agent.Run($"""
+        ProcessLabel.Content = $"分块聚类中...";
+
+        var clusterResult = await agent.Run($"""
                         Below are some chapter titles. You should cluster chapters 
                         with roughly the same meaning.
 
@@ -621,55 +643,47 @@ public partial class CreateProjectWindow : Window
                         {chapterNames.Aggregate((l, r) => l + " " + r)}
                         """);
 
-            var jsonContent = clusterResult.Messages.Last().Content!.Replace("`", "").Replace("json", "").Trim();
+        var jsonContent = clusterResult.Messages.Last().Content!.Replace("`", "").Replace("json", "").Trim();
 
-        // There’s a certain bravado in coding right after waking up
-        bitch_sdau:
-            List<ChapterCluster> cluster;
-            try
-            {
-                cluster = JsonSerializer.Deserialize<List<ChapterCluster>>(jsonContent)!;
-                if (cluster is null) throw new Exception();
-            }
-            catch
-            {
-                goto bitch_sdau;
-            }
+    // There’s a certain bravado in coding right after waking up
+    bitch_sdau:
+        List<ChapterCluster> cluster;
+        try
+        {
+            cluster = JsonSerializer.Deserialize<List<ChapterCluster>>(jsonContent)!;
+            if (cluster is null) throw new Exception();
+        }
+        catch
+        {
+            goto bitch_sdau;
+        }
 
-            // Write down whatever dream about
-            foreach (var single in cluster!)
+        // Write down whatever dream about
+        foreach (var single in cluster!)
+        {
+            foreach (var individual in allChapter!)
             {
-                foreach (var individual in allChapter!)
+                foreach (var seg in individual)
                 {
-                    foreach (var seg in individual)
-                    {
-                        if (!single.Chapters!.Contains(seg.Name!)) continue;
-                        if (!chapters!.Select(c => c.Name).Contains(single.UnifiedName))
-                            chapters!.Add(new()
-                            {
-                                Name = single.UnifiedName,
-                                Number = single.Number,
-                                Questions = [],
-                                KnowledgePoints = []
-                            });
+                    if (!single.Chapters!.Contains(seg.Name!)) continue;
+                    if (!chapters!.Select(c => c.Name).Contains(single.UnifiedName))
+                        chapters!.Add(new()
+                        {
+                            Name = single.UnifiedName,
+                            Number = single.Number,
+                            Questions = [],
+                            KnowledgePoints = []
+                        });
 
-                        var cur = chapters!.Find(c => c.Name == single.UnifiedName)!;
+                    var cur = chapters!.Find(c => c.Name == single.UnifiedName)!;
 
-                        if (seg.Questions is not null)
-                            cur.Questions!.AddRange(seg.Questions!);
+                    if (seg.Questions is not null)
+                        cur.Questions!.AddRange(seg.Questions!);
 
-                        if (seg.KnowledgePoints is not null)
-                            cur.KnowledgePoints!.AddRange(seg.KnowledgePoints);
-                    }
+                    if (seg.KnowledgePoints is not null)
+                        cur.KnowledgePoints!.AddRange(seg.KnowledgePoints);
                 }
             }
-        }
-        catch (Exception ex)
-        {
-            MessageBox.Show($"处理问题时发生错误: {ex.Message}", "错误",
-                           MessageBoxButton.OK, MessageBoxImage.Error);
-            DialogResult = false;
-            Close();
         }
 
         return chapters;

@@ -17,6 +17,7 @@
     <None Remove="Config.xml" />
     <None Remove="Images\background.png" />
     <None Remove="Images\create.png" />
+    <None Remove="Images\error.png" />
     <None Remove="Images\exam.png" />
     <None Remove="Images\folder.png" />
     <None Remove="Images\hyper.png" />
@@ -46,11 +47,13 @@
     <PackageReference Include="LlmTornado.Agents" Version="1.0.11" />
     <PackageReference Include="Markdig.Wpf" Version="0.5.0.1" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="5.0.0" />
+    <PackageReference Include="System.Management" Version="10.0.1" />
   </ItemGroup>
 
   <ItemGroup>
     <Resource Include="Images\background.png" />
     <Resource Include="Images\create.png" />
+    <Resource Include="Images\error.png" />
     <Resource Include="Images\exam.png" />
     <Resource Include="Images\folder.png" />
     <Resource Include="Images\hyper.png" />
@@ -61,6 +64,10 @@
     <Resource Include="Images\type_card.png" />
     <Resource Include="Images\type_classical.png" />
     <Resource Include="Images\type_pdf.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Docs\Resources\Thanks\" />
   </ItemGroup>
 
     <Target Name="EnsureJiebaResources" BeforeTargets="Build">

@@ -66,7 +66,8 @@ public class ExtractText
 
     private static MergeFile FromMergeFile(string filePath)
     {
-        var mergeFile = JsonSerializer.Deserialize<MergeFile>(filePath)!;
+        var text = File.ReadAllText(filePath);
+        var mergeFile = JsonSerializer.Deserialize<MergeFile>(text)!;
 
         return mergeFile;
     }

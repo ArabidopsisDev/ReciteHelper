@@ -73,3 +73,29 @@ ReciteHelper 承诺永久保持开源、免费的性质。如果您感觉该项�
 ## 星标历史
 
 [![Star History Chart](https://api.star-history.com/svg?repos=ArabidopsisDev/ReciteHelper&type=date&legend=top-left)](https://www.star-history.com/)
+
+---
+
+## 特别鸣谢
+
+衷心感谢以下成员为项目做出的卓越贡献，他们的付出是项目成功的关键：
+
+<div align="center">
+
+| 头像 | 学校或单位 | 昵称 | 贡献内容 |
+|:------:|:----------:|:-----:|------------|
+| <img src="Docs\Resources\Thanks\01.jpg" width="60" height="60" style="border-radius:50%;border:2px solid #4fc3f7"> | 南昌航空航天大学 |  **Sati** | 帮助测试并解决了多PDF的处理问题 |
+| <img src="Docs\Resources\Thanks\02.jpg" width="60" height="60" style="border-radius:50%;border:2px solid #ffb74d"> | 海南大学 | **Mrwhite3142** | 帮助测试发现了文件无法正常处理的问题（暂未能复现） |
+
+</div>
+
+<br>
+
+> “众人拾柴火焰高”——感谢每一位贡献者的热情参与和无私奉献，你们的每一行代码、每一次测试、每一份文档都让这个项目更加完善。期待未来继续携手同行，创造更多精彩！
+
+<br>
+<div align="center">
+<p style="color:#666;font-size:0.9em">
+感谢阅读 · 持续更新中 · 更多贡献者欢迎加入！
+</p>
+</div>

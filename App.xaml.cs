@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using ReciteHelper.View;
+using System.Diagnostics;
 using System.IO;
 using System.Windows;
 using System.Windows.Threading;
@@ -14,7 +15,6 @@ namespace ReciteHelper
 
         private void SetupExceptionHandling()
         {
-            this.DispatcherUnhandledException += OnDispatcherUnhandledException;
             AppDomain.CurrentDomain.UnhandledException += OnCurrentDomainUnhandledException;
             TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
         }
@@ -24,17 +24,12 @@ namespace ReciteHelper
             e.Handled = true;
             HandleException(e.Exception, "Dispatcher (UI Thread)");
 
-            // Remind users that something went wrong
-            var result = MessageBox.Show(
-                $"程序发生错误：{e.Exception.Message}\n\n是否继续运行？\n（选择否将退出程序）",
-                "应用程序错误",
-                MessageBoxButton.YesNo,
-                MessageBoxImage.Error);
+            // Although I don't know why multiple windows are popping up
+            // I have a way to make only one window appear
+            if (!ErrorWindow.mutex) return;
 
-            if (result == MessageBoxResult.No)
-            {
-                ShutdownGracefully();
-            }
+            var errorWindow = new ErrorWindow(e.Exception);
+            errorWindow.Show();
         }
 
         private void OnCurrentDomainUnhandledException(object sender, UnhandledExceptionEventArgs e)
