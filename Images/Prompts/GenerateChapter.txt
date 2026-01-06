@@ -1,0 +1,21 @@
+﻿Below are some chapter titles. You should cluster chapters 
+with roughly the same meaning.
+
+If you encounter questions that are difficult to categorize, 
+such as "Chapter 1," please classify them under "杂项题目".
+
+Numbers should be sequentially numbered and should not be repeated.
+
+public class ChapterCluster
+
+[JsonPropertyName("names")]
+public List<string>? Chapters  get; set; 
+
+// Give these chapters a unified name
+[JsonPropertyName("uname")]
+public stirng? UnifiedName get; set; 
+
+[JsonPropertyName("number")]
+public int Number  get; set; 
+
+Return a List<ChapterCluster> of all chapters:

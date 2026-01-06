@@ -210,6 +210,13 @@ namespace ReciteHelper
                 new FileMergeWindow().Show();
                 result = true;
             }
+            else if (type.TemplateType == ProjectTemplateType.GalGame)
+            {
+                var createWindow = new CreateGalGameWindow();
+                createWindow.Owner = this;
+
+                result = createWindow.ShowDialog();
+            }
             else
             {
                 MessageBox.Show("该项目类型暂不可用", "无法创建", MessageBoxButton.OK, MessageBoxImage.Information);

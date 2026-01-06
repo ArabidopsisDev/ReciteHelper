@@ -421,87 +421,10 @@ public partial class CreateProjectWindow : Window
             {
                 try
                 {
-                    var result = await agent.Run(
-                    $"""
-                        The following is knowledge text provided by the user. 
-                        Please generate some questions based on the text content. 
-                        For fill-in-the-blank questions: extract the knowledge points 
-                        from each sentence and replace them with ________. 
+                    var baseDir = AppDomain.CurrentDomain.BaseDirectory;
+                    var prompt = File.ReadAllText(Path.Combine(baseDir, "Images", "Prompts", "GenerateQuestion.txt"));
 
-                        If you believe there's no need for rote memorization in some question, 
-                        provide four options, labeled A, B, C, and D, for the fill-in-the-blank 
-                        questions, and set the correct answer as the corresponding option. 
-                        Note: This option is only applicable to some questions.
-                        Don't let all the questions be single-choice questions, 
-                        nor should there be no single-choice questions at all.
-
-                        For this type of question, the stem you should generate is:
-                        Here is a question _____ example.
-                        A. aaa
-                        B. bbb
-                        C. ccc
-                        D. ddd
-                        
-                        If a sentence contains multiple knowledge points, please 
-                        generate multiple questions, rather than filling in multiple 
-                        blanks in one question. For problem-solving questions: 
-                        simply write the question stem. If the document explicitly 
-                        indicates the presence of definition questions, these are 
-                        also problem-solving questions, and the question 
-                        stem should be uniformly formatted as: 名词解释: 名词.
-
-                        You should divide the problem into several chapters.
-                        The returned JSON format is as follows:
-
-                        public class Chapter
-                        [JsonPropertyName("name")]
-                        [NOTNULL] public string Name  get; set; 
-
-                        [JsonPropertyName("number")]
-                        public int Number  get; set; 
-
-                        [JsonPropertyName("bank")]
-                        public List<Question>? Questions  get; set; 
-
-                        [JsonPropertyName("know")]
-                        public List<KnowledgePoint>? KnowledgePoints  get; set; 
-
-                        public class Question
-                        // The status of the answers is indicated by a value of null (no answer), 
-                        // true (correct answer), and false (incorrect answer)
-                        [JsonPropertyName("status")]
-                        public bool? Status  get; set; 
-
-                        [JsonPropertyName("text")]
-                        public string? Text get; set; 
-
-                        [JsonPropertyName("user_answer")]
-                        public string? UserAnswer get; set; = null;
-
-                        [JsonPropertyName("correct_answer")]
-                        public string? CorrectAnswer get; set;
-
-                        You also need to extract the key knowledge points, mark the titles 
-                        and specific content, ContentMarkdown is a summary of specific 
-                        knowledge points about this topic, presented in Markdown format, 
-                        and can be more detailed.
-
-                        [JsonPropertyName("name")]
-                        public string? Name  get; set; 
-
-                        [JsonPropertyName("content")]
-                        public string? ContentMarkdown  get; set; 
-
-                        /// <summary>
-                        /// Mark the knowledge point mastery status as false.
-                        /// </summary>
-                        public bool isMastered get; set;  = false;
-
-                        Fill in Text and CorrectAnswer, Return a JSON form of List<Chapter>.
-                        below is the user's knowledge base: 
-                        {chunk.Content}
-                    """
-                    );
+                    var result = await agent.Run($"{prompt}\n{chunk.Content}");
 
                     if (ComputerInfo.GetComputerBrand().Equals("HUAWEI", StringComparison.CurrentCultureIgnoreCase))
                         WonAgain();
@@ -661,30 +584,12 @@ public partial class CreateProjectWindow : Window
 
         ProcessLabel.Content = $"分块聚类中...";
 
-        var clusterResult = await agent.Run($"""
-                        Below are some chapter titles. You should cluster chapters 
-                        with roughly the same meaning.
 
-                        If you encounter questions that are difficult to categorize, 
-                        such as "Chapter 1," please classify them under "杂项题目".
+        var baseDir = AppDomain.CurrentDomain.BaseDirectory;
+        var prompt = File.ReadAllText(Path.Combine(baseDir, "Images", "Prompts", "GenerateChapter.txt"));
 
-                        Numbers should be sequentially numbered and should not be repeated.
 
-                        public class ChapterCluster
-
-                        [JsonPropertyName("names")]
-                        public List<string>? Chapters  get; set; 
-
-                        // Give these chapters a unified name
-                        [JsonPropertyName("uname")]
-                        public stirng? UnifiedName get; set; 
-
-                        [JsonPropertyName("number")]
-                        public int Number  get; set; 
-
-                        Return a List<ChapterCluster0>0,0 0B0e0l0o0w0 0a0r0e0 0t0h0e0 0t0i0tles of all chapters:
-                        {chapterNames.Aggregate((l, r) => l + " " + r)}
-                        """);
+        var clusterResult = await agent.Run($"{prompt}\n{chapterNames.Aggregate((l, r) => l + " " + r)}");
 
         var jsonContent = clusterResult.Messages.Last().Content!.Replace("`", "").Replace("json", "").Trim();
 
