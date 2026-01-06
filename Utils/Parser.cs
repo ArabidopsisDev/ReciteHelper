@@ -1,4 +1,5 @@
-﻿using Microsoft.CodeAnalysis.CSharp.Scripting;
+﻿using AquaAvgFramework.StoryLineComponents;
+using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.Scripting;
 using ReciteHelper.Model;
 using System.Text.RegularExpressions;
@@ -26,6 +27,29 @@ public class Parser
         if (result.Result is null) return result.ErrorMessage!;
         else if (result.IsSuccess) return result.Result;
         else throw new InvalidOperationException(result.ErrorMessage);
+    }
+
+
+    public static async Task<StoryLine> CompileStoryAsync(string storyCode)
+    {
+        try
+        {
+            var options = ScriptOptions.Default
+                .WithReferences(typeof(StoryLine).Assembly)
+                .AddImports("AquaAvgFramework",
+                            "AquaAvgFramework.GameElements",
+                            "AquaAvgFramework.StoryLineComponents",
+                            "AquaAvgFramework.GameElements.Blocks",
+                            "AquaAvgFramework.GameElements.Events",
+                            "AquaAvgFramework.Global");
+
+            return await CSharpScript.EvaluateAsync<StoryLine>(storyCode, options);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"编译失败: {ex.Message}");
+            return null!;
+        }
     }
 
     private async static Task<ExecutionResult<TOut>> ExecuteAsync<TOut>

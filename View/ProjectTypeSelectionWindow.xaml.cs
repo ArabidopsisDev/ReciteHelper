@@ -50,6 +50,14 @@ namespace ReciteHelper.View
                     Description = "适用于资料被分为多个文件的，以及文件类型繁杂不易被处理的情况，该项目将把所有的资料文件合并为一个文件供创建其它项目使用。",
                     IconPath = "pack://application:,,,/ReciteHelper;component/Images/type_pdf.png",
                     TemplateType = ProjectTemplateType.PDFMerge
+                },
+                new ProjectType
+                {
+                    Id = 4,
+                    TypeName = "旮旯给木",
+                    Description = "适用于复习科目偏向于文科，且难以背诵的情况。ciallo (∠·ω )⌒★ 来跟你的知识点们谈一场美妙的恋爱吧~",
+                    IconPath = "pack://application:,,,/ReciteHelper;component/Images/type_girl.png",
+                    TemplateType = ProjectTemplateType.GalGame
                 }
             };
 

