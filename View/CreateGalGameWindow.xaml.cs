@@ -58,7 +58,7 @@ namespace ReciteHelper.View
             }
         }
 
-        private void StartButton_Click(object sender, RoutedEventArgs e)
+        private async void StartButton_Click(object sender, RoutedEventArgs e)
         {
             if (string.IsNullOrWhiteSpace(SelectedFilePath))
             {
@@ -88,9 +88,12 @@ namespace ReciteHelper.View
 
                 var singleChapter = new StringBuilder();
                 var chapterQuestions = new List<StringBuilder>();
+                var chapterNames = new StringBuilder();
 
                 foreach (var chapter in project.Chapters!)
                 {
+                    chapterNames.Append($"{chapter.Name!}\\");
+
                     foreach (var question in chapter.Questions!)
                     {
                         singleChapter.AppendLine($"问题：{question.Text} 答案：{question.CorrectAnswer}");
@@ -99,7 +102,13 @@ namespace ReciteHelper.View
                     chapterQuestions.Add(singleChapter);
                 }
 
+                var baseDir = AppDomain.CurrentDomain.BaseDirectory;
+                var prompt = File.ReadAllText(Path.Combine(baseDir, "Images", "Prompts", "GenerateChapter.txt"));
+                var agent = CreateProjectWindow.BuildAgent("You are a writer who excels at creating moving and touching screenplays.");
 
+                var response = await agent.Run($"{prompt}\n{chapterNames}");
+                var jsonString = response.Messages.Last().Content!.Replace("`", "").Replace("json", "").Trim();
+                var chapterList = JsonSerializer.Deserialize<List<GameChapter>>(jsonString);
 
                 DialogResult = true;
                 Close();

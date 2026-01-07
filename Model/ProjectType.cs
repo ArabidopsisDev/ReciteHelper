@@ -14,58 +14,52 @@ namespace ReciteHelper.Model;
 /// different types of projects within an application.</remarks>
 public class ProjectType : INotifyPropertyChanged
 {
-    private int _id;
-    private string _typeName;
-    private string _description;
-    private string _iconPath;
-    private ProjectTemplateType _templateType;
-
     public int Id
     {
-        get => _id;
+        get => field;
         set
         {
-            _id = value;
+            field = value;
             OnPropertyChanged(nameof(Id));
         }
     }
 
     public string TypeName
     {
-        get => _typeName;
+        get => field;
         set
         {
-            _typeName = value;
+            field = value;
             OnPropertyChanged(nameof(TypeName));
         }
     }
 
     public string Description
     {
-        get => _description;
+        get => field;
         set
         {
-            _description = value;
+            field = value;
             OnPropertyChanged(nameof(Description));
         }
     }
 
     public string IconPath
     {
-        get => _iconPath;
+        get => field;
         set
         {
-            _iconPath = value;
+            field = value;
             OnPropertyChanged(nameof(IconPath));
         }
     }
 
     public ProjectTemplateType TemplateType
     {
-        get => _templateType;
+        get => field;
         set
         {
-            _templateType = value;
+            field = value;
             OnPropertyChanged(nameof(TemplateType));
         }
     }

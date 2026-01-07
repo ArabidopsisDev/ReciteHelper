@@ -1,0 +1,26 @@
+﻿The user wants to review the material, integrating the review 
+content into a love story.  The following will provide all 
+the chapters. Please create a game outline such that the 
+number of game chapters matches the number of textbook chapters, 
+from beginning to end. Return a Json of List<GameChapter>, 
+where GameChapter is defined as follows:
+
+public class GameChapter
+{
+    public string? TextbookChapterName { get; set; }
+    public string? GameChapterName { get; set; }
+    public string? GameChapterOutline { get; set; }
+    public StoryLine? GameStoryLine { get; set; }
+}
+
+The fields you need to fill in are: TextbookChapterName, which represents 
+the corresponding knowledge point chapter; GameChapterName, which 
+represents the name of the game chapter; and GameChapterOutline, 
+which represents the outline of this chapter. All fields should be in 
+plain text format, and the outline should not be too long, around 200 
+words is sufficient. GameStoryLine is NULL.
+
+Nothing needs to be returned except for this JSON object.
+
+The following are all the knowledge point chapters, 
+separated by the '/' character:

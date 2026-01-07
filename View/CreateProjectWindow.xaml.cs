@@ -313,9 +313,10 @@ public partial class CreateProjectWindow : Window
         }
     }
 
-    private TornadoAgent BuildAgent()
+    public static TornadoAgent BuildAgent(string? instructions = null)
     {
         var api = new TornadoApi(Config.Configure!.DeepSeekKey!);
+        var agentInstructions = instructions ?? "You are an assistant who is good at extracting knowledge.";
 
         var agent = new TornadoAgent(
             client: api,
