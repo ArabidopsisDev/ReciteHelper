@@ -1,0 +1,293 @@
+﻿Read the following given JSON:
+
+阅读json：{
+  "$id": "1",
+  "ElementId": 0,
+  "GameElements": {
+    "$id": "2",
+    "$values": [
+      {
+        "$id": "3",
+        "$type": "BeginStoryLine",
+        "StoryLineId": 0,
+        "ElementId": 9
+      },
+      {
+        "$id": "4",
+        "$type": "PlainDialogue",
+        "ElementId": 0,
+        "Capital": "Arabidopsis",
+        "Detail": "\u6B22\u8FCE\u4F7F\u7528AquaAvgFramework!\n\u4EE5\u4E0B\u662F\u4E00\u4E9B\u7B80\u5355\u7684\u6D4B\u8BD5\u3002",
+        "EnterContext": null,
+        "ExitContext": null
+      },
+      {
+        "$id": "5",
+        "$type": "Alert",
+        "ElementId": 0,
+        "Source": "\u4E0B\u9762\u5F00\u59CB\u53D8\u6362\u80CC\u666F\u6D4B\u8BD5",
+        "EnterContext": null,
+        "ExitContext": null
+      },
+      {
+        "$id": "6",
+        "$type": "MusicPool",
+        "ElementId": 726,
+        "Source": "D:\\Projects\\EasyAvgEngine\\bin\\Debug\\net10.0-windows7.0\\\\musi.mp3",
+        "Duration": 0
+      },
+      {
+        "$id": "7",
+        "$type": "BackgroundChangeEvent",
+        "ElementId": 8765,
+        "ImagePath": "D:\\Projects\\EasyAvgEngine\\bin\\Debug\\net10.0-windows7.0\\\\gg.jpg",
+        "SwitchAnimation": {
+          "$id": "8",
+          "$type": "Transparency",
+          "DurationMillisecond": 800
+        }
+      },
+      {
+        "$id": "9",
+        "$type": "PlainDialogue",
+        "ElementId": 1,
+        "Capital": "\u738B\u52C3",
+        "Detail": "\u6ED5\u738B\u9AD8\u9601\u4E34\u6C5F\u6E1A\uFF0C\u4F69\u7389\u9E23\u9E3E\u7F62\u6B4C\u821E\u3002\n\u753B\u680B\u671D\u98DE\u5357\u6D66\u4E91\uFF0C\u73E0\u5E18\u66AE\u5377\u897F\u5C71\u96E8\u3002\n\u95F2\u4E91\u6F6D\u5F71\u65E5\u60A0\u60A0\uFF0C\u7269\u6362\u661F\u79FB\u51E0\u5EA6\u79CB\u3002\n\u9601\u4E2D\u5E1D\u5B50\u4ECA\u4F55\u5728\uFF1F\u69DB\u5916\u957F\u6C5F\u7A7A\u81EA\u6D41\u3002",
+        "EnterContext": {
+          "$id": "10",
+          "EnterAnimations": {
+            "$id": "11",
+            "$values": [
+              {
+                "$id": "12",
+                "$type": "Move",
+                "ms": 1000,
+                "start": {},
+                "end": {}
+              },
+              {
+                "$id": "13",
+                "$type": "Rotate",
+                "DurationMillisecond": 1000,
+                "StartAngle": 360,
+                "EndAngle": 0,
+                "Center": null
+              }
+            ]
+          }
+        },
+        "ExitContext": {
+          "$id": "14",
+          "ExitAnimations": {
+            "$id": "15",
+            "$values": [
+              {
+                "$id": "16",
+                "$type": "Move",
+                "ms": 1000,
+                "start": {},
+                "end": {}
+              },
+              {
+                "$id": "17",
+                "$type": "Rotate",
+                "DurationMillisecond": 1000,
+                "StartAngle": 360,
+                "EndAngle": 0,
+                "Center": null
+              }
+            ]
+          },
+          "ExitElementId": 0,
+          "ExitStoryLineId": 0
+        }
+      },
+      {
+        "$id": "18",
+        "$type": "ChoiceDialogue",
+        "ElementId": 3,
+        "ChoiceResults": {
+          "$id": "19",
+          "$values": [
+            {
+              "$id": "20",
+              "Text": "\u9009\u98791",
+              "NextElement": {
+                "$id": "21",
+                "$type": "EndStoryLine",
+                "NextStoryLine": {
+                  "$id": "22",
+                  "ElementId": 0,
+                  "GameElements": {
+                    "$id": "23",
+                    "$values": [
+                      {
+                        "$id": "24",
+                        "$type": "BeginStoryLine",
+                        "StoryLineId": 1,
+                        "ElementId": 0
+                      },
+                      {
+                        "$id": "25",
+                        "$type": "Avatar",
+                        "ElementId": 21,
+                        "AvatarTypeInstance": 0,
+                        "Source": "D:\\Android\\ctr.png",
+                        "EnterContext": null,
+                        "ExitContext": null
+                      },
+                      {
+                        "$id": "26",
+                        "$type": "PlainDialogue",
+                        "ElementId": 1,
+                        "Capital": "Arabidopsis",
+                        "Detail": "\u60A8\u9009\u62E9\u4E86\u7B2C1\u4E2A\u9009\u9879!",
+                        "EnterContext": null,
+                        "ExitContext": null
+                      },
+                      {
+                        "$id": "27",
+                        "$type": "EndStoryLine",
+                        "NextStoryLine": {
+                          "$id": "28",
+                          "ElementId": 0,
+                          "GameElements": {
+                            "$id": "29",
+                            "$values": [
+                              {
+                                "$id": "30",
+                                "$type": "BeginStoryLine",
+                                "StoryLineId": 3,
+                                "ElementId": 0
+                              },
+                              {
+                                "$id": "31",
+                                "$type": "SwitchContextEvent",
+                                "ElementId": 1,
+                                "TrueNextElement": {
+                                  "$id": "32",
+                                  "$type": "PlainDialogue",
+                                  "ElementId": 1,
+                                  "Capital": "Arabidopsis",
+                                  "Detail": "\u60A8\u9009\u62E9\u7684\u9009\u9879\u5927\u4E8E\u7B49\u4E8E\u7B2C\u4E8C\u4E2A!",
+                                  "EnterContext": null,
+                                  "ExitContext": null
+                                },
+                                "FalseNextElement": {
+                                  "$id": "33",
+                                  "$type": "EndStoryLine",
+                                  "NextStoryLine": {
+                                    "$ref": "1"
+                                  },
+                                  "ElementId": 44
+                                },
+                                "ValueName": "%Selected%",
+                                "CompareOperator": "==",
+                                "CompareThreshold": 0
+                              },
+                              {
+                                "$id": "34",
+                                "$type": "MusicPool",
+                                "ElementId": 729,
+                                "Source": "",
+                                "Duration": 0
+                              },
+                              {
+                                "$id": "35",
+                                "$type": "PlainDialogue",
+                                "ElementId": 109,
+                                "Capital": "System",
+                                "Detail": "\u505C\u6B62\u64AD\u653E\u97F3\u4E50\u3002",
+                                "EnterContext": null,
+                                "ExitContext": null
+                              },
+                              {
+                                "$id": "36",
+                                "$type": "PlainDialogue",
+                                "ElementId": 1,
+                                "Capital": "Arabidopsis",
+                                "Detail": "\u6E38\u620F\u7ED3\u675F!",
+                                "EnterContext": null,
+                                "ExitContext": null
+                              },
+                              {
+                                "$id": "37",
+                                "$type": "EndStoryLine",
+                                "NextStoryLine": null,
+                                "ElementId": 2
+                              }
+                            ]
+                          }
+                        },
+                        "ElementId": 2
+                      }
+                    ]
+                  }
+                },
+                "ElementId": 11
+              }
+            },
+            {
+              "$id": "38",
+              "Text": "\u9009\u98792",
+              "NextElement": {
+                "$id": "39",
+                "$type": "EndStoryLine",
+                "NextStoryLine": {
+                  "$id": "40",
+                  "ElementId": 0,
+                  "GameElements": {
+                    "$id": "41",
+                    "$values": [
+                      {
+                        "$id": "42",
+                        "$type": "BeginStoryLine",
+                        "StoryLineId": 2,
+                        "ElementId": 0
+                      },
+                      {
+                        "$id": "43",
+                        "$type": "PlainDialogue",
+                        "ElementId": 1,
+                        "Capital": "Arabidopsis",
+                        "Detail": "\u60A8\u9009\u62E9\u4E86\u7B2C2\u4E2A\u9009\u9879!",
+                        "EnterContext": null,
+                        "ExitContext": null
+                      },
+                      {
+                        "$id": "44",
+                        "$type": "EndStoryLine",
+                        "NextStoryLine": {
+                          "$ref": "28"
+                        },
+                        "ElementId": 2
+                      }
+                    ]
+                  }
+                },
+                "ElementId": 22
+              }
+            }
+          ]
+        },
+        "Capital": "\u9009\u62E9",
+        "EnterContext": null,
+        "ExitContext": null
+      }
+    ]
+  }
+}
+
+This JSON represents all the available elements in the visual 
+novel framework I developed. Do not use local resources.  
+The following are the user's learning points; please create 
+a visual novel using these points to help them review the material, 
+integrating the learning points into the story. 
+
+Please do not use animation effects other than those provided 
+in the example JSON file, etc. 
+
+Return the result in JSON data format ONLY; 
+DO NOT return anything other than the JSON data.
+
+The following is the story outline for the content you need to generate:

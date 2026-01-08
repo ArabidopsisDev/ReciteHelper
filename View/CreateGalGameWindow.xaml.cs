@@ -1,5 +1,7 @@
-﻿using Microsoft.Win32;
+﻿using AquaAvgFramework.StoryLineComponents;
+using Microsoft.Win32;
 using ReciteHelper.Model;
+using System.Collections.Concurrent;
 using System.ComponentModel;
 using System.IO;
 using System.Runtime.CompilerServices;
@@ -11,8 +13,6 @@ namespace ReciteHelper.View
 {
     public partial class CreateGalGameWindow : Window, INotifyPropertyChanged
     {
-        private string _selectedFilePath;
-
         public CreateGalGameWindow()
         {
             InitializeComponent();
@@ -22,12 +22,12 @@ namespace ReciteHelper.View
 
         public string SelectedFilePath
         {
-            get => _selectedFilePath;
+            get => field;
             set
             {
-                if (_selectedFilePath != value)
+                if (field != value)
                 {
-                    _selectedFilePath = value;
+                    field = value;
                     OnPropertyChanged();
                 }
             }
@@ -108,7 +108,31 @@ namespace ReciteHelper.View
 
                 var response = await agent.Run($"{prompt}\n{chapterNames}");
                 var jsonString = response.Messages.Last().Content!.Replace("`", "").Replace("json", "").Trim();
-                var chapterList = JsonSerializer.Deserialize<List<GameChapter>>(jsonString);
+                var chapterList = JsonSerializer.Deserialize<List<GameChapter>>(jsonString)!;
+
+                var galPrompt = File.ReadAllText(Path.Combine(baseDir, "Images", "Prompts", "GenerateGal.txt"));
+                var combined = chapterList.Zip(chapterQuestions, (first, second) => (first, second));
+
+                var storyLines = new ConcurrentBag<StoryLine>();
+
+                // This code is highly likely to run, but highly unlikely to run
+                await Parallel.ForEachAsync(combined, async (it, cts) =>
+                {
+                    var chapter = it.first;
+                    var questions = it.second;
+
+                    var currentPrompt = galPrompt;
+                    currentPrompt += $"{chapter.GameChapterOutline}\n" +
+                                     "This is the content the user needs to review (but don't explicitly label the learning points in the story; let the user feel like they are learning naturally)." +
+                                     $"{questions}";
+
+                    var galResponse = await agent.Run(currentPrompt);
+                    var galJsonString = galResponse.Messages.Last().Content!.Replace("`", "").Replace("json", "").Trim();
+                    var storyLine = JsonSerializer.Deserialize<StoryLine>(galJsonString);
+
+                    if (storyLine is not null)
+                        storyLines.Add(storyLine);
+                });
 
                 DialogResult = true;
                 Close();

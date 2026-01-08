@@ -23,12 +23,22 @@
     <None Remove="Images\hyper.png" />
     <None Remove="Images\load.png" />
     <None Remove="Images\project.png" />
+    <None Remove="Images\Prompts\GenerateChapter.txt" />
     <None Remove="Images\Prompts\GenerateQuestion.txt" />
     <None Remove="Images\result.png" />
     <None Remove="Images\search.png" />
     <None Remove="Images\type_card.png" />
     <None Remove="Images\type_classical.png" />
     <None Remove="Images\type_pdf.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Images\Prompts\GenerateChapter.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Images\Prompts\GenerateOutline.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>

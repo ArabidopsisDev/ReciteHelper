@@ -20,6 +20,8 @@ which represents the outline of this chapter. All fields should be in
 plain text format, and the outline should not be too long, around 200 
 words is sufficient. GameStoryLine is NULL.
 
+The order MUST be the SAME as the given chapter order.
+
 Nothing needs to be returned except for this JSON object.
 
 The following are all the knowledge point chapters, 
