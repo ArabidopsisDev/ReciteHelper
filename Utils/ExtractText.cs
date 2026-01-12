@@ -14,20 +14,20 @@ public class ExtractText
     private static string FromPDF(string filePath)
     {
         var docNetInstance = DocLib.Instance;
-        var pageDimensions = new PageDimensions(1080, 1920);
-
         string fullText = "";
 
-        // Start reading the document
-        using (var docReader = docNetInstance.GetDocReader(filePath, pageDimensions))
+        using (var docReader = docNetInstance.GetDocReader(filePath, new PageDimensions(1.0d)))
         {
             int pageCount = docReader.GetPageCount();
 
             for (int pageIndex = 0; pageIndex < pageCount; pageIndex++)
             {
                 using var pageReader = docReader.GetPageReader(pageIndex);
-                string pageText = pageReader.GetText();
-                fullText += pageText + "\n";
+
+                int width = pageReader.GetPageWidth();
+                int height = pageReader.GetPageHeight();
+
+                fullText += pageReader.GetText() + "\n";
             }
         }
 
