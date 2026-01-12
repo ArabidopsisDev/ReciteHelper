@@ -19,7 +19,6 @@ namespace ReciteHelper.View
             DataContext = this;
         }
 
-
         public string SelectedFilePath
         {
             get => field;
@@ -42,7 +41,7 @@ namespace ReciteHelper.View
                 Multiselect = false,
                 InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
                 CheckFileExists = true,
-                CheckPathExists = true
+                CheckPathExists = true,
             };
 
             if (openFileDialog.ShowDialog() == true)
@@ -84,34 +83,40 @@ namespace ReciteHelper.View
             if (result == MessageBoxResult.Yes)
             {
                 var path = SelectedFilePath;
-                var project = JsonSerializer.Deserialize<Project>(path)!;
+                var text = File.ReadAllText(path);
+                var project = JsonSerializer.Deserialize<Project>(text)!;
 
                 var singleChapter = new StringBuilder();
-                var chapterQuestions = new List<StringBuilder>();
+                var chapterQuestions = new Dictionary<string, StringBuilder>();
                 var chapterNames = new StringBuilder();
 
                 foreach (var chapter in project.Chapters!)
                 {
-                    chapterNames.Append($"{chapter.Name!}\\");
-
                     foreach (var question in chapter.Questions!)
                     {
                         singleChapter.AppendLine($"问题：{question.Text} 答案：{question.CorrectAnswer}");
                     }
 
-                    chapterQuestions.Add(singleChapter);
+                    chapterQuestions.Add(chapter.Name!, singleChapter);
                 }
 
                 var baseDir = AppDomain.CurrentDomain.BaseDirectory;
-                var prompt = File.ReadAllText(Path.Combine(baseDir, "Images", "Prompts", "GenerateChapter.txt"));
+                var clusterPrompt = File.ReadAllText(Path.Combine(baseDir, "Images", "Prompts", "ReClustering.txt"));
                 var agent = CreateProjectWindow.BuildAgent("You are a writer who excels at creating moving and touching screenplays.");
 
+                var clusterRespose = await agent.Run($"{clusterPrompt}\n{chapterNames}");
+                var clusterJson = clusterRespose.Messages.Last().Content!.Replace("`", "").Replace("json", "").Trim();
+                var clusterResult = JsonSerializer.Deserialize<List<ChapterCluster>>(clusterJson);
+
+                clusterResult!.ForEach(x => chapterNames.Append(x.UnifiedName));
+
+                var prompt = File.ReadAllText(Path.Combine(baseDir, "Images", "Prompts", "GenerateOutline.txt"));
                 var response = await agent.Run($"{prompt}\n{chapterNames}");
                 var jsonString = response.Messages.Last().Content!.Replace("`", "").Replace("json", "").Trim();
                 var chapterList = JsonSerializer.Deserialize<List<GameChapter>>(jsonString)!;
 
                 var galPrompt = File.ReadAllText(Path.Combine(baseDir, "Images", "Prompts", "GenerateGal.txt"));
-                var combined = chapterList.Zip(chapterQuestions, (first, second) => (first, second));
+                var combined = chapterList.Zip(clusterResult!, (first, second) => (first, second));
 
                 var storyLines = new ConcurrentBag<StoryLine>();
 
@@ -119,12 +124,16 @@ namespace ReciteHelper.View
                 await Parallel.ForEachAsync(combined, async (it, cts) =>
                 {
                     var chapter = it.first;
-                    var questions = it.second;
+                    var cluster = it.second;
+                    var builder = new StringBuilder();
+
+                    foreach (var item in cluster.Chapters!)
+                        builder.AppendLine(chapterQuestions[item].ToString());
 
                     var currentPrompt = galPrompt;
                     currentPrompt += $"{chapter.GameChapterOutline}\n" +
                                      "This is the content the user needs to review (but don't explicitly label the learning points in the story; let the user feel like they are learning naturally)." +
-                                     $"{questions}";
+                                     $"{builder}";
 
                     var galResponse = await agent.Run(currentPrompt);
                     var galJsonString = galResponse.Messages.Last().Content!.Replace("`", "").Replace("json", "").Trim();
@@ -133,6 +142,12 @@ namespace ReciteHelper.View
                     if (storyLine is not null)
                         storyLines.Add(storyLine);
                 });
+
+                var localPath = project.StoragePath;
+                var savePath = Path.Combine(localPath!, "game.rhgal");
+                var saveString = JsonSerializer.Serialize(storyLines);
+
+                File.WriteAllText(savePath, saveString);
 
                 DialogResult = true;
                 Close();

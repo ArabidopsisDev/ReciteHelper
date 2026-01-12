@@ -9,6 +9,7 @@
     Title="GalWindow"
     Width="1200"
     Height="815"
+    Loaded="Window_Loaded"
     mc:Ignorable="d">
     <Grid>
         <a:GamePanel Name="GamePanel" />

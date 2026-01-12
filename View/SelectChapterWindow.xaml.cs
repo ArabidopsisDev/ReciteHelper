@@ -1,10 +1,12 @@
-﻿using ReciteHelper.Model;
+﻿using AquaAvgFramework.StoryLineComponents;
+using ReciteHelper.Model;
 using ReciteHelper.Utils;
 using ReciteHelper.ViewModel;
 using System.ComponentModel;
 using System.IO;
 using System.IO.Compression;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Threading;
@@ -152,7 +154,44 @@ public partial class SelectChapterWindow : Window, INotifyPropertyChanged
         Close();
     }
 
-    private async void ExportButton_Click(object sender, RoutedEventArgs e)
+    private void ExportButton_Click(object sender, RoutedEventArgs e)
+    {
+        FunctionMenu.PlacementTarget = ExportButton;
+        FunctionMenu.IsOpen = true;
+    }
+
+    private void GameMenuItem_Click(object sender, RoutedEventArgs e)
+    {
+        var gamePath = Path.Combine(_currentProject.StoragePath!, _currentProject.ProjectName!, "game.rhgal");
+
+        if (!File.Exists(gamePath))
+        {
+            MessageBox.Show("游戏文件尚未创建，请先创建", "打开失败", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+
+        try
+        {
+            var text = File.ReadAllText(gamePath);
+            var options = new JsonSerializerOptions
+            {
+                ReferenceHandler = ReferenceHandler.Preserve,
+                WriteIndented = true
+            };
+
+            var test = JsonSerializer.Deserialize<StoryLine>(text, options);
+        }
+        catch (Exception)
+        {
+            MessageBox.Show("游戏文件已损坏，请重新创建", "打开失败", MessageBoxButton.OK, MessageBoxImage.Warning); ;
+            return;
+        }
+
+        var gameWindow = new GalWindow(_currentProject);
+        gameWindow.Show();
+    }
+
+    private async void ExportMenuItem_Click(object sender, RoutedEventArgs e)
     {
         if (_currentProject.StoragePath is null || _currentProject.ProjectName is null)
             return;
@@ -211,7 +250,6 @@ public partial class SelectChapterWindow : Window, INotifyPropertyChanged
         System.Diagnostics.Process.Start("explorer.exe", folderPath);
         MessageBox.Show("已导出至rh_output.zip。");
     }
-
 
     public Project CurrentProject
     {

@@ -23,6 +23,30 @@
             <Setter Property="Padding" Value="0" />
         </Style>
 
+        <!--  Suturing human and AI code...  -->
+        <Style x:Key="MenuItemStyle" TargetType="MenuItem">
+            <Setter Property="Height" Value="32" />
+            <Setter Property="HorizontalContentAlignment" Value="Left" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Foreground" Value="#333333" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#007ACC" />
+                    <Setter Property="Foreground" Value="White" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="MenuIconStyle" TargetType="Image">
+            <Setter Property="Width" Value="16" />
+            <Setter Property="Height" Value="16" />
+            <Setter Property="Margin" Value="0,0,8,0" />
+            <Setter Property="Stretch" Value="Uniform" />
+        </Style>
+
         <Style x:Key="SecondaryButtonStyle" TargetType="Button">
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="Foreground" Value="#666666" />
@@ -32,7 +56,7 @@
             <Setter Property="FontSize" Value="13" />
             <Setter Property="FontWeight" Value="SemiBold" />
             <Setter Property="Cursor" Value="Hand" />
-            <Setter Property="MinWidth" Value="80" />
+            <Setter Property="MinWidth" Value="20" />
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
                     <Setter Property="Background" Value="#F8F9FA" />
@@ -118,8 +142,29 @@
                         Margin="20,0,0,0"
                         VerticalAlignment="Center"
                         Click="ExportButton_Click"
-                        Content="分享项目"
-                        Style="{StaticResource SecondaryButtonStyle}" />
+                        Content="功能菜单"
+                        Style="{StaticResource SecondaryButtonStyle}">
+                        <Button.ContextMenu>
+                            <ContextMenu x:Name="FunctionMenu">
+                                <MenuItem
+                                    Click="ExportMenuItem_Click"
+                                    Header="导出"
+                                    Style="{StaticResource MenuItemStyle}">
+                                    <MenuItem.Icon>
+                                        <Image Source="pack://application:,,,/ReciteHelper;component/Images/menu_export.png" Style="{StaticResource MenuIconStyle}" />
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                                <MenuItem
+                                    Click="GameMenuItem_Click"
+                                    Header="运行游戏"
+                                    Style="{StaticResource MenuItemStyle}">
+                                    <MenuItem.Icon>
+                                        <Image Source="pack://application:,,,/ReciteHelper;component/Images/menu_game.png" Style="{StaticResource MenuIconStyle}" />
+                                    </MenuItem.Icon>
+                                </MenuItem>
+                            </ContextMenu>
+                        </Button.ContextMenu>
+                    </Button>
                 </StackPanel>
 
                 <StackPanel

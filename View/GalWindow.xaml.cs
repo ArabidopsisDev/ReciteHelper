@@ -1,25 +1,38 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using AquaAvgFramework.StoryLineComponents;
+using ReciteHelper.Model;
+using System.IO;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 
-namespace ReciteHelper.View
+namespace ReciteHelper.View;
+
+/// <summary>
+/// Interaction logic for GalWindow.xaml
+/// </summary>
+public partial class GalWindow : Window
 {
-    /// <summary>
-    /// Interaction logic for GalWindow.xaml
-    /// </summary>
-    public partial class GalWindow : Window
+    private Project _currentProject;
+    public GalWindow(Project project)
     {
-        public GalWindow()
+        InitializeComponent();
+
+        _currentProject = project;
+    }
+
+    private void Window_Loaded(object sender, RoutedEventArgs e)
+    {
+        var gamePath = Path.Combine(_currentProject.StoragePath!, _currentProject.ProjectName!, "game.rhgal");
+
+        var text = File.ReadAllText(gamePath);
+        var options = new JsonSerializerOptions
         {
-            InitializeComponent();
-        }
+            ReferenceHandler = ReferenceHandler.Preserve,
+            WriteIndented = true
+        };
+
+        var storyLine = JsonSerializer.Deserialize<StoryLine>(text, options);
+
+        GamePanel.StoryLines = [storyLine!];
     }
 }

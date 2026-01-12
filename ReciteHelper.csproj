@@ -22,9 +22,12 @@
     <None Remove="Images\folder.png" />
     <None Remove="Images\hyper.png" />
     <None Remove="Images\load.png" />
+    <None Remove="Images\menu_export.png" />
+    <None Remove="Images\menu_game.png" />
     <None Remove="Images\project.png" />
     <None Remove="Images\Prompts\GenerateChapter.txt" />
     <None Remove="Images\Prompts\GenerateQuestion.txt" />
+    <None Remove="Images\Prompts\ReClustering.txt" />
     <None Remove="Images\result.png" />
     <None Remove="Images\search.png" />
     <None Remove="Images\type_card.png" />
@@ -49,6 +52,9 @@
     <Content Include="Images\Prompts\GenerateQuestion.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="Images\Prompts\ReClustering.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>
@@ -70,6 +76,8 @@
     <Resource Include="Images\error.png" />
     <Resource Include="Images\exam.png" />
     <Resource Include="Images\folder.png" />
+    <Resource Include="Images\menu_export.png" />
+    <Resource Include="Images\menu_game.png" />
     <Resource Include="Images\type_girl.png" />
     <Resource Include="Images\hyper.png" />
     <Resource Include="Images\load.png" />

@@ -153,8 +153,7 @@
                         Grid.Row="1"
                         Margin="0,8,0,0"
                         FontSize="12"
-                        Foreground="#666"
-                        Text="请选择 .rhproj 格式的复习项目文件" />
+                        Foreground="#666" />
                 </Grid>
             </Border>
 
