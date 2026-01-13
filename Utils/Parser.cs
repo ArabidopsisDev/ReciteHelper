@@ -16,7 +16,7 @@ namespace ReciteHelper.Utils;
 /// associated with code injection or unauthorized resource access.</remarks>
 public class Parser
 {
-    public static async Task<string?> ParseConfigText(string? text) 
+    public static async Task<string?> ParseConfigText(string? text)
     {
         if (text is null || !text.Contains('%')) return text;
 
@@ -32,29 +32,29 @@ public class Parser
 
     public static async Task<StoryLine> CompileStoryAsync(string storyCode)
     {
-        try
-        {
-            var options = ScriptOptions.Default
-                .WithReferences(typeof(StoryLine).Assembly)
-                .AddImports("AquaAvgFramework",
-                            "AquaAvgFramework.Animation",
-                            "AquaAvgFramework.Animation.Common",
-                            "AquaAvgFramework.Animation.Switch",
-                            "AquaAvgFramework.GameElements.Blocks",
-                            "AquaAvgFramework.GameElements.Events",
-                            "AquaAvgFramework.GameElements",
-                            "AquaAvgFramework.StoryLineComponents",
-                            "AquaAvgFramework.Spirits",
-                            "AquaAvgFramework.Global",
-                            "AquaAvgFramework.Pools");
+        //try
+        //{
+        var options = ScriptOptions.Default
+            .WithReferences(typeof(StoryLine).Assembly)
+            .AddImports("AquaAvgFramework",
+                        "AquaAvgFramework.Animation",
+                        "AquaAvgFramework.Animation.Common",
+                        "AquaAvgFramework.Animation.Switch",
+                        "AquaAvgFramework.GameElements.Blocks",
+                        "AquaAvgFramework.GameElements.Events",
+                        "AquaAvgFramework.GameElements",
+                        "AquaAvgFramework.StoryLineComponents",
+                        "AquaAvgFramework.Spirits",
+                        "AquaAvgFramework.Global",
+                        "AquaAvgFramework.Pools");
 
-            return await CSharpScript.EvaluateAsync<StoryLine>(storyCode, options);
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Failed: {ex.Message}");
-            return null!;
-        }
+        return await CSharpScript.EvaluateAsync<StoryLine>(storyCode, options);
+        //}
+        //catch (Exception ex)
+        //{
+        //    Console.WriteLine($"Failed: {ex.Message}");
+        //    return null!;
+        //}
     }
 
     private async static Task<ExecutionResult<TOut>> ExecuteAsync<TOut>

@@ -65,7 +65,16 @@ st4.AddRange([
                 new AquaAvgFramework.StoryLineComponents.EndStoryLine(2, null)
 ]);
 
-You can ONLY create a visual novel using the PROVIDED components.
+I'm using the AquaAvgEngine engine, and the components shown 
+in the code above are the ones you can use. Of course, you 
+can decide on the structure of the generated code yourself, 
+but you can only use these classes. This structure is just 
+for your reference. You need to generate a visual novel based 
+on the user's knowledge points and the story outline.
+
+This is just a structure; you can build the framework according 
+to your own ideas, as long as the logic is correct and it compiles. 
+There's NO need to insert a beginning or end; 
 
 The following are the ONLY animations you are ALLOWED to use.
 
@@ -85,8 +94,13 @@ Animations for background switching:
 - ZoomFadeSwitch(int durationMillisecond): The old image slightly enlarges and fades out, while the new image zooms in from a slightly smaller size to normal size and fades in.
 - FlashSwitch(int durationMillisecond, Color? flashColor): The screen quickly flashes white or black, the background image is switched at the brightest/darkest point, and then it returns to normal.
 
-SIMPLY return the corresponding code, which will ULTIMATELY return a main storyline.
+SIMPLY return the corresponding code, which will ULTIMATELY RETURN a main storyline.
+Unless you're an idiot, you should know that I need you to write C# code.
 
-The following are the user's learning points; please create 
-a visual novel using these points to help them review the material, 
-integrating the learning points into the story：
+Please think carefully about the meaning of the code before generating it, 
+otherwise the user's cat will suffer inhumane torture such as dismemberment 
+Also, since the resources have not yet been parsed, 
+please do not use any resources in the code, such as images or audio (In fact, 
+what means is that you shouldn't be using resource-intensive classes).
+
+Below is an outline of the story:

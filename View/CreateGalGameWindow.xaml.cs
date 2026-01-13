@@ -141,8 +141,9 @@ public partial class CreateGalGameWindow : Window, INotifyPropertyChanged
                                  $"{builder}";
 
                 var galResponse = await agent.Run(currentPrompt);
-                var galCode = galResponse.Messages.Last().Content!.Replace("`", "").Replace("json", "").Trim();
+                var galCode = galResponse.Messages.Last().Content!.Replace("`", "").Replace("csharp", "").Trim();
 
+                
                 var mainStoryLine = await Parser.CompileStoryAsync(galCode);
                 storyLines.Add(mainStoryLine);
             });
