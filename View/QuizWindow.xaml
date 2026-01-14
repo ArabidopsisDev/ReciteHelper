@@ -109,6 +109,26 @@
             <ColumnDefinition Width="220" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
+        <Image
+            Name="PhonkImage"
+            Grid.ColumnSpan="2"
+            Width="256"
+            Height="256"
+            HorizontalAlignment="Center"
+            VerticalAlignment="Center"
+            Panel.ZIndex="1000"
+            IsHitTestVisible="False">
+            <Image.RenderTransform>
+                <TranslateTransform x:Name="ImageTranslate" X="0" Y="0" />
+            </Image.RenderTransform>
+        </Image>
+
+        <MediaElement
+            Name="PhonkPlayer"
+            Width="0"
+            Height="0"
+            LoadedBehavior="Manual"
+            UnloadedBehavior="Manual" />
 
         <Border
             Grid.Column="0"

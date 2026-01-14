@@ -24,6 +24,33 @@
     <None Remove="Images\load.png" />
     <None Remove="Images\menu_export.png" />
     <None Remove="Images\menu_game.png" />
+    <None Remove="Images\Phonk\Caveira\caveira1.png" />
+    <None Remove="Images\Phonk\Caveira\caveira2.png" />
+    <None Remove="Images\Phonk\Caveira\caveira3.png" />
+    <None Remove="Images\Phonk\Caveira\caveira4.png" />
+    <None Remove="Images\Phonk\Caveira\caveira5.png" />
+    <None Remove="Images\Phonk\Caveira\caveira6.png" />
+    <None Remove="Images\Phonk\Caveira\caveira7.png" />
+    <None Remove="Images\Phonk\Caveira\caveira8.png" />
+    <None Remove="Images\Phonk\Caveira\caveira9.png" />
+    <None Remove="Images\Phonk\Soundfx\phonk1.mp3" />
+    <None Remove="Images\Phonk\Soundfx\phonk1.ogg" />
+    <None Remove="Images\Phonk\Soundfx\phonk2.mp3" />
+    <None Remove="Images\Phonk\Soundfx\phonk2.ogg" />
+    <None Remove="Images\Phonk\Soundfx\phonk3.mp3" />
+    <None Remove="Images\Phonk\Soundfx\phonk3.ogg" />
+    <None Remove="Images\Phonk\Soundfx\phonk4.mp3" />
+    <None Remove="Images\Phonk\Soundfx\phonk4.ogg" />
+    <None Remove="Images\Phonk\Soundfx\phonk5.mp3" />
+    <None Remove="Images\Phonk\Soundfx\phonk5.ogg" />
+    <None Remove="Images\Phonk\Soundfx\phonk6.mp3" />
+    <None Remove="Images\Phonk\Soundfx\phonk6.ogg" />
+    <None Remove="Images\Phonk\Soundfx\phonk7.mp3" />
+    <None Remove="Images\Phonk\Soundfx\phonk7.ogg" />
+    <None Remove="Images\Phonk\Soundfx\phonk8.mp3" />
+    <None Remove="Images\Phonk\Soundfx\phonk8.ogg" />
+    <None Remove="Images\Phonk\Soundfx\phonk9.mp3" />
+    <None Remove="Images\Phonk\Soundfx\phonk9.ogg" />
     <None Remove="Images\project.png" />
     <None Remove="Images\Prompts\GenerateChapter.txt" />
     <None Remove="Images\Prompts\GenerateGal.txt" />
@@ -82,6 +109,42 @@
     <Resource Include="Images\folder.png" />
     <Resource Include="Images\menu_export.png" />
     <Resource Include="Images\menu_game.png" />
+    <Resource Include="Images\Phonk\Caveira\caveira1.png" />
+    <Resource Include="Images\Phonk\Caveira\caveira2.png" />
+    <Resource Include="Images\Phonk\Caveira\caveira3.png" />
+    <Resource Include="Images\Phonk\Caveira\caveira4.png" />
+    <Resource Include="Images\Phonk\Caveira\caveira5.png" />
+    <Resource Include="Images\Phonk\Caveira\caveira6.png" />
+    <Resource Include="Images\Phonk\Caveira\caveira7.png" />
+    <Resource Include="Images\Phonk\Caveira\caveira8.png" />
+    <Resource Include="Images\Phonk\Caveira\caveira9.png" />
+    <Content Include="Images\Phonk\Soundfx\phonk1.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Images\Phonk\Soundfx\phonk2.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Images\Phonk\Soundfx\phonk3.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Images\Phonk\Soundfx\phonk4.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Images\Phonk\Soundfx\phonk5.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Images\Phonk\Soundfx\phonk6.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Images\Phonk\Soundfx\phonk7.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Images\Phonk\Soundfx\phonk8.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Images\Phonk\Soundfx\phonk9.mp3">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Resource Include="Images\type_girl.png" />
     <Resource Include="Images\hyper.png" />
     <Resource Include="Images\load.png" />

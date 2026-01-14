@@ -1,5 +1,6 @@
 ﻿using ReciteHelper.Model;
 using ReciteHelper.Utils;
+using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
@@ -7,12 +8,15 @@ using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Windows.Media.Animation;
+using System.Windows.Media.Imaging;
 
 namespace ReciteHelper.View;
 
 public partial class QuizWindow : Window, INotifyPropertyChanged
 {
     private ObservableCollection<QuestionItem> _questions;
+    private LatestBuffer<bool> _latest = new(3);
     private int _currentQuestionIndex = 0;
     private int _totalQuestions = 0;
     private int _correctCount = 0;
@@ -195,7 +199,7 @@ public partial class QuizWindow : Window, INotifyPropertyChanged
         }
     }
 
-    private void SubmitButton_Click(object sender, RoutedEventArgs e)
+    private async void SubmitButton_Click(object sender, RoutedEventArgs e)
     {
         if (string.IsNullOrWhiteSpace(AnswerTextBox.Text))
         {
@@ -213,6 +217,51 @@ public partial class QuizWindow : Window, INotifyPropertyChanged
         ShowResult(currentQuestion);
         AnswerTextBox.IsEnabled = false;
         UpdateAnswerCardStyles();
+
+        _latest.Add(isCorrect);
+        if (_latest.EqualsTo(false))
+            await PlayPhonkEffect();
+    }
+
+    private async Task PlayPhonkEffect()
+    {
+        var num = Random.Shared.Next(1, 10);
+        var caveira = $"pack://application:,,,/ReciteHelper;component/Images/Phonk/Caveira/caveira{num}.png";
+        string sound = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Images", "Phonk", "Soundfx", $"phonk{num}.mp3");
+
+        PhonkImage.Source = new BitmapImage(new Uri(caveira));
+        PhonkPlayer.Source = new Uri(sound, UriKind.Absolute);
+
+        ImageTranslate.X = 1000;
+        PhonkImage.Opacity = 0;
+
+        var sb = new Storyboard();
+
+        var moveAnim = new DoubleAnimation
+        {
+            From = 1000,
+            To = 0,
+            Duration = TimeSpan.FromMilliseconds(250), 
+            EasingFunction = new BackEase { Amplitude = 0.8, EasingMode = EasingMode.EaseOut }
+        };
+        Storyboard.SetTarget(moveAnim, PhonkImage);
+        Storyboard.SetTargetProperty(moveAnim, new PropertyPath("RenderTransform.(TranslateTransform.X)"));
+
+        var opacityAnim = new DoubleAnimation { To = 1, Duration = TimeSpan.FromMilliseconds(50) };
+        Storyboard.SetTarget(opacityAnim, PhonkImage);
+        Storyboard.SetTargetProperty(opacityAnim, new PropertyPath("Opacity"));
+
+        sb.Children.Add(moveAnim);
+        sb.Children.Add(opacityAnim);
+
+        sb.Begin();
+        PhonkPlayer.Play();
+
+        await Task.Delay(5000);
+
+        PhonkPlayer.Stop();
+        PhonkImage.Source = null;
+        PhonkImage.Opacity = 0;
     }
 
     private void SkipButton_Click(object sender, RoutedEventArgs e)
@@ -248,7 +297,7 @@ public partial class QuizWindow : Window, INotifyPropertyChanged
         // Spending this extra money is not worthwhile and requires further consideration.
     }
 
- 
+
     public event PropertyChangedEventHandler PropertyChanged;
     protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
     {
