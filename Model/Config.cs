@@ -11,10 +11,12 @@ public class Config
     public string? OCRAccess { get; set; }
     public string? OCRSecret { get; set; }
 
+    public PhonkOptions PhonkOptions { get; set; }
+
     public MissingStrategy Strategy { get; set; }
 
     // Deadlock? Who JB cares?
-    public static Config? Configure { get; set; } = Create().GetAwaiter().GetResult();
+    public static Config Configure { get; set; } = Create().GetAwaiter().GetResult()!;
 
     private static async Task<Config?> Create()
     {

@@ -16,7 +16,7 @@ namespace ReciteHelper.View;
 public partial class QuizWindow : Window, INotifyPropertyChanged
 {
     private ObservableCollection<QuestionItem> _questions;
-    private LatestBuffer<bool> _latest = new(3);
+    private LatestBuffer<bool> _latest;
     private int _currentQuestionIndex = 0;
     private int _totalQuestions = 0;
     private int _correctCount = 0;
@@ -31,6 +31,7 @@ public partial class QuizWindow : Window, INotifyPropertyChanged
 
         _project = project;
         _chapterName= chapterName;
+        _latest = new LatestBuffer<bool>(Config.Configure.PhonkOptions.WrongCount);
 
         InitializeQuestions(project.Chapters!.Find(x => x.Name == chapterName)!.Questions!);
         LocateCurrent();
@@ -95,7 +96,7 @@ public partial class QuizWindow : Window, INotifyPropertyChanged
         // Update question display
         CurrentQuestionText.Text = (_currentQuestionIndex + 1).ToString();
         TotalQuestionsText.Text = _totalQuestions.ToString();
-        QuestionTextBlock.Text = currentQuestion.Question.Text;
+        QuestionTextBlock.Text = currentQuestion.Question!.Text;
 
         // Clear the answer input box
         AnswerTextBox.Text = "";
@@ -219,7 +220,7 @@ public partial class QuizWindow : Window, INotifyPropertyChanged
         UpdateAnswerCardStyles();
 
         _latest.Add(isCorrect);
-        if (_latest.EqualsTo(false))
+        if (_latest.EqualsTo(false) && Config.Configure.PhonkOptions.EnablePhonk)
             await PlayPhonkEffect();
     }
 
