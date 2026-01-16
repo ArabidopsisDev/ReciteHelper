@@ -1,8 +1,9 @@
-﻿using System.ComponentModel;
+﻿using ReciteHelper.Model;
+using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows;
 
-namespace ReciteHelper.Model;
+namespace ReciteHelper.ViewModel;
 
 public class QuestionItem : INotifyPropertyChanged
 {
@@ -10,6 +11,7 @@ public class QuestionItem : INotifyPropertyChanged
     public Question? Question { get; set; }
     public AnswerStatus Status { get; set; }
     public string? UserAnswer { get; set; }
+    public List<ReviewTag> ReviewTag { get; set; } = [];
 
     public Style? StatusStyle
     {

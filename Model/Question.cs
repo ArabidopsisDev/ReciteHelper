@@ -15,7 +15,7 @@ public class Question
     public string? Text { get; set; }
 
     [JsonPropertyName("review_tag")]
-    public List<ReviewTag>? ReviewTag { get; set; }
+    public List<ReviewTag>? ReviewTag { get; set; } = [];
 
     [JsonPropertyName("user_answer")]
     public string? UserAnswer { get; set; } = null;

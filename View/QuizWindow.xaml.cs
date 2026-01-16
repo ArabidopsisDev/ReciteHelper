@@ -1,5 +1,6 @@
 ﻿using ReciteHelper.Model;
 using ReciteHelper.Utils;
+using ReciteHelper.ViewModel;
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -214,6 +215,7 @@ public partial class QuizWindow : Window, INotifyPropertyChanged
         // Determine whether the answer is roughly similar to the given answer
         var isCorrect = JudgeAnswer.Run(currentQuestion);
         currentQuestion.Status = isCorrect ? AnswerStatus.Correct : AnswerStatus.Wrong;
+        currentQuestion.ReviewTag.Add(new() { IsCorrect=isCorrect, ReviewTime=DateTime.Now });
 
         ShowResult(currentQuestion);
         AnswerTextBox.IsEnabled = false;
@@ -321,6 +323,7 @@ public partial class QuizWindow : Window, INotifyPropertyChanged
                 AnswerStatus.Wrong => false,
                 _ => throw new NotImplementedException("Fuck U")
             };
+            
         }
 
         var path = Path.Combine(_project.StoragePath!, _project.ProjectName!, _project.ProjectName!);

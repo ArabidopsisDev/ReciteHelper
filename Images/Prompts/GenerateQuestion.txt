@@ -49,6 +49,9 @@ public string? Text get; set;
 public string? UserAnswer get; set; = null;
 [JsonPropertyName("correct_answer")]
 public string? CorrectAnswer get; set;
+// Please keep this item as an empty list
+[JsonPropertyName("review_tag")]
+public List<ReviewTag>? ReviewTag { get; set; } = [];
 
 You also need to extract the key knowledge points, mark the titles
 and specific content, ContentMarkdown is a summary of specific
