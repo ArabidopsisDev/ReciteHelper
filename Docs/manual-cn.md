@@ -14,11 +14,20 @@ ReciteHelper 是一款AI驱动的、旨在帮助用户高效记忆和复习知�
 
 ```xml
 <Config>
+	
 	<Version>2</Version>
+	
 	<DeepSeekKey>%Environment.GetEnvironmentVariable("DSAPI")%</DeepSeekKey>
 	<MissingStrategy>Ignore</MissingStrategy>
+	
 	<OCRAccess></OCRAccess>
 	<OCRSecret></OCRSecret>
+	
+	<PhonkOptions>
+		<EnablePhonk>false</EnablePhonk>
+		<WrongCount>3</WrongCount>
+	</PhonkOptions>
+	
 </Config>
 ```
 
@@ -28,6 +37,9 @@ ReciteHelper 是一款AI驱动的、旨在帮助用户高效记忆和复习知�
 
 配置项 `MissingStrategy` 表示如果部分知识点因为AI产生幻觉而被迫舍弃后的行为，默认为 `Ignore`。`Ignore` 表示被舍弃后不做任何操作，可能会产生小于10%的知识点丢失，但是速度相对较快；`Replay` 表示对舍弃知识点进行提取后重放，保证所有内容均被保留，但相应的可能会占用更多时间。在测试中，缺失的一小部分也会被分块补全大部分，如无特殊情况，强烈不建议修改该项。
 
+> "如果把 `EnablePhonk` 设置为 `true` 会发生什么？"
+
+> "连续答错 `WrongCount` 道题，会有 jumpscare 哦。"
 ---
 
 ## 普通项目

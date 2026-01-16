@@ -32,7 +32,6 @@ public partial class CreateProjectWindow : Window
     {
         InitializeComponent();
         UpdatePreview();
-        WonAgain(explode: true);
 
         StoragePathTextBox.Text = @"D:\";
         this.updateUI = updateUI;
@@ -427,8 +426,8 @@ public partial class CreateProjectWindow : Window
 
                     var result = await agent.Run($"{prompt}\n{chunk.Content}");
 
-                    if (ComputerInfo.GetComputerBrand().Equals("HUAWEI", StringComparison.CurrentCultureIgnoreCase))
-                        WonAgain();
+                    //if (ComputerInfo.GetComputerBrand().Equals("HUAWEI", StringComparison.CurrentCultureIgnoreCase))
+                    //    WonAgain();
 
                     var jsonContent = string.Empty;
 
