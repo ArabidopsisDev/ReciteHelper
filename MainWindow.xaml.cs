@@ -233,7 +233,7 @@ namespace ReciteHelper
         {
             var openFileDialog = new Microsoft.Win32.OpenFileDialog
             {
-                Filter = "ReciteHelper项目文件 (*.rhproj)|*.rhproj|",
+                Filter = "ReciteHelper项目文件 (*.rhproj)|*.rhproj",
                 Multiselect = false
             };
 
