@@ -17,6 +17,7 @@ ReciteHelper 承诺永久保持开源、免费的性质。如果您感觉该项�
 - **题目练习与智能判分**：支持填空题自动判分，允许答案模糊匹配。
 - **模拟考试**：随机抽题，计时考试，自动统计成绩，错题可回顾。
 - **学习数据导出**：支持学习进度、答题记录导出为 JSON 文件。
+- **游戏生成**：支持将题库转换为视觉小说，在游戏中学习吧!
 - **后续预告**：将支持 OCR 图片识别、更多题型、遗忘曲线智能复习等。
 
 ---
@@ -26,6 +27,8 @@ ReciteHelper 承诺永久保持开源、免费的性质。如果您感觉该项�
 1. 环境依赖：需安装 .NET 10 及以上运行环境。
 2. 下载项目源码或者直接下载发行版。
 3. 启动主程序，按界面提示导入 PDF 学习资料，创建项目后即可体验全部功能。
+
+具体使用方法，请参考**用户手册**。
 
 ---
 
@@ -88,6 +91,8 @@ ReciteHelper 承诺永久保持开源、免费的性质。如果您感觉该项�
 |:------:|:----------:|:-----:|------------|
 | <img src="Docs\Resources\Thanks\01.jpg" width="60" height="60" style="border-radius:50%;border:2px solid #4fc3f7"> | 南昌航空航天大学 |  **Sati** | 帮助测试并解决了多PDF的处理问题 |
 | <img src="Docs\Resources\Thanks\02.jpg" width="60" height="60" style="border-radius:50%;border:2px solid #ffb74d"> | 海南大学 | **Mrwhite3142** | 帮助测试发现了文件无法正常处理的问题（暂未能复现） |
+| <img src="Docs\Resources\Thanks\03.png" width="60" height="60" style="border-radius:50%;border:2px solid #ffb74d"> | / | **oife** | 帮助测试并解决了无法正常加载项目和测试代码未删除的问题 |
+
 
 </div>
 

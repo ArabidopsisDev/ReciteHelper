@@ -48,7 +48,7 @@ public partial class SelectChapterWindow : Window, INotifyPropertyChanged
         ChaptersItemsControl.ItemsSource = _chapters;
     }
 
-    private double CalculateMasteryLevel(Chapter chapter)
+    internal static double CalculateMasteryLevel(Chapter chapter)
     {
         // Calculate the mastery level of the chapter.
         if (chapter.Questions == null || chapter.Questions.Count == 0)

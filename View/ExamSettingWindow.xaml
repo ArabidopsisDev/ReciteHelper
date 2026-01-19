@@ -8,7 +8,7 @@
     xmlns:sys="clr-namespace:System;assembly=mscorlib"
     Title="考试设置"
     Width="1050"
-    Height="750"
+    Height="780"
     Background="#F5F7F9"
     ResizeMode="NoResize"
     WindowStartupLocation="CenterOwner"
@@ -322,6 +322,20 @@
                             </Grid>
                         </StackPanel>
                     </Border>
+
+                    <Button
+                        x:Name="PresetExamButton"
+                        Margin="0,20,0,0"
+                        Content="右键此按钮预设组卷"
+                        Style="{StaticResource PrimaryButtonStyle}">
+
+                        <Button.ContextMenu>
+                            <ContextMenu x:Name="PresetMenu">
+                                <MenuItem Click="WeakestPointExam_Click" Header="最弱点组卷" />
+                                <MenuItem Click="BalancedWeaknessExam_Click" Header="弱点均衡组卷" />
+                            </ContextMenu>
+                        </Button.ContextMenu>
+                    </Button>
                 </StackPanel>
             </Border>
 

@@ -435,7 +435,77 @@ namespace ReciteHelper.View
             return null;
         }
 
-        public event PropertyChangedEventHandler PropertyChanged;
+        private void PresetExamButton_Click(object sender, RoutedEventArgs e)
+        {
+            PresetMenu.PlacementTarget = PresetExamButton;
+            PresetMenu.Placement = System.Windows.Controls.Primitives.PlacementMode.Bottom;
+            PresetMenu.IsOpen = true;
+        }
+
+        private void WeakestPointExam_Click(object sender, RoutedEventArgs e)
+        {
+            if (_project.Chapters is null)
+            {
+                MessageBox.Show("组卷失败，您的项目不包含任何章节", "失败", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            var dict = new Dictionary<Chapter, double>();
+            foreach (var chapter in _project.Chapters)
+                dict.Add(chapter, SelectChapterWindow.CalculateMasteryLevel(chapter));
+
+            var lowestChapters = dict.OrderBy(kvp => kvp.Value).
+                                      ThenBy(kvp => Guid.NewGuid()).Take(5).
+                                      Select(kvp => kvp.Key.Name).ToList();
+
+            foreach (var weight in _chapterWeights)
+            {
+                if (lowestChapters.Contains(weight.ChapterName))
+                    weight.Weight = 20;
+                else
+                    weight.Weight = 0;
+            }
+
+            MessageBox.Show("已完成最弱点组卷", "成功", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        private void BalancedWeaknessExam_Click(object sender, RoutedEventArgs e)
+        {
+            if (_project.Chapters is null)
+            {
+                MessageBox.Show("组卷失败，您的项目不包含任何章节", "失败", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            var dict = new Dictionary<Chapter, double>();
+            foreach (var chapter in _project.Chapters)
+                dict.Add(chapter, SelectChapterWindow.CalculateMasteryLevel(chapter));
+
+            var sum = dict.Values.Sum(v => 100 - (int)v);
+            var count = 0;
+            foreach (var kvp in dict)
+            {
+                var chapter = dict.Where(x => x.Key == kvp.Key).FirstOrDefault().Key;
+                var weight = SelectChapterWindow.CalculateMasteryLevel(chapter);
+
+                var ch = _chapterWeights.Where(x => x.ChapterName == kvp.Key.Name).FirstOrDefault();
+                ch!.Weight = (100 - weight) * 100 / sum;
+                count += (int)ch.Weight;
+            }
+
+            var diff = 100 - count;
+            var assign = (int)Math.Ceiling((double)diff / _project.Chapters.Count);
+
+            for (int i = 0; diff > 0; i++)
+            {
+                _chapterWeights[i].Weight += assign;
+                diff -= assign;
+            }
+
+            MessageBox.Show("已完成弱点均衡", "成功", MessageBoxButton.OK, MessageBoxImage.Information);
+        }
+
+        public event PropertyChangedEventHandler? PropertyChanged;
         protected virtual void OnPropertyChanged(string propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
