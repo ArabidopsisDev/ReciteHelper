@@ -163,7 +163,7 @@
 
   <ItemGroup>
     <Reference Include="AquaAvgFramework">
-      <HintPath>..\..\..\..\刘\source\repos\AquaAvgFramework\bin\Release\net10.0-windows7.0\AquaAvgFramework.dll</HintPath>
+      <HintPath>..\..\..\..\..\刘\source\repos\AquaAvgFramework\bin\Release\net10.0-windows7.0\AquaAvgFramework.dll</HintPath>
     </Reference>
   </ItemGroup>
 
