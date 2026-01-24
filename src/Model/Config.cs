@@ -11,6 +11,8 @@ public class Config
     public string? OCRAccess { get; set; }
     public string? OCRSecret { get; set; }
 
+    public int RStandard { get; set; }
+
     public PhonkOptions PhonkOptions { get; set; }
 
     public MissingStrategy Strategy { get; set; }

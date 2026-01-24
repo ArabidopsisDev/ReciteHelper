@@ -89,9 +89,9 @@ ReciteHelper 承诺永久保持开源、免费的性质。如果您感觉该项�
 
 | 头像 | 学校或单位 | 昵称 | 贡献内容 |
 |:------:|:----------:|:-----:|------------|
-| <img src="Docs\Resources\Thanks\01.jpg" width="60" height="60" style="border-radius:50%;border:2px solid #4fc3f7"> | 南昌航空航天大学 |  **Sati** | 帮助测试并解决了多PDF的处理问题 |
-| <img src="Docs\Resources\Thanks\02.jpg" width="60" height="60" style="border-radius:50%;border:2px solid #ffb74d"> | 海南大学 | **Mrwhite3142** | 帮助测试发现了文件无法正常处理的问题（暂未能复现） |
-| <img src="Docs\Resources\Thanks\03.png" width="60" height="60" style="border-radius:50%;border:2px solid #ffb74d"> | / | **oife** | 帮助测试并解决了无法正常加载项目和测试代码未删除的问题 |
+| <img src="docs\Resources\Thanks\01.jpg" width="60" height="60" style="border-radius:50%;border:2px solid #4fc3f7"> | 南昌航空航天大学 |  **Sati** | 帮助测试并解决了多PDF的处理问题 |
+| <img src="docs\Resources\Thanks\02.jpg" width="60" height="60" style="border-radius:50%;border:2px solid #ffb74d"> | 海南大学 | **Mrwhite3142** | 帮助测试发现了文件无法正常处理的问题（暂未能复现） |
+| <img src="docs\Resources\Thanks\03.png" width="60" height="60" style="border-radius:50%;border:2px solid #ffb74d"> | / | **oife** | 帮助测试并解决了无法正常加载项目和测试代码未删除的问题 |
 
 
 </div>

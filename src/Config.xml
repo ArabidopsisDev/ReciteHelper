@@ -13,4 +13,6 @@
 		<WrongCount>3</WrongCount>
 	</PhonkOptions>
 	
+	<RStandard>45</RStandard>
+	
 </Config>

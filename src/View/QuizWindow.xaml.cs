@@ -1,7 +1,6 @@
 ﻿using ReciteHelper.Model;
 using ReciteHelper.Utils;
 using ReciteHelper.ViewModel;
-using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
@@ -24,6 +23,7 @@ public partial class QuizWindow : Window, INotifyPropertyChanged
     private int _wrongCount = 0;
     private string _chapterName = "";
     private Project _project = new();
+    private DateTime _startTime = DateTime.Now;
 
     public QuizWindow(Project project, string chapterName)
     {
@@ -215,12 +215,24 @@ public partial class QuizWindow : Window, INotifyPropertyChanged
         // Determine whether the answer is roughly similar to the given answer
         var isCorrect = JudgeAnswer.Run(currentQuestion);
         currentQuestion.Status = isCorrect ? AnswerStatus.Correct : AnswerStatus.Wrong;
-        currentQuestion.ReviewTag.Add(new() { IsCorrect=isCorrect, ReviewTime=DateTime.Now });
 
+        // Show result
         ShowResult(currentQuestion);
         AnswerTextBox.IsEnabled = false;
         UpdateAnswerCardStyles();
 
+        // Record data
+        var similarity = JudgeAnswer.CalculateSimilarity(currentQuestion);
+        var duration = DateTime.Now - _startTime;
+        var rate = currentQuestion.UserAnswer.Length / duration.TotalSeconds;
+        var rStandard = Config.Configure.RStandard;
+        var rRelative = (double)rate / rStandard;
+
+        _questions[_currentQuestionIndex].Question!.ReviewTag.Add(
+            new ReviewTag() { Rate=rRelative, Time=DateTime.Now, 
+                Similarity=similarity });
+
+        // Play phonk effect
         _latest.Add(isCorrect);
         if (_latest.EqualsTo(false) && Config.Configure.PhonkOptions.EnablePhonk)
             await PlayPhonkEffect();
@@ -291,6 +303,8 @@ public partial class QuizWindow : Window, INotifyPropertyChanged
         {
             _currentQuestionIndex++;
             UpdateDisplay();
+
+            _startTime = DateTime.Now;
         }
     }
 

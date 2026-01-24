@@ -15,11 +15,14 @@ public class Question
     public string? Text { get; set; }
 
     [JsonPropertyName("review_tag")]
-    public List<ReviewTag>? ReviewTag { get; set; } = [];
+    public List<ReviewTag> ReviewTag { get; set; } = [];
 
     [JsonPropertyName("user_answer")]
     public string? UserAnswer { get; set; } = null;
 
     [JsonPropertyName("correct_answer")]
     public string? CorrectAnswer { get; set; }
+
+    [JsonPropertyName("q_value")]
+    public double EFValue { get; set; } = 2.5d;
 }
