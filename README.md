@@ -58,8 +58,8 @@ ReciteHelper 承诺永久保持开源、免费的性质。如果您感觉该项�
 
 |语言|地址|
 |:--:|:--:|
-|中文（简体）|[中文用户手册](Docs/manual-cn.md)|
-|English|[English Manual](Docs/manual-en.md)|
+|中文（简体）|[中文用户手册](docs/manual-cn.md)|
+|English|[English Manual](docs/manual-en.md)|
 
 ---
 

@@ -19,8 +19,6 @@ public partial class QuizWindow : Window, INotifyPropertyChanged
     private LatestBuffer<bool> _latest;
     private int _currentQuestionIndex = 0;
     private int _totalQuestions = 0;
-    private int _correctCount = 0;
-    private int _wrongCount = 0;
     private string _chapterName = "";
     private Project _project = new();
     private DateTime _startTime = DateTime.Now;
