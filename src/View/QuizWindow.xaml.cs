@@ -1,4 +1,6 @@
-﻿using ReciteHelper.Model;
+﻿using Microsoft.ML.OnnxRuntime;
+using Microsoft.ML.OnnxRuntime.Tensors;
+using ReciteHelper.Model;
 using ReciteHelper.Utils;
 using ReciteHelper.ViewModel;
 using System.Collections.ObjectModel;
@@ -226,9 +228,36 @@ public partial class QuizWindow : Window, INotifyPropertyChanged
         var rStandard = Config.Configure.RStandard;
         var rRelative = (double)rate / rStandard;
 
+        if (AnswerTextBox.Text.Length <= 10)
+            rRelative = -0.3125 * rRelative + 4.125;
+
+        // Load model
+        string modelPath = "xgboost_predQ.onnx";
+        using var session = new InferenceSession(modelPath);
+
+        // The model is expected to have an accuracy of approximately
+        // 65% ​​and is currently undergoing further training
+        float[] inputData = [(float)rRelative, (float)similarity];
+        int[] dimensions = [1, 2];
+        var inputTensor = new DenseTensor<float>(inputData, dimensions);
+
+        var inputs = new List<NamedOnnxValue>
+        {
+            NamedOnnxValue.CreateFromTensor("float_input", inputTensor)
+        };
+        using var results = session.Run(inputs);
+        var label = results.First(r => r.Name == "label").AsEnumerable<long>().First();
+        var probs = results.First(r => r.Name == "probabilities").AsEnumerable<float>().ToArray();
+
+        // Construction is not yet complete...
+
         _questions[_currentQuestionIndex].Question!.ReviewTag.Add(
-            new ReviewTag() { Rate=rRelative, Time=DateTime.Now, 
-                Similarity=similarity });
+            new ReviewTag()
+            {
+                Rate=rRelative,
+                Time=DateTime.Now,
+                Similarity=similarity
+            });
 
         // Play phonk effect
         _latest.Add(isCorrect);
@@ -254,7 +283,7 @@ public partial class QuizWindow : Window, INotifyPropertyChanged
         {
             From = 1000,
             To = 0,
-            Duration = TimeSpan.FromMilliseconds(250), 
+            Duration = TimeSpan.FromMilliseconds(250),
             EasingFunction = new BackEase { Amplitude = 0.8, EasingMode = EasingMode.EaseOut }
         };
         Storyboard.SetTarget(moveAnim, PhonkImage);
@@ -335,7 +364,7 @@ public partial class QuizWindow : Window, INotifyPropertyChanged
                 AnswerStatus.Wrong => false,
                 _ => throw new NotImplementedException("Fuck U")
             };
-            
+
         }
 
         var path = Path.Combine(_project.StoragePath!, _project.ProjectName!, _project.ProjectName!);

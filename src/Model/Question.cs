@@ -23,6 +23,6 @@ public class Question
     [JsonPropertyName("correct_answer")]
     public string? CorrectAnswer { get; set; }
 
-    [JsonPropertyName("q_value")]
+    [JsonPropertyName("ef_value")]
     public double EFValue { get; set; } = 2.5d;
 }

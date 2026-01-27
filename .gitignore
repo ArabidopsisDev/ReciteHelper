@@ -400,4 +400,5 @@ FodyWeavers.xsd
 # JetBrains Rider
 *.sln.iml
 
-/expr/dataset
+/model_training/dataset
+*.ipynb
