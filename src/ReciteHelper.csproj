@@ -10,6 +10,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Docs\**" />
+    <EmbeddedResource Remove="Docs\**" />
+    <None Remove="Docs\**" />
+    <Page Remove="Docs\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Remove="Utils\OCRProvider.cs" />
   </ItemGroup>
 
@@ -161,7 +168,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Docs\Resources\Thanks\" />
     <Folder Include="Images\GalGame\" />
   </ItemGroup>
 
