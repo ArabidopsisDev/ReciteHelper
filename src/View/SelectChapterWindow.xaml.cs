@@ -251,6 +251,16 @@ public partial class SelectChapterWindow : Window, INotifyPropertyChanged
         MessageBox.Show("已导出至rh_output.zip。");
     }
 
+    private void ReviewMenuItem_Click(object sender,RoutedEventArgs e)
+    {
+        var questionList = Supermemo.GenerateReview(_currentProject, 30);
+
+        var quizWindow = new QuizWindow(_currentProject, questionList)
+            { Owner = Application.Current.MainWindow };
+        quizWindow.Show();
+        Close();
+    }
+
     public Project CurrentProject
     {
         get => _currentProject;

@@ -40,6 +40,20 @@ public partial class QuizWindow : Window, INotifyPropertyChanged
     }
 
 
+    public QuizWindow(Project project, List<Question> plan)
+    {
+        InitializeComponent();
+        DataContext = this;
+
+        _project = project;
+        _chapterName= "复习计划";
+        _latest = new LatestBuffer<bool>(Config.Configure.PhonkOptions.WrongCount);
+
+        InitializeQuestions(plan);  
+        LocateCurrent();
+        UpdateDisplay();
+    }
+
     private void SwitchToQuestion(int questionNumber)
     {
         if (questionNumber < 1 || questionNumber > _totalQuestions)
@@ -232,6 +246,8 @@ public partial class QuizWindow : Window, INotifyPropertyChanged
             rRelative = -0.3125 * rRelative + 4.125;
         rRelative = rRelative > 1.125d ? 1.125d : rRelative;
 
+        if (isCorrect) similarity = similarity >= 75 ? similarity : 75;
+
         var qValue = Supermemo.PredictQValue(rRelative, similarity);
         var efValue = Supermemo.CalculateEFValue(
             currentQuestion.Question!.EFValue, qValue);
@@ -245,6 +261,7 @@ public partial class QuizWindow : Window, INotifyPropertyChanged
                 QValue = qValue
             });
         currentQuestion.Question!.EFValue = efValue;
+        QDisplayLabel.Content = $"Q Predict: {qValue}";
 
         // Play phonk effect
         _latest.Add(isCorrect);

@@ -149,19 +149,15 @@
                                 <MenuItem
                                     Click="ExportMenuItem_Click"
                                     Header="导出"
-                                    Style="{StaticResource MenuItemStyle}">
-                                    <MenuItem.Icon>
-                                        <Image Source="pack://application:,,,/ReciteHelper;component/Images/menu_export.png" Style="{StaticResource MenuIconStyle}" />
-                                    </MenuItem.Icon>
-                                </MenuItem>
+                                    Style="{StaticResource MenuItemStyle}" />
                                 <MenuItem
                                     Click="GameMenuItem_Click"
                                     Header="运行游戏"
-                                    Style="{StaticResource MenuItemStyle}">
-                                    <MenuItem.Icon>
-                                        <Image Source="pack://application:,,,/ReciteHelper;component/Images/menu_game.png" Style="{StaticResource MenuIconStyle}" />
-                                    </MenuItem.Icon>
-                                </MenuItem>
+                                    Style="{StaticResource MenuItemStyle}" />
+                                <MenuItem
+                                    Click="ReviewMenuItem_Click"
+                                    Header="智能复习"
+                                    Style="{StaticResource MenuItemStyle}" />
                             </ContextMenu>
                         </Button.ContextMenu>
                     </Button>

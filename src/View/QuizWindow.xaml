@@ -268,15 +268,27 @@
                 BorderBrush="#E9ECEF"
                 BorderThickness="1"
                 CornerRadius="4">
-                <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <TextBlock
-                        x:Name="QuestionTextBlock"
-                        FontSize="14"
-                        Foreground="#333333"
-                        LineHeight="24"
-                        Text="这里是题目内容..."
-                        TextWrapping="Wrap" />
-                </ScrollViewer>
+                <Grid>
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <TextBlock
+                            x:Name="QuestionTextBlock"
+                            FontSize="14"
+                            Foreground="#333333"
+                            LineHeight="24"
+                            Text="这里是题目内容..."
+                            TextWrapping="Wrap" />
+                    </ScrollViewer>
+
+                    <Label
+                        Name="QDisplayLabel"
+                        Margin="10"
+                        HorizontalAlignment="Right"
+                        VerticalAlignment="Bottom"
+                        FontFamily="Arial Black"
+                        Foreground="Gray">
+                        Q Predict: 0
+                    </Label>
+                </Grid>
             </Border>
 
             <Border

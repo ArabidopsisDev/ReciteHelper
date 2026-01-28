@@ -1,5 +1,6 @@
 ﻿using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.OnnxRuntime.Tensors;
+using ReciteHelper.Model;
 using System.Numerics;
 
 namespace ReciteHelper.Utils;
@@ -57,5 +58,28 @@ internal class Supermemo
 
         // Predict result
         return maxIndex;
+    }
+
+    internal static List<Question> GenerateReview(Project project, int count)
+    {
+        var allQuestions = new List<Question>();
+
+        foreach (var chapter in project.Chapters!)
+            allQuestions.AddRange(chapter.Questions!);
+
+        if (allQuestions.Count <= 20) return allQuestions;
+
+        var rnd = new Random();
+        var shuffle = allQuestions.OrderBy(q => q.EFValue)
+            .ThenBy(q => rnd.Next()).Take(count).ToList();
+
+        // Clear status
+        foreach (var question in shuffle)
+        {
+            question.UserAnswer = string.Empty;
+            question.Status = null;
+        }
+
+        return shuffle;
     }
 }
