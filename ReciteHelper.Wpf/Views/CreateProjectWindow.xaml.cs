@@ -188,7 +188,7 @@ public partial class CreateProjectWindow : Window
         var questionBankPaths = GetQuestionBankPaths();
         if (!HasTextGenerationAccess())
         {
-            MessageBox.Show("创建项目需要 DeepSeek + Qwen、OpenRouter，或托管服务激活码。请先完成模型服务配置。", "尚未配置模型服务",
+            MessageBox.Show("创建项目需要可用的文本生成服务。请通过模型账号授权（OAuth）、API Key 或激活码完成模型服务配置。", "尚未配置模型服务",
                 MessageBoxButton.OK, MessageBoxImage.Information);
             return;
         }

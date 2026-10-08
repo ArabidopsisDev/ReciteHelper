@@ -67,12 +67,12 @@
                     Background="#F8F8F8"
                     BorderBrush="#DDDDDD"
                     BorderThickness="0,0,0,1">
-                    <TextBlock
-                        Margin="16,12"
-                        FontSize="14"
-                        FontWeight="SemiBold"
-                        Foreground="#333333"
-                        Text="最近的项目" />
+                    <Grid>
+                        <TextBlock Margin="16,12" FontSize="14" FontWeight="SemiBold"
+                                   Foreground="#333333" Text="最近的项目" />
+                        <Button HorizontalAlignment="Right" Margin="12,6" Padding="12,4"
+                                Content="模型服务" Click="ModelSettings_Click" />
+                    </Grid>
                 </Border>
 
                 <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">

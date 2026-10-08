@@ -38,7 +38,7 @@ AI 在 ReciteHelper 中不是一个孤立的聊天框。它参与资料解析、
 - **五类题型**：选择、填空、判断、名词解释与解答题使用各自适合的交互和判分方式。
 - **整卷导入与考试闭环**：从 PDF、TXT、HTML 或 MHTML 识别多套试卷，支持章节权重组卷、限时考试、自动评分和错题回顾。
 - **项目级本地知识库**：为每个项目建立独立的文件型向量知识库，错题时检索相关知识点并按需生成 AI 解析。
-- **更灵活的模型接入**：支持 DeepSeek + Qwen 直连、单 Key 的 OpenRouter，以及激活码托管服务三种方案。
+- **更灵活的模型接入**：支持 DeepSeek + Qwen 直连、单 Key 的 OpenRouter、激活码托管服务，以及基于 pi 协议的原生 C# 模型账号授权。
 
 ## 工作流
 
@@ -81,6 +81,9 @@ AI 在 ReciteHelper 中不是一个孤立的聊天框。它参与资料解析、
 | DeepSeek + Qwen | DeepSeek Key 与 Qwen Key | 分别直连文本生成和向量服务，通常响应更快 |
 | OpenRouter | 一个 OpenRouter Key | 配置简单；聊天和 embedding 统一调用，可能稍慢 |
 | 一站式服务 | ReciteHelper 激活码 | 无需管理第三方 API Key，由服务端提供模型能力 |
+| 模型账号 OAuth | 对应服务的账号与权限 | 原生 C# 授权、浏览器自动返回、模型选择与自动刷新；知识库使用独立向量服务 |
+
+在选择窗口点击“使用已有模型账号授权（OAuth）”，或从主界面的“模型服务”重新配置。当前支持 Anthropic、OpenAI、OpenAI Codex、GitHub Copilot、Kimi Code、Meta、OpenRouter、Radius 和 xAI，完整说明见 [OAuth 接入指南](docs/pi-oauth.md)。OAuth 凭据使用 Windows DPAPI 加密保存在当前用户的本地应用数据中；`Config.xml` 仅记录所选 provider 和模型。
 
 API Key 默认保存在本机 `Config.xml`，也支持通过环境变量引用。使用 AI 功能时，相关文本会发送给你所选择的模型服务；项目文件与向量知识库仍保存在本地。
 
@@ -95,7 +98,7 @@ API Key 默认保存在本机 `Config.xml`，也支持通过环境变量引用�
 
 ## 从源码构建
 
-需要 [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) 以及支持 WPF 的 Visual Studio 或 JetBrains Rider。
+需要 [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) 以及支持 WPF 的 Visual Studio 或 JetBrains Rider。OAuth 使用原生 C# 实现，构建和运行均无需 Node.js、npm 或额外 bridge。pi 来源协议与模型目录的 MIT 许可证随发布包提供。
 
 ```powershell
 git clone --recurse-submodules https://github.com/OpenRecite/ReciteHelper.git
@@ -117,6 +120,7 @@ git submodule update --init --recursive
 | --- | --- |
 | [中文用户手册](docs/manual-cn.md) | 安装、配置与完整功能说明 |
 | [English Manual](docs/manual-en.md) | English user guide |
+| [OAuth 接入指南](docs/pi-oauth.md) | 账号授权、向量配置、实现与测试 |
 
 ## 参与贡献
 

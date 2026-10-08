@@ -12,12 +12,16 @@ namespace ReciteHelper.Infrastructure.Services;
 
 public sealed class AiChatService(
     HostedModelService hostedModelService,
-    IConfigService configService) : IAiChatService
+    IConfigService configService,
+    IPiModelService piModelService) : IAiChatService
 {
     public async Task<string> RunAsync(string deepSeekKey, string prompt, string? instructions = null)
     {
         var config = await configService.LoadAsync();
         var accessMode = ModelAccess.Resolve(config);
+
+        if (accessMode == ModelAccessMode.PiOAuth)
+            return await piModelService.RunChatAsync(config.PiOAuthProvider!, config.PiOAuthModel!, prompt, instructions);
 
         if (accessMode == ModelAccessMode.OpenRouter)
             return await RunOpenRouterAsync(config, prompt, instructions);

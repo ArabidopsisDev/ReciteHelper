@@ -14,6 +14,9 @@ public class ConfigOptions
     public string? OpenRouterKey { get; set; }
     public string OpenRouterChatModel { get; set; } = "deepseek/deepseek-v3.2";
     public string OpenRouterEmbeddingModel { get; set; } = "baai/bge-m3";
+    public string? PiOAuthProvider { get; set; }
+    public string? PiOAuthModel { get; set; }
+    public string? PiOAuthGitHubEnterpriseDomain { get; set; }
     public string ResourceCenterServerUrl { get; set; } = "http://localhost:5000";
     public string? HostedServiceUrl { get; set; }
     public string? HostedLicenseCode { get; set; }

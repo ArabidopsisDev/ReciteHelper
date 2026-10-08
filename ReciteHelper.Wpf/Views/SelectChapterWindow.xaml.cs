@@ -218,7 +218,7 @@ public partial class SelectChapterWindow : Window, INotifyPropertyChanged
 
         if (!HasTextGenerationAccess())
         {
-            MessageBox.Show("尚未配置 DeepSeek + Qwen、OpenRouter 或托管服务，无法抽取套卷。", "无法导入", MessageBoxButton.OK, MessageBoxImage.Warning);
+            MessageBox.Show("尚未配置可用的文本生成服务，无法抽取套卷。请先完成模型服务配置。", "无法导入", MessageBoxButton.OK, MessageBoxImage.Warning);
             return;
         }
 
@@ -279,7 +279,7 @@ public partial class SelectChapterWindow : Window, INotifyPropertyChanged
 
         if (!HasTextGenerationAccess())
         {
-            MessageBox.Show("尚未配置 DeepSeek + Qwen、OpenRouter 或托管服务，无法从新资料中生成题目。", "无法导入", MessageBoxButton.OK, MessageBoxImage.Warning);
+            MessageBox.Show("尚未配置可用的文本生成服务，无法从新资料中生成题目。请先完成模型服务配置。", "无法导入", MessageBoxButton.OK, MessageBoxImage.Warning);
             return;
         }
 
