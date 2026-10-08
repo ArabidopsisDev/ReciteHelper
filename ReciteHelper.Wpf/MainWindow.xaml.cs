@@ -1,5 +1,7 @@
 using Microsoft.Win32;
 using ReciteHelper.Core.Interfaces.Services;
+using ReciteHelper.Core.Interfaces.Configuration;
+using ReciteHelper.Infrastructure.Services;
 using ReciteHelper.Core.Enums;
 using ReciteHelper.Core.ValueObjects;
 using ReciteHelper.Wpf.Models;
@@ -28,6 +30,9 @@ public partial class MainWindow : Window
     private readonly IFileMergeService _fileMergeService;
     private readonly IGalGameService _galGameService;
     private readonly IQuestionHelpService _questionHelpService;
+    private readonly IConfigService _configService;
+    private readonly IPiModelService _piModelService;
+    private readonly HostedModelService _hostedModelService;
     private List<RecentProject> recentProjects = new();
 
     public MainWindow(
@@ -47,7 +52,10 @@ public partial class MainWindow : Window
         IFileMergeService fileMergeService,
         IGalGameService galGameService,
         IQuestionHelpService questionHelpService,
-        IReviewPersonalizationService reviewPersonalizationService)
+        IReviewPersonalizationService reviewPersonalizationService,
+        IConfigService configService,
+        IPiModelService piModelService,
+        HostedModelService hostedModelService)
     {
         _reviewPersonalizationService = reviewPersonalizationService;
         _projectFileService = projectFileService;
@@ -66,6 +74,9 @@ public partial class MainWindow : Window
         _fileMergeService = fileMergeService;
         _galGameService = galGameService;
         _questionHelpService = questionHelpService;
+        _configService = configService;
+        _piModelService = piModelService;
+        _hostedModelService = hostedModelService;
 
         _startupCompatibilityService.Initialize();
 
@@ -94,6 +105,12 @@ public partial class MainWindow : Window
             SloganLabel.Content = "我读到生词怎么办，跳过";
         if (Random.Shared.Next(1, 10) > 8)
             SloganLabel.Content = "每天都在屋子里面滑狗";
+    }
+
+    private async void ModelSettings_Click(object sender, RoutedEventArgs e)
+    {
+        var window = new ActivationWindow(_hostedModelService, _configService, _piModelService) { Owner = this };
+        if (window.ShowDialog() == true) Config.Use(await _configService.LoadAsync());
     }
 
     private async Task LoadRecentProjectsAsync()

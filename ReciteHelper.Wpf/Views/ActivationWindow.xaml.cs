@@ -1,5 +1,6 @@
 using ReciteHelper.Core.Configuration;
 using ReciteHelper.Core.Interfaces.Configuration;
+using ReciteHelper.Core.Interfaces.Services;
 using ReciteHelper.Infrastructure.Services;
 using System.Diagnostics;
 using System.IO;
@@ -12,14 +13,17 @@ public partial class ActivationWindow : Window
 {
     private readonly HostedModelService _hostedModelService;
     private readonly IConfigService _configService;
+    private readonly IPiModelService _piModelService;
     private readonly string _configPath;
 
     public ActivationWindow(
         HostedModelService hostedModelService,
-        IConfigService configService)
+        IConfigService configService,
+        IPiModelService piModelService)
     {
         _hostedModelService = hostedModelService;
         _configService = configService;
+        _piModelService = piModelService;
         _configPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Config.xml");
         InitializeComponent();
     }
@@ -39,6 +43,7 @@ public partial class ActivationWindow : Window
             var config = await LoadConfigAsync();
             config.DeepSeekKey = deepSeekKey;
             config.QwenKey = qwenKey;
+            config.PiOAuthProvider = config.PiOAuthModel = null;
             await _configService.SaveAsync(config);
             Complete("DeepSeek + Qwen 配置已保存。");
         }
@@ -61,6 +66,8 @@ public partial class ActivationWindow : Window
         {
             var config = await LoadConfigAsync();
             config.OpenRouterKey = openRouterKey;
+            config.DeepSeekKey = null;
+            config.PiOAuthProvider = config.PiOAuthModel = null;
             if (string.IsNullOrWhiteSpace(config.OpenRouterChatModel))
                 config.OpenRouterChatModel = "deepseek/deepseek-v3.2";
             if (string.IsNullOrWhiteSpace(config.OpenRouterEmbeddingModel))
@@ -98,6 +105,10 @@ public partial class ActivationWindow : Window
                 return;
             }
 
+            var config = await LoadConfigAsync();
+            config.PiOAuthProvider = config.PiOAuthModel = null;
+            config.DeepSeekKey = config.OpenRouterKey = null;
+            await _configService.SaveAsync(config);
             Complete($"激活成功，剩余额度：{FormatQuota(result.QuotaRemaining)}。");
         }
         catch (Exception ex)
@@ -126,6 +137,12 @@ public partial class ActivationWindow : Window
         {
             ShowError($"无法打开配置文件：{ex.Message}");
         }
+    }
+
+    private void PiOAuthButton_Click(object sender, RoutedEventArgs e)
+    {
+        var window = new PiOAuthWindow(_piModelService, _configService) { Owner = this };
+        if (window.ShowDialog() == true) Complete("模型账号配置已保存。");
     }
 
     private void ExitButton_Click(object sender, RoutedEventArgs e)
@@ -160,6 +177,8 @@ public partial class ActivationWindow : Window
               <OpenRouterKey></OpenRouterKey>
               <OpenRouterChatModel>deepseek/deepseek-v3.2</OpenRouterChatModel>
               <OpenRouterEmbeddingModel>baai/bge-m3</OpenRouterEmbeddingModel>
+              <PiOAuthProvider></PiOAuthProvider>
+              <PiOAuthModel></PiOAuthModel>
               <ResourceCenterServerUrl>http://localhost:5000</ResourceCenterServerUrl>
               <HostedServiceUrl></HostedServiceUrl>
               <HostedLicenseCode></HostedLicenseCode>

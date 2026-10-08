@@ -38,7 +38,7 @@ Version 5.0 reorganises the experience around the path from source material to d
 - **Five question types** provide dedicated interactions and grading for single-choice, fill-in-the-blank, true/false, term-definition, and essay questions.
 - **Paper import and an end-to-end exam flow** recognise exam sets from PDF, TXT, HTML, or MHTML and support chapter-weighted generation, timed exams, automatic grading, and mistake review.
 - **A project-local knowledge base** retrieves relevant knowledge for each mistake and can request a grounded AI explanation when needed.
-- **Flexible model access** supports direct DeepSeek + Qwen access, a single OpenRouter key, or a ReciteHelper hosted-service activation code.
+- **Flexible model access** supports direct DeepSeek + Qwen access, a single OpenRouter key, a ReciteHelper hosted-service activation code, or native C# model-account OAuth based on pi's protocols.
 
 ## Workflow
 
@@ -81,6 +81,9 @@ When no valid model configuration is found, ReciteHelper opens a service-selecti
 | DeepSeek + Qwen | A DeepSeek key and a Qwen key | Direct text-generation and embedding access; usually faster |
 | OpenRouter | One OpenRouter key | Simpler setup; chat and embeddings share one gateway, but may be slower |
 | Hosted service | A ReciteHelper activation code | No third-party API keys to manage; model access is provided by the server |
+| Model-account OAuth | An eligible provider account | Native C# authorization, automatic browser return, model selection, and refresh; embeddings use a separate service |
+
+Choose “使用已有模型账号授权（OAuth）” in the service-selection window, or reopen it using “模型服务” on the main screen. Supported providers are Anthropic, OpenAI, OpenAI Codex, GitHub Copilot, Kimi Code, Meta, OpenRouter, Radius, and xAI. OAuth credentials are encrypted with Windows DPAPI in the current user's local application data; only provider/model IDs are recorded in `Config.xml`. See the [OAuth integration guide](docs/pi-oauth.md).
 
 API keys are stored in the local `Config.xml` by default and may also reference environment variables. Text required by an AI feature is sent to the model provider you select; project files and the vector knowledge base remain local.
 
@@ -95,7 +98,7 @@ See the [English user guide](docs/manual-en.md) for complete setup and usage ins
 
 ## Build from Source
 
-Install the [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) and Visual Studio or JetBrains Rider with WPF support.
+Install the [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) and Visual Studio or JetBrains Rider with WPF support. OAuth is implemented natively in C#: neither building nor running it needs Node.js, npm, or a bridge. The MIT notice for the pi-derived protocols and model catalog is included in the published application.
 
 ```powershell
 git clone --recurse-submodules https://github.com/OpenRecite/ReciteHelper.git
@@ -117,6 +120,7 @@ git submodule update --init --recursive
 | --- | --- |
 | [Chinese user guide](docs/manual-cn.md) | Installation, configuration, and full feature guide |
 | [English user guide](docs/manual-en.md) | English setup and usage instructions |
+| [OAuth integration guide](docs/pi-oauth.md) | Account authorization, embeddings, implementation, and tests |
 
 ## Contributing
 

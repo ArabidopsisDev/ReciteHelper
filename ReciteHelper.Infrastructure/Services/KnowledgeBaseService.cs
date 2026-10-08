@@ -41,6 +41,8 @@ namespace ReciteHelper.Infrastructure.Services
                 throw new InvalidOperationException("知识库构建失败：未切分出有效文本。");
 
             var cfg = await configService.LoadAsync();
+            if (ModelAccess.ResolveEmbedding(cfg) == ModelAccessMode.None)
+                throw new InvalidOperationException("知识库需要独立的 Qwen Key、OpenRouter Key 或托管向量服务；OAuth 文本生成功能仍可使用。");
             var src = new CancellationTokenSource();
             _chatClient = null;
             _embedClient = null;
@@ -51,13 +53,18 @@ namespace ReciteHelper.Infrastructure.Services
                 {
                     Endpoint = new Uri("https://api.deepseek.com")
                 }).GetChatClient("deepseek-v4-flash");
-                _embedClient = CreateQwenEmbeddingClient(cfg.QwenKey!);
             }
             else if (ModelAccess.Resolve(cfg) == ModelAccessMode.OpenRouter)
             {
                 _chatClient = CreateOpenRouterChatClient(cfg);
-                _embedClient = CreateOpenRouterEmbeddingClient(cfg);
             }
+
+            _embedClient = ModelAccess.ResolveEmbedding(cfg) switch
+            {
+                ModelAccessMode.DeepSeekAndQwen => CreateQwenEmbeddingClient(cfg.QwenKey!),
+                ModelAccessMode.OpenRouter => CreateOpenRouterEmbeddingClient(cfg),
+                _ => null
+            };
 
             var cluster = await ClusterAsync(slices, src.Token);
             var embed = await EmbedAsync(cluster, src.Token);
@@ -82,7 +89,7 @@ namespace ReciteHelper.Infrastructure.Services
 
             var cfg = await configService.LoadAsync();
             await EnsureCompatibleEmbeddingsAsync(store, cfg, cancellationToken);
-            var queryVector = ModelAccess.Resolve(cfg) switch
+            var queryVector = ModelAccess.ResolveEmbedding(cfg) switch
             {
                 ModelAccessMode.DeepSeekAndQwen =>
                     await GenerateEmbeddingAsync(CreateQwenEmbeddingClient(cfg.QwenKey!), query.Trim(), cancellationToken),
@@ -114,7 +121,7 @@ namespace ReciteHelper.Infrastructure.Services
                 throw new ArgumentException("待向量化文本不能为空。", nameof(texts));
 
             var cfg = await configService.LoadAsync();
-            var accessMode = ModelAccess.Resolve(cfg);
+            var accessMode = ModelAccess.ResolveEmbedding(cfg);
             if (accessMode == ModelAccessMode.Hosted)
                 return await hostedModelService.EmbedTextsAsync(normalizedTexts, cancellationToken);
 
@@ -212,7 +219,7 @@ namespace ReciteHelper.Infrastructure.Services
 
             var isLegacyStore = string.IsNullOrWhiteSpace(storedModel);
             var switchingLegacyStoreToOpenRouter =
-                isLegacyStore && ModelAccess.Resolve(config) == ModelAccessMode.OpenRouter;
+                isLegacyStore && ModelAccess.ResolveEmbedding(config) == ModelAccessMode.OpenRouter;
             var changedKnownModel =
                 !isLegacyStore && !string.Equals(storedModel, currentModel, StringComparison.OrdinalIgnoreCase);
 
@@ -227,7 +234,7 @@ namespace ReciteHelper.Infrastructure.Services
 
         private static string ResolveEmbeddingModelId(ConfigOptions config)
         {
-            return ModelAccess.Resolve(config) switch
+            return ModelAccess.ResolveEmbedding(config) switch
             {
                 ModelAccessMode.DeepSeekAndQwen => "dashscope/text-embedding-v4",
                 ModelAccessMode.OpenRouter => $"openrouter/{ResolveOpenRouterEmbeddingModel(config)}",
@@ -566,7 +573,7 @@ namespace ReciteHelper.Infrastructure.Services
 
             if (_embedClient is null)
             {
-                var vectors = await hostedModelService.EmbedTextsAsync(textsList, cts);
+                var vectors = await EmbedTextsAsync(textsList, cts);
                 var hostedResult = new Dictionary<Semantics, float[]>();
                 for (var index = 0; index < semanticsList.Count; index++)
                     hostedResult[semanticsList[index]] = vectors[index];

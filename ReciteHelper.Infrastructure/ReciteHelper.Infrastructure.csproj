@@ -21,10 +21,14 @@
     <PackageReference Include="Microsoft.SemanticKernel.Core" Version="1.73.0-alpha" />
     <PackageReference Include="OpenAI" Version="2.11.0" />
     <PackageReference Include="System.Management" Version="10.0.1" />
+    <PackageReference Include="System.Security.Cryptography.ProtectedData" Version="10.0.4" />
   </ItemGroup>
 
   <ItemGroup>
     <Compile Remove="Utilities\OCRProvider.cs" />
+    <EmbeddedResource Include="OAuth\pi-models-1.1.0.json" LogicalName="ReciteHelper.pi-models.json" />
+    <Content Include="OAuth\PI-LICENSE.txt" Link="licenses\pi-MIT.txt" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <InternalsVisibleTo Include="ReciteHelper.OAuth.Tests" />
   </ItemGroup>
 
   <ItemGroup>
