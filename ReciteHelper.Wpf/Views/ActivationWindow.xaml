@@ -75,6 +75,9 @@
                 FontSize="14"
                 Foreground="#64748B"
                 Text="ReciteHelper 需要文本生成与向量模型。完成任意一种配置后即可继续使用。" />
+            <Button Margin="0,14,0,0" HorizontalAlignment="Left"
+                    Click="PiOAuthButton_Click" Content="使用已有模型账号授权（OAuth）"
+                    Style="{StaticResource PrimaryButtonStyle}" />
         </StackPanel>
 
         <Grid Grid.Row="1" Margin="0,25,0,0">

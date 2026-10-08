@@ -80,7 +80,7 @@ public partial class CreateGalGameWindow : Window, INotifyPropertyChanged
 
         if (!HasTextGenerationAccess())
         {
-            MessageBox.Show("尚未配置 DeepSeek + Qwen、OpenRouter 或托管服务，无法创建游戏项目。", "尚未配置模型服务",
+            MessageBox.Show("尚未配置可用的文本生成服务，无法创建游戏项目。请先完成模型账号授权（OAuth）、API Key 或托管服务配置。", "尚未配置模型服务",
                 MessageBoxButton.OK, MessageBoxImage.Information);
             return;
         }

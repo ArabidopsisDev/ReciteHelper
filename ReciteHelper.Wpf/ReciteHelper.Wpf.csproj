@@ -10,6 +10,28 @@
 		
   </PropertyGroup>
 
+  <PropertyGroup>
+    <PiBridgeDirectory>$(MSBuildProjectDirectory)\..\tools\pi-bridge</PiBridgeDirectory>
+  </PropertyGroup>
+  <ItemGroup>
+    <PiBridgeSources Include="$(PiBridgeDirectory)\src\**\*.mjs;$(PiBridgeDirectory)\build.mjs;$(PiBridgeDirectory)\package-lock.json;$(PiBridgeDirectory)\PI-LICENSE.txt" />
+    <Content Include="$(PiBridgeDirectory)\dist\bridge.mjs" Link="pi\bridge.mjs"
+             CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="$(PiBridgeDirectory)\dist\bridge.mjs.LEGAL.txt" Link="pi\bridge.mjs.LEGAL.txt"
+             CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="$(PiBridgeDirectory)\dist\THIRD-PARTY-NOTICES.txt" Link="pi\THIRD-PARTY-NOTICES.txt"
+             CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+  <Target Name="RestorePiBridge" Inputs="$(PiBridgeDirectory)\package-lock.json"
+          Outputs="$(PiBridgeDirectory)\node_modules\.package-lock.json">
+    <Exec WorkingDirectory="$(PiBridgeDirectory)" Command="npm ci --ignore-scripts --no-audit --no-fund" />
+  </Target>
+  <Target Name="BuildPiBridge" BeforeTargets="PrepareForBuild" DependsOnTargets="RestorePiBridge"
+          Condition="'$(DesignTimeBuild)' != 'true' and '$(MSBuildProjectName)' == 'ReciteHelper.Wpf'"
+          Inputs="@(PiBridgeSources)" Outputs="$(PiBridgeDirectory)\dist\bridge.mjs;$(PiBridgeDirectory)\dist\bridge.mjs.LEGAL.txt;$(PiBridgeDirectory)\dist\THIRD-PARTY-NOTICES.txt">
+    <Exec WorkingDirectory="$(PiBridgeDirectory)" Command="npm run build" />
+  </Target>
+
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
     <PackageReference Include="Markdig.Wpf" Version="0.5.0.1" />

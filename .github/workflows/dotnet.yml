@@ -2,9 +2,9 @@ name: .NET WPF Build
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "primary" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "primary" ]
 
 jobs:
   build:
@@ -19,15 +19,29 @@ jobs:
       uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 10.0.x
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 22.x
+        cache: npm
+        cache-dependency-path: tools/pi-bridge/package-lock.json
     
     - name: Build
       run: dotnet build src/ReciteHelper.slnx --configuration Release
 
+    - name: Test pi bridge
+      working-directory: tools/pi-bridge
+      run: npm test
+
+    - name: Test Windows OAuth host
+      run: dotnet test tests/ReciteHelper.OAuth.Tests/ReciteHelper.OAuth.Tests.csproj --configuration Release --no-build
+
     - name: Publish Application
       run: |
-        $projectFile = Get-ChildItem -Path . -Filter *.csproj -Recurse | Select-Object -First 1
-        if ($projectFile) {
-          dotnet publish $projectFile.FullName `
+        $projectFile = Join-Path $PWD 'ReciteHelper.Wpf/ReciteHelper.Wpf.csproj'
+        if (Test-Path -LiteralPath $projectFile) {
+          dotnet publish $projectFile `
             --configuration Release `
             --output ./publish `
             --self-contained true `

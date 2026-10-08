@@ -176,7 +176,7 @@ public partial class ExamReviewWindow : Window, INotifyPropertyChanged
 
         if (!HasTextGenerationAccess())
         {
-            MessageBox.Show("尚未配置 DeepSeek + Qwen、OpenRouter 或托管服务，无法把错题归并到已有章节。", "无法导入", MessageBoxButton.OK, MessageBoxImage.Warning);
+            MessageBox.Show("尚未配置可用的文本生成服务，无法把错题归并到已有章节。请先完成模型服务配置。", "无法导入", MessageBoxButton.OK, MessageBoxImage.Warning);
             return;
         }
 

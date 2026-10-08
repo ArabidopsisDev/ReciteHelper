@@ -5,4 +5,5 @@
   <Project Path="../ReciteHelper.SharedKernel/ReciteHelper.SharedKernel.csproj" Id="e26bded8-c00e-4f78-a3cf-71fa784d1c26" />
   <Project Path="../ReciteHelper.Wpf/ReciteHelper.Wpf.csproj" Id="09ac9cb7-fa14-483f-86c9-3a8cfa954a31" />
   <Project Path="..\external\AquaAvgFramework\AquaAvgFramework.csproj" />
+  <Project Path="../tests/ReciteHelper.OAuth.Tests/ReciteHelper.OAuth.Tests.csproj" />
 </Solution>

@@ -20,6 +20,7 @@ public partial class App : System.Windows.Application
 
     private async void Application_Startup(object sender, StartupEventArgs e)
     {
+        ShutdownMode = ShutdownMode.OnExplicitShutdown;
         DispatcherUnhandledException += OnDispatcherUnhandledException;
         AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
         TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
@@ -61,6 +62,7 @@ public partial class App : System.Windows.Application
         services.AddSingleton<IProjectCreationService, ProjectCreationService>();
         services.AddSingleton<IQuestionBankTextService, QuestionBankTextService>();
         services.AddSingleton<HostedModelService>();
+        services.AddSingleton<IPiModelService, PiModelService>();
         services.AddSingleton<IKnowledgeBaseService, KnowledgeBaseService>();
         services.AddSingleton<IAiChatService, AiChatService>();
         services.AddSingleton<IQuestionHelpService, QuestionHelpService>();
@@ -74,7 +76,7 @@ public partial class App : System.Windows.Application
         services.AddSingleton<IReviewScheduler, FsrsReviewScheduler>();
         services.AddSingleton<IReviewPersonalizationService, ReviewPersonalizationService>();
 
-        services.AddSingleton<ActivationWindow>();
+        services.AddTransient<ActivationWindow>();
         services.AddSingleton<MainWindow>();
 
         _serviceProvider = services.BuildServiceProvider();
@@ -89,6 +91,8 @@ public partial class App : System.Windows.Application
         Models.Config.Use(await configService.LoadAsync());
 
         var mainWindow = _serviceProvider.GetRequiredService<MainWindow>();
+        MainWindow = mainWindow;
+        ShutdownMode = ShutdownMode.OnMainWindowClose;
         mainWindow.Show();
     }
 
@@ -99,6 +103,19 @@ public partial class App : System.Windows.Application
         var accessMode = ModelAccess.Resolve(config);
         if (accessMode is ModelAccessMode.DeepSeekAndQwen or ModelAccessMode.OpenRouter)
             return true;
+
+        if (accessMode == ModelAccessMode.PiOAuth)
+        {
+            try
+            {
+                var providers = await _serviceProvider!.GetRequiredService<IPiModelService>().GetProvidersAsync();
+                if (providers.Any(provider => provider.Id == config.PiOAuthProvider && provider.LoggedIn)) return true;
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "模型账号配置", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+        }
 
         if (accessMode == ModelAccessMode.Hosted && !string.IsNullOrWhiteSpace(config.HostedLicenseId))
         {

@@ -16,6 +16,14 @@ ReciteHelper 是一款面向考试复习、课程学习与知识整理的 AI 桌
 
 ## 使用之前
 
+### 使用模型账号授权（OAuth）
+
+安装 Node.js 22.19 或更新版本，在首次启动窗口点击“使用已有模型账号授权（OAuth）”，选择服务并登录。按照界面提示在浏览器中完成授权或输入设备码，随后选择聊天模型并保存。主界面的“模型服务”可用于切换模型、重新授权和退出账号。
+
+支持的服务由 pi 的 OAuth provider 列表自动提供，当前包括 Anthropic、OpenAI、OpenAI Codex、GitHub Copilot、Kimi Code、Meta、OpenRouter、Radius 和 xAI。OAuth 仅选择文本生成服务；知识库需要独立的 Qwen Key、现有 OpenRouter Key 或托管向量服务。未配置向量服务时仍可生成章节和题目。
+
+凭据使用当前 Windows 用户的 DPAPI 加密保存在 `%LOCALAPPDATA%/ReciteHelper/pi-oauth.dat`，不会写入 `Config.xml`。更多说明见 [OAuth 接入指南](pi-oauth.md)。
+
 ### 配置 API Key
 
 打开程序目录中的 `Config.xml`。推荐配置结构如下：
@@ -40,7 +48,7 @@ ReciteHelper 是一款面向考试复习、课程学习与知识整理的 AI 桌
 </Config>
 ```
 
-- `DeepSeekKey`：创建项目时进行知识提取、题目生成和章节整理所必需；也用于按需生成错题解析。
+- `DeepSeekKey`：使用直连方案时用于知识提取、题目生成、章节整理和错题解析；选择 OAuth 或其他文本服务时不需要填写。
 - `QwenKey`：用于生成向量和查询项目知识库。未配置或请求失败时，项目仍会保留已生成的章节和题目，但不会提供知识库检索按钮。
 - `MissingStrategy`：知识提取结果缺失时的处理策略。`Ignore` 优先保证速度；`Replay` 会尝试重新处理缺失内容，耗时和 API 消耗更高。
 - `RStandard`：名词解释与解答题判定使用的相似度参数，通常不需要修改。

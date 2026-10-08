@@ -16,6 +16,14 @@ Features marked as "Preview" may still change substantially.
 
 ## Before You Start
 
+### Use a Model Account (OAuth)
+
+Install Node.js 22.19 or newer, choose “使用已有模型账号授权（OAuth）” in the first-run window, select a provider, and sign in. Follow the browser or device-code instructions, then select a chat model and save. The main screen's “模型服务” button lets you switch models, reauthorize, and sign out.
+
+The list is discovered from pi's OAuth providers. It currently includes Anthropic, OpenAI, OpenAI Codex, GitHub Copilot, Kimi Code, Meta, OpenRouter, Radius, and xAI. OAuth selects the text service; the knowledge base separately needs a Qwen key, an existing OpenRouter key, or hosted embedding access. Chapters and questions can still be generated without embeddings.
+
+Credentials are encrypted with the current Windows user's DPAPI in `%LOCALAPPDATA%/ReciteHelper/pi-oauth.dat` and are never stored in `Config.xml`. See the [OAuth integration guide](pi-oauth.md).
+
 ### Configure API Keys
 
 Open `Config.xml` in the application directory. The recommended configuration structure is:
@@ -40,7 +48,7 @@ Open `Config.xml` in the application directory. The recommended configuration st
 </Config>
 ```
 
-- `DeepSeekKey`: required for knowledge extraction, question generation, and chapter organization during project creation. It is also used for optional AI explanations.
+- `DeepSeekKey`: used for extraction, generation, chapter organization, and explanations in the direct-access option; it is not needed when OAuth or another text service is selected.
 - `QwenKey`: used to generate embeddings and search the project knowledge base. If it is missing or a request fails, generated chapters and questions remain available, but knowledge-base assistance will not be shown.
 - `MissingStrategy`: controls recovery when generated knowledge is missing. `Ignore` favors speed; `Replay` retries missing content at the cost of more time and API usage.
 - `RStandard`: the similarity threshold used when evaluating short answers. It normally does not need to be changed.
