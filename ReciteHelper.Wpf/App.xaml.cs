@@ -69,8 +69,6 @@ public partial class App : System.Windows.Application
         services.AddSingleton<IStartupCompatibilityService, StartupCompatibilityService>();
         services.AddSingleton<IRecentProjectService, RecentProjectService>();
         services.AddSingleton<IFileMergeService, FileMergeService>();
-        services.AddSingleton<IGalGameService, GalGameService>();
-        services.AddSingleton<IGalGameCreationService, GalGameCreationService>();
         services.AddSingleton<IPromptProvider, PromptProvider>();
         services.AddSingleton<IPhonkService, PhonkService>();
         services.AddSingleton<IReviewScheduler, FsrsReviewScheduler>();

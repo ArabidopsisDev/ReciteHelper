@@ -32,7 +32,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\external\AquaAvgFramework\AquaAvgFramework.csproj" />
     <ProjectReference Include="..\ReciteHelper.Core\ReciteHelper.Core.csproj" />
   </ItemGroup>
 

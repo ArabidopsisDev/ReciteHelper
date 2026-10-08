@@ -16,7 +16,6 @@ public partial class MainWindow : Window
     private readonly IProjectFileService _projectFileService;
     private readonly IProjectCreationService _projectCreationService;
     private readonly IQuestionBankTextService _questionBankTextService;
-    private readonly IGalGameCreationService _galGameCreationService;
     private readonly IStartupCompatibilityService _startupCompatibilityService;
     private readonly IQuizService _quizService;
     private readonly IRecentProjectService _recentProjectService;
@@ -28,7 +27,6 @@ public partial class MainWindow : Window
     private readonly IExamSetImportService _examSetImportService;
     private readonly IExamSetRepository _examSetRepository;
     private readonly IFileMergeService _fileMergeService;
-    private readonly IGalGameService _galGameService;
     private readonly IQuestionHelpService _questionHelpService;
     private readonly IConfigService _configService;
     private readonly IPiModelService _piModelService;
@@ -39,7 +37,6 @@ public partial class MainWindow : Window
         IProjectFileService projectFileService,
         IProjectCreationService projectCreationService,
         IQuestionBankTextService questionBankTextService,
-        IGalGameCreationService galGameCreationService,
         IStartupCompatibilityService startupCompatibilityService,
         IQuizService quizService,
         IRecentProjectService recentProjectService,
@@ -50,7 +47,6 @@ public partial class MainWindow : Window
         IExamSetImportService examSetImportService,
         IExamSetRepository examSetRepository,
         IFileMergeService fileMergeService,
-        IGalGameService galGameService,
         IQuestionHelpService questionHelpService,
         IReviewPersonalizationService reviewPersonalizationService,
         IConfigService configService,
@@ -61,7 +57,6 @@ public partial class MainWindow : Window
         _projectFileService = projectFileService;
         _projectCreationService = projectCreationService;
         _questionBankTextService = questionBankTextService;
-        _galGameCreationService = galGameCreationService;
         _startupCompatibilityService = startupCompatibilityService;
         _quizService = quizService;
         _recentProjectService = recentProjectService;
@@ -72,7 +67,6 @@ public partial class MainWindow : Window
         _examSetImportService = examSetImportService;
         _examSetRepository = examSetRepository;
         _fileMergeService = fileMergeService;
-        _galGameService = galGameService;
         _questionHelpService = questionHelpService;
         _configService = configService;
         _piModelService = piModelService;
@@ -235,17 +229,6 @@ public partial class MainWindow : Window
             new FileMergeWindow(_fileMergeService).Show();
             result = true;
         }
-        else if (type.TemplateType == ProjectTemplateType.GalGame)
-        {
-            var createWindow = new CreateGalGameWindow(
-                _projectFileService,
-                _galGameCreationService)
-            {
-                Owner = this
-            };
-
-            result = createWindow.ShowDialog();
-        }
         else
         {
             MessageBox.Show("该项目类型暂不可用", "无法创建", MessageBoxButton.OK, MessageBoxImage.Information);
@@ -355,7 +338,6 @@ public partial class MainWindow : Window
                 _examSetImportService,
                 _examSetRepository,
                 _projectCreationService,
-                _galGameService,
                 _questionHelpService,
                 _reviewPersonalizationService);
             quizWindow.Show();

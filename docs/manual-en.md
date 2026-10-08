@@ -67,7 +67,7 @@ Never commit API keys to Git or share them with other people.
 
 ## Classic Review Projects
 
-The classic review project is the primary ReciteHelper project type and provides the data used by smart review, mock exams, and game projects.
+The classic review project is the primary ReciteHelper project type and provides the data used by smart review and mock exams.
 
 On the main screen, select "Create New Project," then choose "Classic Review Project."
 
@@ -190,20 +190,6 @@ Answer statuses are cleared only in the exported copy. The active local project 
 
 ---
 
-## Game Projects (Preview)
-
-A game project uses a classic review project as its data source. Select an existing `.rhproj` file, and ReciteHelper will ask the AI to generate the chapters, story, and script used by the visual novel.
-
-![Create a game project](Resources/10-create-galgame.png)
-
-After generation, open the original classic review project and select "Run Game" from the function menu in the chapter selection window.
-
-![Run the game](Resources/11-play-galgame.png)
-
-This feature remains in preview. Generation time and output quality depend on the source material and model responses.
-
----
-
 ## Frequently Asked Questions
 
 **Q: Why are there no chapters or questions after project creation?**
@@ -248,7 +234,6 @@ A: Yes. Question types use backward-compatible deserialization. Older projects w
 - Added custom exam settings.
 - Added a replay strategy for long PDF documents.
 - Added multi-file merge projects.
-- Integrated AquaAvgFramework for game project generation (Preview).
 
 ### v2 (2025-11-25)
 

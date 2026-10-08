@@ -159,10 +159,6 @@
                                     Header="导出"
                                     Style="{StaticResource MenuItemStyle}" />
                                 <MenuItem
-                                    Click="GameMenuItem_Click"
-                                    Header="运行游戏"
-                                    Style="{StaticResource MenuItemStyle}" />
-                                <MenuItem
                                     Click="ReviewMenuItem_Click"
                                     Header="智能复习"
                                     Style="{StaticResource MenuItemStyle}" />

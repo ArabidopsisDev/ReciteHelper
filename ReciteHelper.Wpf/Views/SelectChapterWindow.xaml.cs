@@ -24,7 +24,6 @@ public partial class SelectChapterWindow : Window, INotifyPropertyChanged
     private readonly IExamSetImportService _examSetImportService;
     private readonly IExamSetRepository _examSetRepository;
     private readonly IProjectCreationService _projectCreationService;
-    private readonly IGalGameService _galGameService;
     private readonly IQuestionHelpService _questionHelpService;
     private readonly IReviewPersonalizationService _reviewPersonalizationService;
     private Project? _currentProject;
@@ -42,7 +41,6 @@ public partial class SelectChapterWindow : Window, INotifyPropertyChanged
         IExamSetImportService examSetImportService,
         IExamSetRepository examSetRepository,
         IProjectCreationService projectCreationService,
-        IGalGameService galGameService,
         IQuestionHelpService questionHelpService,
         IReviewPersonalizationService reviewPersonalizationService)
     {
@@ -56,7 +54,6 @@ public partial class SelectChapterWindow : Window, INotifyPropertyChanged
         _examSetImportService = examSetImportService;
         _examSetRepository = examSetRepository;
         _projectCreationService = projectCreationService;
-        _galGameService = galGameService;
         _questionHelpService = questionHelpService;
 
         InitializeComponent();
@@ -345,28 +342,6 @@ public partial class SelectChapterWindow : Window, INotifyPropertyChanged
         SimulateButton.IsEnabled = !isImporting;
         ExportButton.Content = isImporting ? "正在导入..." : "功能菜单";
         IsEnabled = !isImporting;
-    }
-
-    private async void GameMenuItem_Click(object sender, RoutedEventArgs e)
-    {
-        if (!_galGameService.Exists(_currentProject!))
-        {
-            MessageBox.Show("游戏文件尚未创建，请先创建", "打开失败", MessageBoxButton.OK, MessageBoxImage.Warning);
-            return;
-        }
-
-        try
-        {
-            _ = await _galGameService.LoadStoryLinesAsync(_currentProject!);
-        }
-        catch (Exception)
-        {
-            MessageBox.Show("游戏文件已损坏，请重新创建", "打开失败", MessageBoxButton.OK, MessageBoxImage.Warning); ;
-            return;
-        }
-
-        var gameWindow = new GalWindow(_currentProject!, _galGameService);
-        gameWindow.Show();
     }
 
     private async void ExportMenuItem_Click(object sender, RoutedEventArgs e)
