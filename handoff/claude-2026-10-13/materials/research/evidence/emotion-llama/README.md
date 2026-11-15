@@ -1,0 +1,364 @@
+# Emotion-LLaMA: Multimodal Emotion Recognition and Reasoning with Instruction Tuning  
+
+[<img alt="Open In Colab" class="!m-0" src="https://colab.research.google.com/assets/colab-badge.svg">](https://colab.research.google.com/drive/1YTSadgBRfn75wpgpor8_mYWcM6TUPF-i?usp=sharing)
+
+[![Papers with Code: SOTA on MER2023-SEMI (6-class)](https://paperswithcode.co/api/v1/papers/2406.11161/leaderboard-badge.svg?eval=24913&live=1)](https://paperswithcode.co/api/v1/papers/2406.11161/leaderboard-badge-link?eval=24913)
+[![Papers with Code: SOTA on MER2024-NOISE (6-class)](https://paperswithcode.co/api/v1/papers/2406.11161/leaderboard-badge.svg?eval=24914&live=1)](https://paperswithcode.co/api/v1/papers/2406.11161/leaderboard-badge-link?eval=24914)
+
+## 📢 News
+[2025.10.30] 📚📚📚 We release comprehensive documentation site! Check out our [📖 Documentation](https://zebangcheng.github.io/Emotion-LLaMA/)!  
+[2025.07.09] 🔥🔥🔥 We release the MERR dataset construction strategy at [MER-Factory](https://github.com/Lum1104/MER-Factory)!  
+[2024.09.27] 🎉🎉🎉 Our Emotion-LLaMA has been accepted at NIPS 2024!   
+[2024.09.07] 🥉🥉🥉 We achieved third place in the MER-OV track of the MER2024 Challenge. Emotion-LLaMA is the highest-scoring model among all individual models.  
+[2024.07.10] 🏆🏆🏆 Building on Emotion-LLaMA, we won the championship in the MER-Noise track of the MER2024 Challenge.  
+[2024.06.12] 🔥🔥🔥 We have deployed an online demo of Emotion-LLaMA on Hugging Face.  
+ 
+
+## 🚀 Overview
+
+  Accurate emotion perception is crucial for various applications, including human-computer interaction, education, and counseling. However, traditional single-modality approaches often fail to capture the complexity of real-world emotional expressions, which are inherently multimodal. Moreover, existing Multimodal Large Language Models (MLLMs) face challenges in integrating audio and recognizing subtle facial micro-expressions.
+
+To address these issues, we introduce the **MERR dataset**, containing 28,618 coarse-grained and 4,487 fine-grained annotated samples across diverse emotional categories. This dataset enables models to learn from varied scenarios and generalize to real-world applications.
+
+Additionally, we propose **Emotion-LLaMA**, a model that seamlessly integrates audio, visual, and textual inputs through emotion-specific encoders. By aligning features into a shared space and employing a modified LLaMA model with instruction tuning, Emotion-LLaMA significantly enhances both emotional recognition and reasoning capabilities.
+
+Extensive evaluations demonstrate that Emotion-LLaMA outperforms other MLLMs, achieving top scores in Clue Overlap (7.83) and Label Overlap (6.25) on EMER, an F1 score of  0.9036 on the MER2023 challenge, and the highest UAR (45.59) and WAR (59.37) in zero-shot evaluations on the DFEW dataset.
+
+More details about Emotion-LLaMA, please refer to this [paper](https://arxiv.org/pdf/2406.11161). Feel free to contact us if you have any question.
+
+> [!IMPORTANT]
+> 📚 **[View Full Documentation](https://zebangcheng.github.io/Emotion-LLaMA/)** for comprehensive guides on installation, training, evaluation, and API usage.
+
+## 📊 MERR Dataset
+
+### 📈 Comparison of Emotional Datasets
+
+The MERR dataset extends the range of emotional categories and annotations beyond those found in existing datasets. Each sample is annotated with an emotion label and described in terms of its emotional expression. Download the annotation content of [the MERR dataset](https://drive.google.com/drive/folders/1LSYMq2G-TaLof5xppyXcIuWiSN0ODwqG?usp=sharing).
+
+![Comparison of Datasets](./images/compare_datasets.jpg)
+
+### 📝 Example of the MERR Dataset
+
+The dataset was initially auto-annotated with coarse-grained labels for 28,618 samples from a large pool of unannotated data, and later refined to include 4,487 samples with fine-grained annotations. For more details on the data annotation process, see [MERR Dataset Construction](https://zebangcheng.github.io/Emotion-LLaMA/dataset/construction.html).
+
+![Data Example](./images/data-example_sample_00000047_add_peak_00.png)
+
+## 🧠 Emotion-LLaMA
+
+![Emotion-LLaMA Framework](./images/framework.png)
+
+
+## 🛠️ Setup
+
+### Preparing the Code and Environment
+
+```bash
+git clone https://github.com/ZebangCheng/Emotion-LLaMA.git
+cd Emotion-LLaMA
+conda env create -f environment.yaml
+conda activate llama
+```
+
+### Preparing the Pretrained LLM Weights
+
+Download the Llama-2-7b-chat-hf model from Huggingface to `Emotion-LLaMA/checkpoints/`:
+
+```
+> https://huggingface.co/meta-llama/Llama-2-7b-chat-hf  
+```
+
+Specify the path to Llama-2 in the [model config file](minigpt4/configs/models/minigpt_v2.yaml#L14):
+
+```yaml
+# Set Llama-2-7b-chat-hf path
+llama_model: "checkpoints/Llama-2-7b-chat-hf"
+```
+
+Specify the path to MiniGPT-v2 in the [config file](train_configs/Emotion-LLaMA_finetune.yaml#L9):
+
+```yaml
+# Set MiniGPT-v2 path
+ckpt: "/home/user/project/Emotion-LLaMA/checkpoints/minigptv2_checkpoint.pth"
+```
+
+For a detailed project structure, see the [Getting Started Guide](https://zebangcheng.github.io/Emotion-LLaMA/getting-started/).
+
+## 🎬 Demo
+
+### Online Demo
+
+You can experience the powerful emotion recognition capabilities of Emotion-LLaMA through the [online demo](https://huggingface.co/spaces/ZebangCheng/Emotion-LLaMA).
+
+<!-- ![Demo Image 1](./images/demo_img01.png) -->
+![Demo Web](./images/demo_img02.png)  
+
+Detailed examples of general tasks performed by the Emotion-LLaMA.
+
+![Demo Examples Other](./images/demo_examples_other.jpg)  
+
+Detailed examples of multimodal emotion recognition and reasoning performed by the Emotion-LLaMA.
+
+![Demo Examples Task](./images/demo_examples_task.jpg)  
+
+### Local Demo
+1.Download the HuBERT-large model from Huggingface to `Emotion-LLaMA/checkpoints/transformer/`:
+
+> https://huggingface.co/TencentGameMate/chinese-hubert-large
+
+
+2.Specify the path to HuBERT-large in the [demo config file](eval_configs/demo.yaml):
+
+```yaml
+# Set HuBERT-large model path
+model:
+  audio_model_path: "checkpoints/transformer/chinese-hubert-large"
+```
+
+3.Download the Emotion-LLaMA demo model from Googel Drive to `Emotion-LLaMA/checkpoints/save_checkpoint/`:
+
+> https://drive.google.com/file/d/1pNngqXdc3cKr9uLNW-Hu3SKvOpjzfzGY/view?usp=sharing  
+
+
+4.Specify the path to Emotion-LLaMA in the [demo config file](eval_configs/demo.yaml#L10):
+
+```yaml
+# Set Emotion-LLaMA path
+ckpt: "checkpoints/save_checkpoint/Emoation_LLaMA.pth"
+```
+
+5.Install the required packages:  
+```
+pip install moviepy==1.0.3
+pip install soundfile==0.12.1
+pip install opencv-python==4.7.0.72
+```
+
+6.Launching Demo Locally
+```
+python app.py
+
+# After running the code, click the following link to experience the demo webpage: 
+# Running on local URL: http://127.0.0.1:7860
+```
+
+### Gradio API - Local Inference API
+
+For detailed Gradio API documentation, please refer to:  
+- [📖 English API Guide](https://zebangcheng.github.io/Emotion-LLaMA/api/en.html)  
+- [📖 中文 API 指南](https://zebangcheng.github.io/Emotion-LLaMA/api/zh.html)
+
+### Batch Inference - Terminal Runtime
+
+Run CSV/JSONL manifests without Gradio while loading the model only once:
+
+```bash
+python batch_infer.py \
+  --input videos.jsonl \
+  --output predictions.jsonl \
+  --resume
+```
+
+Single-video and directory modes are also supported. See the
+[Batch Inference guide](docs/api/batch-inference.md) for manifest fields,
+the output schema, path handling, resume guarantees, and exit codes.
+
+## 💡 Training
+
+**1. Downloading the Dataset**
+Due to copyright restrictions, we are unable to provide the raw videos or extracted images. Please visit the official MER2023 website to apply for access to the dataset.
+> http://merchallenge.cn/datasets  
+
+Dataset paths and behavior are configured in YAML; the complete Stage 1
+example is shown below.
+
+**2. Prepare Multi-modal Encoders**
+To extract rich and comprehensive emotion features, we use the HuBERT model as the Audio Encoder, the EVA model as the Global Encoder, the MAE model as the Local Encoder, and the VideoMAE model as the Temporal Encoder. In practice, to save GPU memory, we do not load all Encoders directly onto the GPU but instead load the extracted features. You can download the processed feature files through the following Google Drive link and save them to the dataset folder.
+
+> https://drive.google.com/drive/folders/1DqGSBgpRo7TuGNqMJo9BYg6smJE20MG4?usp=drive_link
+  
+
+Place the precomputed FaceMAE, VideoMAE, and HuBERT feature trees beside the
+annotation file, or set their paths explicitly in the YAML configuration. All
+three feature trees are required; training does not extract them online.
+
+The specific feature extraction process can be referenced in the contents of the "feature_extract" folder. Detailed instructions will come soon.
+> https://drive.google.com/drive/folders/1d-Sg5fAskt2s6OOEUNXFaM2u-C055Whj?usp=sharing
+
+
+**3. Set dataset configuration**  
+Configure Stage 1 in `train_configs/Emotion-LLaMA_finetune.yaml` (or override
+the same keys in the default dataset YAML):
+
+```yaml
+datasets:
+  feature_face_caption:
+    task_pool: [emotion, reason]
+    annotation_format: auto
+    build_info:
+      image_path: /path/to/MER2023/video
+      ann_path: /path/to/MER2023/MERR_coarse_grained.txt
+      transcription_path: transcription_en_all.csv
+      coarse_grained_json_path: MERR_coarse_grained.json
+      face_feature_path: mae_340_UTT
+      video_feature_path: maeV_399_UTT
+      audio_feature_path: HL-UTT
+```
+
+Relative resource paths are resolved from the directory containing
+`ann_path`. The transcript is optional but recommended. The
+`annotation_format: auto` setting accepts compact `N E` rows (`name emotion`)
+and legacy `N C E [V]` rows (`name frame_count emotion [valence]`). There are
+28,618 coarse-grained samples for Stage 1.
+
+**4. Prepare Multi-task Instruction**  
+
+The configured `emotion` task performs multimodal emotion recognition, while
+`reason` loads the `caption` field from `coarse_grained_json_path`. Each task
+randomly selects a prompt from its instruction pool; no Python source edit is
+required. See the [dataset configuration guide](docs/dataset/configuration.md)
+for Stage 2 and emotion-only examples.
+
+
+**5. Run**  
+Run the following code to pre-train Emotion-LLaMA:  
+```bash
+CUDA_VISIBLE_DEVICES=0,1,2,3 torchrun --nproc-per-node 4 train.py --cfg-path train_configs/Emotion-LLaMA_finetune.yaml
+```
+
+**6. Next Steps**  
+If you would like to experience the instruction-tuning process and see the performance of Emotion-LLaMA on emotion reasoning tests with the EMER dataset, please refer to [Stage 2: Instruction Tuning](https://zebangcheng.github.io/Emotion-LLaMA/training/instruction-tuning.html).
+
+
+## 🧪 Evaluation
+
+### MER2023 Challenge
+
+To further validate the effectiveness of the Emotion-LLaMA model, we conducted experiments using the MER2023 Challenge dataset and compared our results with previous state-of-the-art supervised methods. The outcomes show that our model, which maps audio and visual features to textual space, achieves the highest F1 score across various modalities. Our results can be replicated using the following steps.
+
+|Method                 | Modality | F1 Score |
+| :--------------       | :------: | :------: |
+wav2vec 2.0             | A        |  0.4028  |
+VGGish                  | A        |  0.5481  |
+HuBERT                  | A        |  0.8511  |
+ResNet                  | V        |  0.4132  |
+MAE                     | V        |  0.5547  |
+VideoMAE                | V        |  0.6068  |
+RoBERTa                 | T        |  0.4061  |
+BERT                    | T        |  0.4360  |
+MacBERT                 | T        |  0.4632  |
+MER2023-Baseline        | A, V     |  0.8675  |
+MER2023-Baseline        | A, V, T  |  0.8640  |
+Transformer             | A, V, T  |  0.8853  |
+FBP                     | A, V, T  |  0.8855  |
+VAT                     | A, V     |  0.8911  |
+Emotion-LLaMA (ours)    | A, V     |  0.8905  |
+**Emotion-LLaMA (ours)**| **A, V, T** | **0.9036** |
+
+Specify the path to the pretrained checkpoint of Emotion-LLaMA in the [evaluation config file](eval_configs/eval_emotion.yaml#L8):
+
+```yaml
+# Set pretrained checkpoint path
+llama_model: "/home/user/project/Emotion-LLaMA/checkpoints/Llama-2-7b-chat-hf"
+ckpt: "/home/user/project/Emotion-LLaMA/checkpoints/save_checkpoint/stage2/checkpoint_best.pth"
+```
+
+Run the following code to evaluate the F1 score on MER2023-SEMI:
+
+```bash
+torchrun --nproc_per_node 1 eval_emotion.py --cfg-path eval_configs/eval_emotion.yaml --dataset feature_face_caption
+```
+
+### EMER Dataset
+Comparison of multimodal emotion reasoning results on the EMER dataset. Clue Overlap and Label Overlap scores range from 0 to 10. Emotion-LLaMA excels beyond these models across both Clue Overlap and Label Overlap.  
+
+|Models                    | Clue Overlap | Label Overlap |
+| :--------------          | :----------: | :----------:  |
+|VideoChat-Text            |    6.42      |     3.94      | 
+|Video-LLaMA               |    6.64      |     4.89      | 
+|Video-ChatGPT             |    6.95      |     5.74      | 
+|PandaGPT                  |    7.14      |     5.51      | 
+|VideoChat-Embed           |    7.15      |     5.65      | 
+|Valley                    |    7.24      |     5.77      | 
+|**Emotion-LLaMA (ours)**  |  **7.83**    |   **6.25**    | 
+
+### MER2024 Challenge
+Emotion-LLaMA similarly achieved state-of-the-art performance, recording an F1 score of 84.52 in the MER-NOISE track. Subsequently, our team, SZTU-CMU, used the results from Emotion-LLaMA as pseudo-labels to secure the championship.     
+| Teams       |   Score       |
+| :---------- | :----------:  |
+| SZTU-CMU	  |   0.8530 (1)  |
+| BZL arc06	  |   0.8383 (2)  |
+| VIRlab		  |   0.8365 (3)  |
+| T_MERG	    |   0.8271 (4)  |
+| AI4AI		    |   0.8128 (5)  |
+| USTC-IAT	  |   0.8066 (6)  |
+| fzq		      |   0.8062 (7)  |
+| BUPT-BIT	  |   0.8059 (8)  |
+| Soul AI		  |   0.8017 (9)  |
+| NWPU-SUST	  |   0.7972 (10) |
+| iai-zjy		  |   0.7842 (11) |
+| SJTU-XLANCE |   0.7835 (12) |
+| ILR		      |   0.7833 (13) |
+| ACRG_GL	    |   0.7782 (14) |
+
+Specify the path to the pretrained checkpoint of Emotion-LLaMA in the [evaluation config file](eval_configs/eval_emotion.yaml#L8):
+
+```yaml
+# Set pretrained checkpoint path
+llama_model: "/home/user/project/Emotion-LLaMA/checkpoints/Llama-2-7b-chat-hf"
+ckpt: "/home/user/project/Emotion-LLaMA/checkpoints/save_checkpoint/stage2/MER2024-best.pth"
+```
+
+Run the following code to evaluate the F1 score on MER2024-NOISE:
+
+```bash
+torchrun  --nproc_per_node 1 eval_emotion.py --cfg-path eval_configs/eval_emotion.yaml --dataset mer2024_caption
+```
+
+## Star History
+
+[![Star History Chart](https://star-history.dera.page/svg?repos=ZebangCheng/Emotion-LLaMA&type=Date)](https://star-history.dera.page/#ZebangCheng/Emotion-LLaMA&Date)
+
+## 🙏 Acknowledgements
+
+- [MiniGPT-v2](https://arxiv.org/abs/2310.09478): Large Language Model as a Unified Interface for Vision-Language Multi-task Learning.
+- [AffectGPT](https://arxiv.org/abs/2306.15401): Explainable Multimodal Emotion Recognition.
+- [LLaVA](https://llava-vl.github.io/): Large Language-and-Vision Assistant.
+
+
+## ✒️ Citation
+If you find our work helpful for your research, please consider giving a star  and citation 
+```bibtex
+@inproceedings{NEURIPS2024_c7f43ada,
+  author = {Cheng, Zebang and Cheng, Zhi-Qi and He, Jun-Yan and Wang, Kai and Lin, Yuxiang and Lian, Zheng and Peng, Xiaojiang and Hauptmann, Alexander},
+  booktitle = {Advances in Neural Information Processing Systems},
+  editor = {A. Globerson and L. Mackey and D. Belgrave and A. Fan and U. Paquet and J. Tomczak and C. Zhang},
+  pages = {110805--110853},
+  publisher = {Curran Associates, Inc.},
+  title = {Emotion-LLaMA: Multimodal Emotion Recognition and Reasoning with Instruction Tuning},
+  url = {https://proceedings.neurips.cc/paper_files/paper/2024/file/c7f43ada17acc234f568dc66da527418-Paper-Conference.pdf},
+  volume = {37},
+  year = {2024}
+}
+
+@inproceedings{10.1145/3689092.3689404,
+  author = {Cheng, Zebang and Tu, Shuyuan and Huang, Dawei and Li, Minghan and Peng, Xiaojiang and Cheng, Zhi-Qi and Hauptmann, Alexander G.},
+  title = {SZTU-CMU at MER2024: Improving Emotion-LLaMA with Conv-Attention for Multimodal Emotion Recognition},
+  year = {2024},
+  isbn = {9798400712036},
+  publisher = {Association for Computing Machinery},
+  address = {New York, NY, USA},
+  url = {https://doi.org/10.1145/3689092.3689404},
+  doi = {10.1145/3689092.3689404},
+  abstract = {This paper presents our winning approach for the MER-NOISE and MER-OV tracks of the MER2024 Challenge on multimodal emotion    recognition. Our system leverages the advanced emotional understanding capabilities of Emotion-LLaMA to generate high-quality annotations for unlabeled samples, addressing the challenge of limited labeled data. To enhance multimodal fusion while mitigating modality-specific noise, we introduce Conv-Attention, a lightweight and efficient hybrid framework. Extensive experimentation validates the effectiveness of our approach. In the MER-NOISE track, our system achieves a state-of-the-art weighted average F-score of 85.30\%, surpassing the second and third-place teams by 1.47\% and 1.65\%, respectively. For the MER-OV track, our utilization of Emotion-LLaMA for open-vocabulary annotation yields an 8.52\% improvement in average accuracy and recall compared to GPT-4V, securing the highest score among all participating large multimodal models. The code and model for Emotion-LLaMA are available at https://github.com/ZebangCheng/Emotion-LLaMA.},
+  booktitle = {Proceedings of the 2nd International Workshop on Multimodal and Responsible Affective Computing},
+  pages = {78–87},
+  numpages = {10},
+  keywords = {mer2024, noise robustness, open-vocabulary recognition},
+  location = {Melbourne VIC, Australia},
+  series = {MRAC '24}
+}
+```
+
+
+## 📜 License
+This repository is under the [BSD 3-Clause License](./LICENSE.md). Code is based on MiniGPT-4 with BSD 3-Clause License [here](./LICENSE_MiniGPT4.md). Data is from MER2023 and licensed under [EULA](./LICENSE_EULA.md) for research purposes only.

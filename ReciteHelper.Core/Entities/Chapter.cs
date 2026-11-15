@@ -16,6 +16,9 @@ public class Chapter : Entity, IJsonOnDeserialized
     [JsonPropertyName("number")]
     public int Number { get; set; }
 
+    [JsonPropertyName("generation_prompt")]
+    public string? GenerationPrompt { get; set; }
+
     [JsonPropertyName("bank")]
     public List<Question>? Questions { get; set; }
 

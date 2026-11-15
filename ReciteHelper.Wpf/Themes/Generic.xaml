@@ -1,27 +1,31 @@
-﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
     <!--  Merges  -->
     <ResourceDictionary.MergedDictionaries>
         <!--  Colors  -->
-        <ResourceDictionary Source="/Themes/Colors/BaseColors.xaml" />
-        <ResourceDictionary Source="/Themes/Colors/SemanticColors.xaml" />
+        <ResourceDictionary Source="/ReciteHelper.Wpf;component/Themes/Colors/BaseColors.xaml" />
+        <ResourceDictionary Source="/ReciteHelper.Wpf;component/Themes/Colors/SemanticColors.xaml" />
+        <ResourceDictionary Source="/ReciteHelper.Wpf;component/Themes/Arc/ArcTokens.xaml" />
+        <ResourceDictionary Source="/ReciteHelper.Wpf;component/Themes/Arc/ArcControls.xaml" />
+        <ResourceDictionary Source="/ReciteHelper.Wpf;component/Themes/Typography.xaml" />
 
         <!--  Fonts  -->
-        <!--<ResourceDictionary Source="/Themes/Fonts/FontSizes.xaml" />-->
+        <!--<ResourceDictionary Source="/ReciteHelper.Wpf;component/Themes/Fonts/FontSizes.xaml" />-->
 
         <!--  Converters  -->
-        <ResourceDictionary Source="/Themes/Converters/Converters.xaml" />
+        <ResourceDictionary Source="/ReciteHelper.Wpf;component/Themes/Converters/Converters.xaml" />
 
         <!--  Controls  -->
-        <ResourceDictionary Source="/Themes/Controls/AnswerCardStyles.xaml" />
-        <ResourceDictionary Source="/Themes/Controls/ButtonStyles.xaml" />
-        <ResourceDictionary Source="/Themes/Controls/TextBoxStyles.xaml" />
+        <ResourceDictionary Source="/ReciteHelper.Wpf;component/Themes/Controls/ButtonStyles.xaml" />
+        <ResourceDictionary Source="/ReciteHelper.Wpf;component/Themes/Controls/AnswerCardStyles.xaml" />
+        <ResourceDictionary Source="/ReciteHelper.Wpf;component/Themes/Controls/TextBoxStyles.xaml" />
+        <ResourceDictionary Source="/ReciteHelper.Wpf;component/Themes/Controls/ScrollStyles.xaml" />
 
-        <ResourceDictionary Source="/Themes/Windows/WindowStyles.xaml" />
+        <ResourceDictionary Source="/ReciteHelper.Wpf;component/Themes/Windows/WindowStyles.xaml" />
 
         <!--  Windows  -->
         <!--
-        <ResourceDictionary Source="/Themes/Windows/QuizWindowStyles.xaml" />-->
+        <ResourceDictionary Source="/ReciteHelper.Wpf;component/Themes/Windows/QuizWindowStyles.xaml" />-->
     </ResourceDictionary.MergedDictionaries>
 
     <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />

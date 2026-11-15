@@ -16,6 +16,7 @@ public partial class MainWindow : Window
     private readonly IProjectFileService _projectFileService;
     private readonly IProjectCreationService _projectCreationService;
     private readonly IQuestionBankTextService _questionBankTextService;
+    private readonly IGalGameCreationService _galGameCreationService;
     private readonly IStartupCompatibilityService _startupCompatibilityService;
     private readonly IQuizService _quizService;
     private readonly IRecentProjectService _recentProjectService;
@@ -27,16 +28,19 @@ public partial class MainWindow : Window
     private readonly IExamSetImportService _examSetImportService;
     private readonly IExamSetRepository _examSetRepository;
     private readonly IFileMergeService _fileMergeService;
+    private readonly IGalGameService _galGameService;
     private readonly IQuestionHelpService _questionHelpService;
     private readonly IConfigService _configService;
     private readonly IPiModelService _piModelService;
     private readonly HostedModelService _hostedModelService;
+    private readonly IRuleReviewService _ruleReviewService;
     private List<RecentProject> recentProjects = new();
 
     public MainWindow(
         IProjectFileService projectFileService,
         IProjectCreationService projectCreationService,
         IQuestionBankTextService questionBankTextService,
+        IGalGameCreationService galGameCreationService,
         IStartupCompatibilityService startupCompatibilityService,
         IQuizService quizService,
         IRecentProjectService recentProjectService,
@@ -47,16 +51,19 @@ public partial class MainWindow : Window
         IExamSetImportService examSetImportService,
         IExamSetRepository examSetRepository,
         IFileMergeService fileMergeService,
+        IGalGameService galGameService,
         IQuestionHelpService questionHelpService,
         IReviewPersonalizationService reviewPersonalizationService,
         IConfigService configService,
         IPiModelService piModelService,
-        HostedModelService hostedModelService)
+        HostedModelService hostedModelService,
+        IRuleReviewService ruleReviewService)
     {
         _reviewPersonalizationService = reviewPersonalizationService;
         _projectFileService = projectFileService;
         _projectCreationService = projectCreationService;
         _questionBankTextService = questionBankTextService;
+        _galGameCreationService = galGameCreationService;
         _startupCompatibilityService = startupCompatibilityService;
         _quizService = quizService;
         _recentProjectService = recentProjectService;
@@ -67,10 +74,12 @@ public partial class MainWindow : Window
         _examSetImportService = examSetImportService;
         _examSetRepository = examSetRepository;
         _fileMergeService = fileMergeService;
+        _galGameService = galGameService;
         _questionHelpService = questionHelpService;
         _configService = configService;
         _piModelService = piModelService;
         _hostedModelService = hostedModelService;
+        _ruleReviewService = ruleReviewService;
 
         _startupCompatibilityService.Initialize();
 
@@ -126,6 +135,16 @@ public partial class MainWindow : Window
         RecentProjectsPanel.Children.Clear();
         recentProjects.Sort((x, y) => y.LastAccessed.CompareTo(x.LastAccessed));
 
+        if (recentProjects.Count == 0)
+        {
+            RecentProjectsPanel.Children.Add(new TextBlock
+            {
+                Text = "暂无最近项目。创建或打开项目后，它会显示在这里。",
+                Style = (Style)FindResource("SubtitleTextStyle"),
+                Margin = new Thickness(0, 12, 24, 0)
+            });
+        }
+
         foreach (var project in recentProjects)
             AddRecentProjectToUI(project.ProjectName, project.ProjectPath);
     }
@@ -159,15 +178,16 @@ public partial class MainWindow : Window
         {
             Text = projectName,
             FontWeight = FontWeights.SemiBold,
-            Foreground = System.Windows.Media.Brushes.Black,
+            Foreground = (System.Windows.Media.Brush)FindResource("ArcForeground"),
             TextTrimming = TextTrimming.CharacterEllipsis
         };
 
         var pathTextBlock = new TextBlock
         {
             Text = projectPath,
-            FontSize = 11,
-            Foreground = System.Windows.Media.Brushes.Gray,
+            FontSize = 12,
+            Margin = new Thickness(0, 4, 0, 0),
+            Foreground = (System.Windows.Media.Brush)FindResource("ArcTextSecondary"),
             TextTrimming = TextTrimming.CharacterEllipsis
         };
 
@@ -217,7 +237,12 @@ public partial class MainWindow : Window
         else
             return;
 
-        if (type.TemplateType == ProjectTemplateType.ClassicalReview)
+        if (type.TemplateType == ProjectTemplateType.RuleBasedReview)
+        {
+            result = new CreateRuleReviewWindow(_ruleReviewService, _projectFileService,
+                project => AddRecentProjectAsync(System.IO.Path.Combine(project.StoragePath!, project.ProjectName!, $"{project.ProjectName}.rhproj"), project.ProjectName)) { Owner = this }.ShowDialog();
+        }
+        else if (type.TemplateType == ProjectTemplateType.ClassicalReview)
         {
             result = new CreateProjectWindow(CatchProjectAsync, _projectCreationService, _questionBankTextService)
             {
@@ -228,6 +253,17 @@ public partial class MainWindow : Window
         {
             new FileMergeWindow(_fileMergeService).Show();
             result = true;
+        }
+        else if (type.TemplateType == ProjectTemplateType.GalGame)
+        {
+            var createWindow = new CreateGalGameWindow(
+                _projectFileService,
+                _galGameCreationService)
+            {
+                Owner = this
+            };
+
+            result = createWindow.ShowDialog();
         }
         else
         {
@@ -338,6 +374,7 @@ public partial class MainWindow : Window
                 _examSetImportService,
                 _examSetRepository,
                 _projectCreationService,
+                _galGameService,
                 _questionHelpService,
                 _reviewPersonalizationService);
             quizWindow.Show();

@@ -1,0 +1,30 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- Adapted from TKCode.Arc ArcDesignToken / ArcTokens (MIT).
+         Copyright (c) 2026 TKCode.Arc contributors; (c) 2026 Elia Kuratli.
+         Source revision and full licenses: ThirdPartyNotices/TKCode.Arc/. -->
+    <SolidColorBrush x:Key="ArcBackground" Color="#F5F6F7" />
+    <SolidColorBrush x:Key="ArcSurface" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="ArcSurfaceMuted" Color="#F5F6F7" />
+    <SolidColorBrush x:Key="ArcSurfaceHover" Color="#ECEEF0" />
+    <SolidColorBrush x:Key="ArcSurfacePressed" Color="#E2E5E8" />
+    <SolidColorBrush x:Key="ArcForeground" Color="#202327" />
+    <SolidColorBrush x:Key="ArcTextSecondary" Color="#59616A" />
+    <SolidColorBrush x:Key="ArcTextMuted" Color="#727A84" />
+    <SolidColorBrush x:Key="ArcBorder" Color="#DFE3E7" />
+    <SolidColorBrush x:Key="ArcBorderStrong" Color="#BCC3CB" />
+    <SolidColorBrush x:Key="ArcAccent" Color="#24527A" />
+    <SolidColorBrush x:Key="ArcAccentStrong" Color="#193D5D" />
+    <SolidColorBrush x:Key="ArcAccentSubtle" Color="#E8EFF5" />
+    <SolidColorBrush x:Key="ArcAccentForeground" Color="#FFFFFF" />
+    <SolidColorBrush x:Key="ArcSuccess" Color="#2E6B3F" />
+    <SolidColorBrush x:Key="ArcSuccessSubtle" Color="#EAF3EC" />
+    <SolidColorBrush x:Key="ArcDanger" Color="#B3261E" />
+    <SolidColorBrush x:Key="ArcDangerSubtle" Color="#FBECEA" />
+    <SolidColorBrush x:Key="ArcWarning" Color="#8A5A00" />
+    <SolidColorBrush x:Key="ArcWarningSubtle" Color="#FFF4DC" />
+    <FontFamily x:Key="ArcBodyFont">Segoe UI, Microsoft YaHei UI</FontFamily>
+    <FontFamily x:Key="ArcIconFont">Segoe Fluent Icons, Segoe MDL2 Assets</FontFamily>
+    <CornerRadius x:Key="ArcRadiusControl">4</CornerRadius>
+    <Thickness x:Key="ArcControlPadding">12,7</Thickness>
+</ResourceDictionary>

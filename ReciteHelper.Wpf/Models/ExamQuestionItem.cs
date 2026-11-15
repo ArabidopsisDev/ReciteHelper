@@ -14,6 +14,8 @@ public sealed class ExamQuestionItem : INotifyPropertyChanged
     public int Number { get; set; }
     public Question? Question { get; set; }
     public int Score { get; set; }
+    public Core.DTOs.AiAnswerAssessment? AiAssessment { get; set; }
+    public double EarnedScore { get; set; }
     public string Explanation { get; set; } = string.Empty;
 
     public string UserAnswer

@@ -35,6 +35,8 @@ public partial class ExamWindow : Window
     private TimeSpan _timeRemaining;
     private bool _isExamActive;
     private bool _isSubmitted;
+    private bool _grading;
+    private DateTime _submittedAt;
     private readonly bool _isImportedExamSet;
 
     public ExamWindow(
@@ -51,6 +53,8 @@ public partial class ExamWindow : Window
     {
         _examAnswerService = examAnswerService;
         _project = project;
+        if (project?.TemplateType == ProjectTemplateType.RuleBasedReview)
+            foreach (var question in questions) question.RequiresAiGrading = true;
         _projectCreationService = projectCreationService;
         _projectFileService = projectFileService;
         _settings = settings;
@@ -455,7 +459,7 @@ public partial class ExamWindow : Window
         StartExamButton.IsEnabled = AgreeCheckBox.IsChecked is true;
     }
 
-    private void ExamTimer_Tick(object? sender, EventArgs e)
+    private async void ExamTimer_Tick(object? sender, EventArgs e)
     {
         _timeRemaining -= TimeSpan.FromSeconds(1);
         UpdateTimeDisplay();
@@ -468,7 +472,7 @@ public partial class ExamWindow : Window
         _timeRemaining = TimeSpan.Zero;
         UpdateTimeDisplay();
         MessageBox.Show("考试时间已到，系统将自动交卷。", "时间到", MessageBoxButton.OK, MessageBoxImage.Information);
-        SubmitExam();
+        await SubmitExamAsync();
     }
 
     private void UpdateTimeDisplay()
@@ -524,40 +528,65 @@ public partial class ExamWindow : Window
         return Math.Max(1, (int)Math.Ceiling(_pages.Count / 2d));
     }
 
-    private void SubmitExamButton_Click(object sender, RoutedEventArgs e)
+    private async void SubmitExamButton_Click(object sender, RoutedEventArgs e)
     {
+        if (_grading || _isSubmitted) return;
         var unansweredCount = _questions.Count(question => !question.IsAnswered);
         var prompt = unansweredCount > 0
             ? $"还有 {unansweredCount} 道题未作答，确定交卷吗？"
             : "确定要交卷吗？交卷后将不能修改答案。";
         var result = MessageBox.Show(prompt, "确认交卷", MessageBoxButton.YesNo, MessageBoxImage.Question);
         if (result == MessageBoxResult.Yes)
-            SubmitExam();
+            await SubmitExamAsync();
     }
 
-    private void SubmitExam()
+    private async Task SubmitExamAsync()
     {
+        if (_grading || _isSubmitted) return;
+        _grading = true;
+        _submittedAt = DateTime.Now;
+        IsEnabled = false;
         _examTimer.Stop();
         _isExamActive = false;
-        _isSubmitted = true;
-        RunningPanel.Visibility = Visibility.Collapsed;
         SetPagesActive(false);
-        CalculateScore();
-        ResultOverlay.Visibility = Visibility.Visible;
+        try
+        {
+            foreach (var item in _questions)
+            {
+                if (item.Question is null) continue;
+                if (item.AiAssessment is null || item.AiAssessment.UserAnswer != item.UserAnswer)
+                    item.AiAssessment = await _examAnswerService.GradeAsync(item.Question, item.UserAnswer);
+                item.EarnedScore = item.AiAssessment is { } assessment
+                    ? Math.Round(item.Score * assessment.ScoreRatio, 2)
+                    : _examAnswerService.IsCorrect(item.Question, item.UserAnswer) ? item.Score : 0;
+            }
+            _isSubmitted = true;
+            RunningPanel.Visibility = Visibility.Collapsed;
+            CalculateScore();
+            ResultOverlay.Visibility = Visibility.Visible;
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"批改未完成：{ex.Message} 已保留本次作答，请再次交卷重试。", "AI 批改提示", MessageBoxButton.OK, MessageBoxImage.Warning);
+            _isExamActive = true;
+            SetPagesActive(true);
+            if (_timeRemaining > TimeSpan.Zero) _examTimer.Start();
+        }
+        finally { _grading = false; IsEnabled = true; }
     }
 
     private void CalculateScore()
     {
         var correctQuestions = _questions
             .Where(question => question.Question is not null &&
-                _examAnswerService.IsCorrect(question.Question, question.UserAnswer))
+                (question.AiAssessment?.IsCorrect ?? _examAnswerService.IsCorrect(question.Question, question.UserAnswer)))
             .ToList();
-        var earnedScore = correctQuestions.Sum(question => question.Score);
+        var earnedScore = _questions.Sum(question => question.EarnedScore);
         var totalScore = _questions.Sum(question => question.Score);
         var correctCount = correctQuestions.Count;
         var wrongCount = _questions.Count - correctCount;
         var accuracy = _questions.Count == 0 ? 0d : correctCount * 100d / _questions.Count;
-        var timeUsed = DateTime.Now - _examStartTime;
+        var timeUsed = _submittedAt - _examStartTime;
 
         ScoreText.Text = earnedScore.ToString();
         ScoreDetailText.Text = $"满分 {totalScore} 分 · 正确率 {accuracy:F1}%";
@@ -597,6 +626,8 @@ public partial class ExamWindow : Window
         {
             question.UserAnswer = string.Empty;
             question.Status = ExamAnswerStatus.NotAnswered;
+            question.AiAssessment = null;
+            question.EarnedScore = 0;
         }
 
         _currentSpreadIndex = 0;
@@ -610,6 +641,7 @@ public partial class ExamWindow : Window
 
     protected override void OnClosing(CancelEventArgs e)
     {
+        if (_grading) { e.Cancel = true; return; }
         if (_isExamActive && !_isSubmitted)
         {
             var result = MessageBox.Show("考试尚未结束，确定要退出吗？", "确认退出", MessageBoxButton.YesNo, MessageBoxImage.Question);

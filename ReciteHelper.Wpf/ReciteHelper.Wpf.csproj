@@ -21,11 +21,16 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\external\AquaAvgFramework\AquaAvgFramework.csproj" />
     <ProjectReference Include="..\ReciteHelper.Application\ReciteHelper.Application.csproj" />
     <ProjectReference Include="..\ReciteHelper.Infrastructure\ReciteHelper.Infrastructure.csproj" />
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="ThirdPartyNotices\**\*.*">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
     <Content Include="Config.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

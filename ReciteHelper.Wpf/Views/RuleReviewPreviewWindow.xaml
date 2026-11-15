@@ -1,0 +1,33 @@
+<Window x:Class="ReciteHelper.Wpf.Views.RuleReviewPreviewWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="确认预览题目" Width="800" MinWidth="660" SizeToContent="Height"
+        WindowStartupLocation="CenterOwner" Style="{StaticResource AppWindowStyle}">
+    <Window.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries><ResourceDictionary Source="/ReciteHelper.Wpf;component/Themes/Windows/RuleReviewWindowStyles.xaml" /></ResourceDictionary.MergedDictionaries>
+            <Style TargetType="TextBlock"><Setter Property="TextWrapping" Value="Wrap" /></Style>
+        </ResourceDictionary>
+    </Window.Resources>
+    <Grid Margin="28,24">
+        <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+        <StackPanel x:Name="IntroductionPanel" Margin="0,0,0,18">
+            <TextBlock Text="确认预览题目" Style="{StaticResource TitleTextStyle}" />
+            <TextBlock x:Name="IntroductionText" Margin="0,9,0,0" Style="{StaticResource SubtitleTextStyle}" />
+            <TextBlock x:Name="PlanSummaryText" Margin="0,7,0,0" Foreground="{DynamicResource ArcAccent}" FontSize="13" />
+        </StackPanel>
+        <Border Grid.Row="1" Background="White" BorderBrush="{DynamicResource ArcBorder}" BorderThickness="0,1" Padding="0,12">
+            <ScrollViewer x:Name="PreviewScroll" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                <StackPanel x:Name="QuestionsPanel" />
+            </ScrollViewer>
+        </Border>
+        <StackPanel x:Name="ConfirmationPanel" Grid.Row="2" Margin="0,18,0,0">
+            <TextBlock Text="是否接受以上题目的提问范围和详细程度？" FontWeight="SemiBold" />
+            <TextBlock x:Name="AcceptHintText" Margin="0,6,0,14" Style="{StaticResource SubtitleTextStyle}" />
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                <Button Content="修改提示词" Click="Revise_Click" Style="{StaticResource RuleReviewButton}" Margin="0,0,10,0" IsCancel="True" />
+                <Button x:Name="AcceptButton" Content="接受并完成本类出题" Click="Accept_Click" Style="{StaticResource RuleReviewPrimaryButton}" />
+            </StackPanel>
+        </StackPanel>
+    </Grid>
+</Window>

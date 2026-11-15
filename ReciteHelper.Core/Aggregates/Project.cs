@@ -8,6 +8,9 @@ namespace ReciteHelper.Core.Aggregates;
 
 public class Project : AggregateRoot
 {
+    [JsonPropertyName("template_type")]
+    public Enums.ProjectTemplateType TemplateType { get; set; }
+
     [JsonConstructor]
     public Project() { }
 

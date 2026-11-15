@@ -1,0 +1,17 @@
+<Window
+    x:Class="ReciteHelper.Wpf.Views.GalWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:a="clr-namespace:AquaAvgFramework.Controls;assembly=AquaAvgFramework"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:ReciteHelper.Wpf.Views"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Title="GalWindow"
+    Width="1200"
+    Height="815"
+    Loaded="Window_Loaded"
+    mc:Ignorable="d">
+    <Grid>
+        <a:GamePanel Name="GamePanel" />
+    </Grid>
+</Window>

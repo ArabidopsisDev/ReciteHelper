@@ -19,6 +19,8 @@ public sealed class AiChatService(
     {
         var config = await configService.LoadAsync();
         var accessMode = ModelAccess.Resolve(config);
+        if (accessMode == ModelAccessMode.None)
+            throw new InvalidOperationException("请在模型服务设置中选择并配置文本生成模型。");
 
         if (accessMode == ModelAccessMode.PiOAuth)
             return await piModelService.RunChatAsync(config.PiOAuthProvider!, config.PiOAuthModel!, prompt, instructions);
@@ -29,7 +31,7 @@ public sealed class AiChatService(
         if (accessMode != ModelAccessMode.DeepSeekAndQwen)
             return await hostedModelService.RunChatAsync(prompt, instructions);
 
-        var key = string.IsNullOrWhiteSpace(deepSeekKey) ? config.DeepSeekKey! : deepSeekKey;
+        var key = config.DeepSeekKey!;
 
         var api = new TornadoApi(key);
         var agent = new TornadoAgent(

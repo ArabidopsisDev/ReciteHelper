@@ -26,15 +26,16 @@ public partial class ActivationWindow : Window
         _piModelService = piModelService;
         _configPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Config.xml");
         InitializeComponent();
+        Loaded += async (_, _) => await RefreshSelectionAsync();
     }
 
     private async void SaveDirectKeysButton_Click(object sender, RoutedEventArgs e)
     {
         var deepSeekKey = DeepSeekKeyBox.Password.Trim();
         var qwenKey = QwenKeyBox.Password.Trim();
-        if (string.IsNullOrWhiteSpace(deepSeekKey) || string.IsNullOrWhiteSpace(qwenKey))
+        if (string.IsNullOrWhiteSpace(deepSeekKey))
         {
-            ShowError("直连方案需要同时填写 DeepSeek 与 Qwen API Key。");
+            ShowError("请输入 DeepSeek API Key。建立知识库时还需要配置向量服务。");
             return;
         }
 
@@ -42,8 +43,8 @@ public partial class ActivationWindow : Window
         {
             var config = await LoadConfigAsync();
             config.DeepSeekKey = deepSeekKey;
-            config.QwenKey = qwenKey;
-            config.PiOAuthProvider = config.PiOAuthModel = null;
+            if (!string.IsNullOrWhiteSpace(qwenKey)) config.QwenKey = qwenKey;
+            config.PreferredTextProvider = ModelAccessMode.DeepSeekAndQwen;
             await _configService.SaveAsync(config);
             Complete("DeepSeek + Qwen 配置已保存。");
         }
@@ -66,8 +67,7 @@ public partial class ActivationWindow : Window
         {
             var config = await LoadConfigAsync();
             config.OpenRouterKey = openRouterKey;
-            config.DeepSeekKey = null;
-            config.PiOAuthProvider = config.PiOAuthModel = null;
+            config.PreferredTextProvider = ModelAccessMode.OpenRouter;
             if (string.IsNullOrWhiteSpace(config.OpenRouterChatModel))
                 config.OpenRouterChatModel = "deepseek/deepseek-v3.2";
             if (string.IsNullOrWhiteSpace(config.OpenRouterEmbeddingModel))
@@ -106,8 +106,7 @@ public partial class ActivationWindow : Window
             }
 
             var config = await LoadConfigAsync();
-            config.PiOAuthProvider = config.PiOAuthModel = null;
-            config.DeepSeekKey = config.OpenRouterKey = null;
+            config.PreferredTextProvider = ModelAccessMode.Hosted;
             await _configService.SaveAsync(config);
             Complete($"激活成功，剩余额度：{FormatQuota(result.QuotaRemaining)}。");
         }
@@ -149,6 +148,40 @@ public partial class ActivationWindow : Window
     {
         DialogResult = false;
     }
+
+    private async Task RefreshSelectionAsync()
+    {
+        try
+        {
+            var config = await _configService.LoadAsync();
+            var choices = new List<ModelChoice>();
+            if (ModelAccess.IsConfigured(config, ModelAccessMode.DeepSeekAndQwen)) choices.Add(new(ModelAccessMode.DeepSeekAndQwen, "DeepSeek（配置文件 / 环境变量）"));
+            if (ModelAccess.IsConfigured(config, ModelAccessMode.PiOAuth)) choices.Add(new(ModelAccessMode.PiOAuth, $"OAuth · {config.PiOAuthProvider} / {config.PiOAuthModel}"));
+            if (ModelAccess.IsConfigured(config, ModelAccessMode.OpenRouter)) choices.Add(new(ModelAccessMode.OpenRouter, $"OpenRouter · {config.OpenRouterChatModel}"));
+            if (ModelAccess.IsConfigured(config, ModelAccessMode.Hosted)) choices.Add(new(ModelAccessMode.Hosted, "ReciteHelper 托管服务"));
+            ActiveModelBox.ItemsSource = choices;
+            ActiveModelBox.SelectedValue = ModelAccess.Resolve(config);
+            UseSelectedModelButton.IsEnabled = choices.Count > 0;
+            DeepSeekSection.IsExpanded = choices.Count == 0;
+        }
+        catch (Exception ex) { ShowError($"读取模型配置失败：{ex.Message}"); }
+    }
+
+    private async void UseSelectedModel_Click(object sender, RoutedEventArgs e)
+    {
+        if (ActiveModelBox.SelectedItem is not ModelChoice choice) return;
+        try
+        {
+            var config = await _configService.LoadAsync();
+            if (!ModelAccess.IsConfigured(config, choice.Mode)) throw new InvalidOperationException("所选服务配置已变化，请重新打开设置。");
+            config.PreferredTextProvider = choice.Mode;
+            await _configService.SaveAsync(config);
+            Complete($"已选择 {choice.Name}。");
+        }
+        catch (Exception ex) { ShowError($"切换模型失败：{ex.Message}"); }
+    }
+
+    private sealed record ModelChoice(ModelAccessMode Mode, string Name);
 
     private async Task<ConfigOptions> LoadConfigAsync()
     {

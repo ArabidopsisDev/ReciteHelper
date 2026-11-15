@@ -13,9 +13,10 @@ public partial class EssayQuestionControl : UserControl
         InitializeComponent();
     }
 
-    public void SetQuestion(ExamQuestionItem item, bool isExamActive)
+    public void SetQuestion(ExamQuestionItem item, bool isExamActive, bool showAnswer = true)
     {
         _item = item;
+        AnswerBorder.Visibility = showAnswer ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed;
         NumberRun.Text = $"{item.Number}. ";
         ScoreRun.Text = $"{item.ScoreLabel} ";
         QuestionRun.Text = item.QuestionText;

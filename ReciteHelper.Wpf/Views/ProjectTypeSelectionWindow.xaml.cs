@@ -29,6 +29,14 @@ namespace ReciteHelper.Wpf.Views {
             {
                 new ProjectType
                 {
+                    Id = 5,
+                    TypeName = "规则化复习项目",
+                    Description = "适用于无复习资料pdf且复习时间较为紧急的情况。",
+                    IconPath = "pack://application:,,,/ReciteHelper.Wpf;component/Images/type_classical.png",
+                    TemplateType = ProjectTemplateType.RuleBasedReview
+                },
+                new ProjectType
+                {
                     Id = 1,
                     TypeName = "经典复习项目",
                     Description = "适用于偏文科类的经典ReciteHelper复习项目，可以将复习资料整理为知识点，以及生成常规的填空题和解答题题库用于复习。",
@@ -50,6 +58,14 @@ namespace ReciteHelper.Wpf.Views {
                     Description = "适用于资料被分为多个文件的，以及文件类型繁杂不易被处理的情况，该项目将把所有的资料文件合并为一个文件供创建其它项目使用。",
                     IconPath = "pack://application:,,,/ReciteHelper.Wpf;component/Images/type_pdf.png",
                     TemplateType = ProjectTemplateType.PDFMerge
+                },
+                new ProjectType
+                {
+                    Id = 4,
+                    TypeName = "旮旯给木",
+                    Description = "适用于复习科目偏向于文科，且难以背诵的情况。ciallo (∠·ω )⌒★ 来跟你的知识点们谈一场美妙的恋爱吧~",
+                    IconPath = "pack://application:,,,/ReciteHelper.Wpf;component/Images/type_girl.png",
+                    TemplateType = ProjectTemplateType.GalGame
                 }
             };
 

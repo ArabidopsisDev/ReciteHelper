@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using ReciteHelper.Core.Interfaces.Configuration;
+using ReciteHelper.Core.Configuration;
 using ReciteHelper.Core.Interfaces.Services;
 
 namespace ReciteHelper.Wpf.Views;
@@ -113,6 +114,7 @@ public partial class PiOAuthWindow : Window
             var config = await _config.LoadAsync();
             config.PiOAuthProvider = provider.Id;
             config.PiOAuthModel = model.Id;
+            config.PreferredTextProvider = ModelAccessMode.PiOAuth;
             config.PiOAuthGitHubEnterpriseDomain = EnterpriseDomainBox.Text.Trim();
             config.QwenKey = QwenEmbeddingKeyBox.Password.Trim();
             await _config.SaveAsync(config);

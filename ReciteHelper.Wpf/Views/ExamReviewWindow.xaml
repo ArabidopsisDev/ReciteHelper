@@ -5,6 +5,7 @@
     xmlns:c="clr-namespace:ReciteHelper.Wpf.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:ReciteHelper.Wpf"
+    xmlns:controls="clr-namespace:ReciteHelper.Wpf.Controls"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     Title="考试答案回顾"
     Width="1120"
@@ -181,12 +182,13 @@
                                             FontWeight="SemiBold"
                                             Foreground="#495057"
                                             Text="您的答案" />
-                                        <TextBlock
+                                        <controls:AiAnnotatedAnswer
                                             Margin="0,5,0,0"
                                             FontSize="13"
                                             Foreground="#333333"
                                             LineHeight="20"
-                                            Text="{Binding UserAnswer}"
+                                            FallbackText="{Binding UserAnswer}"
+                                            Assessment="{Binding AiAssessment}"
                                             TextWrapping="Wrap" />
                                     </StackPanel>
                                 </Border>

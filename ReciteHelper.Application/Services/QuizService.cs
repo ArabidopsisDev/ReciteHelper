@@ -12,12 +12,14 @@ public class QuizService : IQuizService
     private readonly IConfigService _configService;
     private readonly IAnswerJudge _judgeService;
     private readonly IReviewScheduler _scheduler;
+    private readonly IAiAnswerGrader _aiGrader;
 
-    public QuizService(IConfigService configService, IAnswerJudge judgeService, IReviewScheduler scheduler)
+    public QuizService(IConfigService configService, IAnswerJudge judgeService, IReviewScheduler scheduler, IAiAnswerGrader aiGrader)
     {
         _configService = configService;
         _judgeService = judgeService;
         _scheduler = scheduler;
+        _aiGrader = aiGrader;
     }
 
     public async Task<AnswerResult> ProcessAnswerAsync(Project project, Question question, string userAnswer, DateTime startTime)
@@ -25,11 +27,16 @@ public class QuizService : IQuizService
         ArgumentNullException.ThrowIfNull(project);
         ArgumentNullException.ThrowIfNull(question);
         userAnswer ??= string.Empty;
+        var submittedAt = DateTime.Now;
 
-        var (isCorrect, similarity) = await EvaluateAnswerAsync(question, userAnswer);
+        var assessment = project.TemplateType == Core.Enums.ProjectTemplateType.RuleBasedReview || question.RequiresAiGrading
+            ? await _aiGrader.GradeAsync(question, userAnswer) : null;
+        var (isCorrect, similarity) = assessment is not null
+            ? (assessment.IsCorrect, assessment.ScoreRatio)
+            : await EvaluateAnswerAsync(question, userAnswer);
 
         var config = await _configService.LoadAsync();
-        var now = DateTime.Now;
+        var now = submittedAt;
         var responseSeconds = Math.Max(0d, (now - startTime).TotalSeconds);
         var rate = userAnswer.Length / Math.Max(0.1d, responseSeconds);
         var rRelative = config.RStandard > 0 ? rate / config.RStandard : 0d;
@@ -55,9 +62,11 @@ public class QuizService : IQuizService
         };
         reviewTag.SetId(question.ReviewTag.Count + 1);
         question.ReviewTag.Add(reviewTag);
+        if (assessment is not null) question.LastAiAssessment = assessment;
 
         return new AnswerResult
         {
+            AiAssessment = assessment,
             IsCorrect = isCorrect,
             Similarity = similarity,
             RRelative = rRelative,

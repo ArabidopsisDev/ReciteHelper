@@ -1,65 +1,23 @@
-﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    <!--  Base styles  -->
-    <Style x:Key="BaseAnswerCardStyle" TargetType="Button">
-        <Setter Property="Width" Value="40" />
-        <Setter Property="Height" Value="40" />
-        <Setter Property="Margin" Value="2" />
-        <Setter Property="FontSize" Value="14" />
-        <Setter Property="FontWeight" Value="Bold" />
-        <Setter Property="Template">
-            <Setter.Value>
-                <ControlTemplate TargetType="Button">
-                    <Border
-                        x:Name="Border"
-                        Background="{TemplateBinding Background}"
-                        BorderBrush="{TemplateBinding BorderBrush}"
-                        BorderThickness="{TemplateBinding BorderThickness}"
-                        CornerRadius="4">
-                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
-                    </Border>
-                </ControlTemplate>
-            </Setter.Value>
-        </Setter>
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Style x:Key="BaseAnswerCardStyle" TargetType="Button" BasedOn="{StaticResource BaseButtonStyle}">
+        <Setter Property="Width" Value="36" /><Setter Property="Height" Value="36" /><Setter Property="MinHeight" Value="36" />
+        <Setter Property="Margin" Value="3" /><Setter Property="Padding" Value="0" /><Setter Property="FontSize" Value="13" />
     </Style>
-
-    <!--  Unanswered styles  -->
-    <Style
-        x:Key="NotAnsweredCardStyle"
-        BasedOn="{StaticResource BaseAnswerCardStyle}"
-        TargetType="Button">
-        <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
-        <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
-        <Setter Property="BorderThickness" Value="1" />
+    <Style x:Key="AnswerCardButtonStyle" TargetType="Button" BasedOn="{StaticResource BaseAnswerCardStyle}" />
+    <Style x:Key="NotAnsweredCardStyle" TargetType="Button" BasedOn="{StaticResource BaseAnswerCardStyle}" />
+    <Style x:Key="CorrectAnswerStyle" TargetType="Button" BasedOn="{StaticResource BaseAnswerCardStyle}">
+        <Setter Property="Background" Value="{DynamicResource ArcSuccessSubtle}" /><Setter Property="Foreground" Value="{DynamicResource ArcSuccess}" /><Setter Property="BorderBrush" Value="{DynamicResource ArcSuccess}" />
     </Style>
-
-    <!--  Correct styles  -->
-    <Style
-        x:Key="CorrectAnswerCardStyle"
-        BasedOn="{StaticResource BaseAnswerCardStyle}"
-        TargetType="Button">
-        <Setter Property="Background" Value="{StaticResource SuccessLightBrush}" />
-        <Setter Property="BorderBrush" Value="{StaticResource SuccessBrush}" />
-        <Setter Property="BorderThickness" Value="1" />
+    <Style x:Key="WrongAnswerStyle" TargetType="Button" BasedOn="{StaticResource BaseAnswerCardStyle}">
+        <Setter Property="Background" Value="{DynamicResource ArcDangerSubtle}" /><Setter Property="Foreground" Value="{DynamicResource ArcDanger}" /><Setter Property="BorderBrush" Value="{DynamicResource ArcDanger}" />
     </Style>
-
-    <!--  Error styles  -->
-    <Style
-        x:Key="WrongAnswerCardStyle"
-        BasedOn="{StaticResource BaseAnswerCardStyle}"
-        TargetType="Button">
-        <Setter Property="Background" Value="{StaticResource ErrorLightBrush}" />
-        <Setter Property="BorderBrush" Value="{StaticResource ErrorBrush}" />
-        <Setter Property="BorderThickness" Value="1" />
+    <Style x:Key="CurrentQuestionStyle" TargetType="Button" BasedOn="{StaticResource BaseAnswerCardStyle}">
+        <Setter Property="Background" Value="{DynamicResource ArcAccentSubtle}" /><Setter Property="Foreground" Value="{DynamicResource ArcAccent}" /><Setter Property="BorderBrush" Value="{DynamicResource ArcAccent}" /><Setter Property="BorderThickness" Value="2" /><Setter Property="FontWeight" Value="SemiBold" />
     </Style>
-
-    <!--  Current styles  -->
-    <Style
-        x:Key="CurrentQuestionCardStyle"
-        BasedOn="{StaticResource BaseAnswerCardStyle}"
-        TargetType="Button">
-        <Setter Property="BorderBrush" Value="#FF2196F3" />
-        <Setter Property="BorderThickness" Value="3" />
-        <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
+    <Style x:Key="CorrectAnswerCardStyle" TargetType="Button" BasedOn="{StaticResource CorrectAnswerStyle}" />
+    <Style x:Key="WrongAnswerCardStyle" TargetType="Button" BasedOn="{StaticResource WrongAnswerStyle}" />
+    <Style x:Key="CurrentQuestionCardStyle" TargetType="Button" BasedOn="{StaticResource CurrentQuestionStyle}" />
+    <Style x:Key="AnsweredCardStyle" TargetType="Button" BasedOn="{StaticResource BaseAnswerCardStyle}">
+        <Setter Property="Background" Value="{DynamicResource ArcAccentSubtle}" />
     </Style>
-
 </ResourceDictionary>

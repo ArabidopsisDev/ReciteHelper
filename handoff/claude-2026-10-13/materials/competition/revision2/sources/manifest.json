@@ -1,0 +1,22 @@
+[
+  {
+    "file": "sysu.html",
+    "url": "https://bus.sysu.edu.cn/mba/article/1712",
+    "sha256": "56b3227f14a1c08903b7c2add1500644f05052f1de46f6e858248762a3538862"
+  },
+  {
+    "file": "lnpu.html",
+    "url": "https://tuanwei.lnpu.edu.cn/info/1111/2521.htm",
+    "sha256": "5b8bd0a958879e731a4b9d573e81646f90e1fe753d7ebb2ba549518d2d2509a5"
+  },
+  {
+    "file": "fudan.html",
+    "url": "https://events.fdsm.fudan.edu.cn/web/event/7688",
+    "sha256": "19e9899ce8e00c7e106e46d9640c2b339245942568155af5ae425995fab07c57"
+  },
+  {
+    "file": "lvliang.html",
+    "url": "https://jwc.llu.edu.cn/info/1875/11945.htm",
+    "sha256": "e7564c8ff2a86363769dcf1470d63eb247c55520b01e1833d62b86b0ae982138"
+  }
+]

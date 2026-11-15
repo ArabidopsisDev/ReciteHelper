@@ -1,346 +1,60 @@
-<Window
-    x:Class="ReciteHelper.Wpf.Views.SelectChapterWindow"
-    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:conv="clr-namespace:ReciteHelper.Wpf.Converters"
-    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:local="clr-namespace:ReciteHelper.Wpf"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    Title="章节选择 - ReciteHelper"
-    Width="1000"
-    Height="600"
-    Background="#F5F7F9"
-    ResizeMode="NoResize"
-    WindowStartupLocation="CenterOwner"
-    mc:Ignorable="d">
-
-    <Window.Resources>
-        <Style x:Key="ChapterCardStyle" TargetType="Border">
-            <Setter Property="Background" Value="White" />
-            <Setter Property="BorderBrush" Value="#E9ECEF" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="8" />
-            <Setter Property="Padding" Value="0" />
-        </Style>
-
-        <!--  Suturing human and AI code...  -->
-        <Style x:Key="MenuItemStyle" TargetType="MenuItem">
-            <Setter Property="Height" Value="32" />
-            <Setter Property="HorizontalContentAlignment" Value="Left" />
-            <Setter Property="VerticalContentAlignment" Value="Center" />
-            <Setter Property="Background" Value="Transparent" />
-            <Setter Property="Foreground" Value="#333333" />
-            <Setter Property="FontSize" Value="13" />
-            <Setter Property="Cursor" Value="Hand" />
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#007ACC" />
-                    <Setter Property="Foreground" Value="White" />
-                </Trigger>
-            </Style.Triggers>
-        </Style>
-
-        <Style x:Key="MenuIconStyle" TargetType="Image">
-            <Setter Property="Width" Value="16" />
-            <Setter Property="Height" Value="16" />
-            <Setter Property="Margin" Value="0,0,8,0" />
-            <Setter Property="Stretch" Value="Uniform" />
-        </Style>
-
-        <Style x:Key="SecondaryButtonStyle" TargetType="Button">
-            <Setter Property="Background" Value="Transparent" />
-            <Setter Property="Foreground" Value="#666666" />
-            <Setter Property="BorderBrush" Value="#DDDDDD" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="Padding" Value="20,10" />
-            <Setter Property="FontSize" Value="13" />
-            <Setter Property="FontWeight" Value="SemiBold" />
-            <Setter Property="Cursor" Value="Hand" />
-            <Setter Property="MinWidth" Value="20" />
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#F8F9FA" />
-                    <Setter Property="BorderBrush" Value="#007ACC" />
-                </Trigger>
-            </Style.Triggers>
-        </Style>
-
-        <Style x:Key="ChapterButtonStyle" TargetType="Button">
-            <Setter Property="Background" Value="Transparent" />
-            <Setter Property="BorderThickness" Value="0" />
-            <Setter Property="Padding" Value="0" />
-            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-            <Setter Property="VerticalContentAlignment" Value="Stretch" />
-            <Setter Property="Cursor" Value="Hand" />
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#F8F9FA" />
-                </Trigger>
-            </Style.Triggers>
-        </Style>
-
-        <Style x:Key="MasteryProgressStyle" TargetType="ProgressBar">
-            <Setter Property="Height" Value="8" />
-            <Setter Property="Background" Value="#E9ECEF" />
-            <Setter Property="BorderThickness" Value="0" />
-        </Style>
-
-        <conv:MasteryLevelToColorConverter x:Key="MasteryLevelToColorConverter" />
-    </Window.Resources>
-
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-        </Grid.RowDefinitions>
-
-        <Border
-            Grid.Row="0"
-            Padding="20,15"
-            Background="White"
-            BorderBrush="#E9ECEF"
-            BorderThickness="0,0,0,1">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-
-                <StackPanel Grid.Column="0" Orientation="Horizontal">
-                    <StackPanel Orientation="Vertical">
-                        <TextBlock
-                            x:Name="ProjectNameText"
-                            FontSize="18"
-                            FontWeight="Bold"
-                            Foreground="#333333"
-                            Text="项目名称" />
-                        <TextBlock
-                            x:Name="ProjectPathText"
-                            Margin="0,4,0,0"
-                            FontSize="12"
-                            Foreground="#666666"
-                            Text="项目路径" />
-                    </StackPanel>
-
-                    <Button
-                        x:Name="SimulateButton"
-                        Margin="220,0,0,0"
-                        VerticalAlignment="Center"
-                        Click="SimulateButton_Click"
-                        Content="模拟考试"
-                        Style="{StaticResource SecondaryButtonStyle}" />
-                    <Button
-                        x:Name="KnowledgeButton"
-                        Margin="20,0,0,0"
-                        VerticalAlignment="Center"
-                        Click="KnowledgeButton_Click"
-                        Content="学习知识点"
-                        Style="{StaticResource SecondaryButtonStyle}" />
-                    <Button
-                        x:Name="ExportButton"
-                        Margin="20,0,0,0"
-                        VerticalAlignment="Center"
-                        Click="ExportButton_Click"
-                        Content="功能菜单"
-                        Style="{StaticResource SecondaryButtonStyle}">
-                        <Button.ContextMenu>
-                            <ContextMenu x:Name="FunctionMenu">
-                                <MenuItem
-                                    Click="AddQuestionSourceMenuItem_Click"
-                                    Header="增加题目来源"
-                                    Style="{StaticResource MenuItemStyle}" />
-                                <MenuItem
-                                    Click="ImportExamMenuItem_Click"
-                                    Header="导入试卷（PDF/TXT/HTML/MHTML）"
-                                    Style="{StaticResource MenuItemStyle}" />
-                                <MenuItem
-                                    Click="ExportMenuItem_Click"
-                                    Header="导出"
-                                    Style="{StaticResource MenuItemStyle}" />
-                                <MenuItem
-                                    Click="ReviewMenuItem_Click"
-                                    Header="智能复习"
-                                    Style="{StaticResource MenuItemStyle}" />
-                            </ContextMenu>
-                        </Button.ContextMenu>
-                    </Button>
-                </StackPanel>
-
-                <StackPanel
-                    Grid.Column="1"
-                    Margin="0,0,20,0"
-                    HorizontalAlignment="Right"
-                    Orientation="Vertical">
-                    <TextBlock
-                        x:Name="CurrentTimeText"
-                        FontSize="12"
-                        Foreground="#666666"
-                        Text="2024-01-01 12:00:00" />
-                    <TextBlock
-                        x:Name="LastAccessedText"
-                        Margin="0,2,0,0"
-                        FontSize="11"
-                        Foreground="#888888"
-                        Text="最后访问：2024-01-01" />
-                </StackPanel>
-
-                <Button
-                    Grid.Column="2"
-                    Padding="15,8"
-                    Background="Transparent"
-                    BorderBrush="#DDDDDD"
-                    BorderThickness="1"
-                    Click="CloseButton_Click"
-                    Content="关闭"
-                    Cursor="Hand"
-                    FontSize="12">
-                    <Button.Style>
-                        <Style TargetType="Button">
-                            <Setter Property="Background" Value="Transparent" />
-                            <Setter Property="BorderBrush" Value="#DDDDDD" />
-                            <Style.Triggers>
-                                <Trigger Property="IsMouseOver" Value="True">
-                                    <Setter Property="Background" Value="#F8F9FA" />
-                                    <Setter Property="BorderBrush" Value="#007ACC" />
-                                </Trigger>
-                            </Style.Triggers>
-                        </Style>
-                    </Button.Style>
-                </Button>
+<Window x:Class="ReciteHelper.Wpf.Views.SelectChapterWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="章节选择 - ReciteHelper" Width="1060" Height="700" MinWidth="880" MinHeight="560"
+        WindowStartupLocation="CenterOwner" Style="{StaticResource AppWindowStyle}">
+    <Grid><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+        <Border Padding="28,24" BorderBrush="{DynamicResource ArcBorder}" BorderThickness="0,0,0,1">
+            <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                <StackPanel Margin="0,0,24,0"><TextBlock x:Name="ProjectNameText" Style="{StaticResource TitleTextStyle}" TextTrimming="CharacterEllipsis" /><TextBlock x:Name="ProjectPathText" Style="{StaticResource CaptionTextStyle}" Margin="0,6,0,0" TextTrimming="CharacterEllipsis" /></StackPanel>
+                <Button Grid.Column="1" Click="CloseButton_Click" Content="返回项目列表" VerticalAlignment="Center" />
             </Grid>
         </Border>
-
-        <Grid Grid.Row="1" Margin="20">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto" />
-                <RowDefinition Height="*" />
-            </Grid.RowDefinitions>
-
-            <StackPanel
-                Grid.Row="0"
-                Margin="0,0,0,20"
-                Orientation="Horizontal">
-                <TextBlock
-                    FontSize="16"
-                    FontWeight="Bold"
-                    Foreground="#333333"
-                    Text="章节列表" />
-                <TextBlock
-                    x:Name="ChapterStatsText"
-                    Margin="20,0,0,0"
-                    VerticalAlignment="Center"
-                    FontSize="13"
-                    Foreground="#666666"
-                    Text="共 0 个章节" />
-            </StackPanel>
-
-            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-                <ItemsControl x:Name="ChaptersItemsControl">
-                    <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <WrapPanel Orientation="Horizontal" />
-                        </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <Border
-                                Width="280"
-                                Height="140"
-                                Margin="10,10"
-                                Style="{StaticResource ChapterCardStyle}">
-                                <Button
-                                    Click="ChapterButton_Click"
-                                    Style="{StaticResource ChapterButtonStyle}"
-                                    Tag="{Binding}">
-                                    <Grid Margin="20">
-                                        <Grid.RowDefinitions>
-                                            <RowDefinition Height="Auto" />
-                                            <RowDefinition Height="*" />
-                                            <RowDefinition Height="Auto" />
-                                        </Grid.RowDefinitions>
-
-                                        <StackPanel
-                                            Grid.Row="0"
-                                            Margin="0,0,0,8"
-                                            Orientation="Horizontal">
-                                            <TextBlock
-                                                FontSize="16"
-                                                FontWeight="SemiBold"
-                                                Foreground="#333333"
-                                                Text="{Binding Chapter.Name}" />
-                                            <TextBlock
-                                                Margin="5,0,0,0"
-                                                FontSize="14"
-                                                Foreground="#666666"
-                                                Text="{Binding Chapter.Number, StringFormat=' (第{0}章)'}" />
-                                        </StackPanel>
-
-                                        <StackPanel
-                                            Grid.Row="1"
-                                            VerticalAlignment="Center"
-                                            Orientation="Horizontal">
-                                            <TextBlock
-                                                FontSize="13"
-                                                Foreground="#495057"
-                                                Text="{Binding QuestionCount, StringFormat='\{0\} 道题目'}" />
-                                        </StackPanel>
-
-                                        <StackPanel
-                                            Grid.Row="2"
-                                            Margin="0,8,0,0"
-                                            Orientation="Vertical">
-                                            <StackPanel Margin="0,0,0,4" Orientation="Horizontal">
-                                                <TextBlock
-                                                    FontSize="12"
-                                                    Foreground="#666666"
-                                                    Text="掌握度：" />
-                                                <TextBlock
-                                                    FontSize="12"
-                                                    FontWeight="SemiBold"
-                                                    Foreground="{Binding MasteryLevel, Converter={StaticResource MasteryLevelToColorConverter}}"
-                                                    Text="{Binding MasteryLevel, StringFormat='\{0:F0\}%'}" />
-                                            </StackPanel>
-                                            <ProgressBar
-                                                Foreground="{Binding MasteryLevel, Converter={StaticResource MasteryLevelToColorConverter}}"
-                                                Style="{StaticResource MasteryProgressStyle}"
-                                                Value="{Binding MasteryLevel}" />
-                                        </StackPanel>
-                                    </Grid>
-                                </Button>
-                            </Border>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-            </ScrollViewer>
-
-            <Border
-                x:Name="EmptyStatePanel"
-                Grid.Row="1"
-                Margin="10"
-                Padding="40"
-                Background="White"
-                BorderBrush="#E9ECEF"
-                BorderThickness="1"
-                CornerRadius="8"
-                Visibility="Collapsed">
-                <StackPanel
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Center"
-                    Orientation="Vertical">
-                    <TextBlock
-                        Margin="0,0,0,8"
-                        FontSize="16"
-                        FontWeight="SemiBold"
-                        Foreground="#666666"
-                        Text="暂无章节" />
-                    <TextBlock
-                        FontSize="13"
-                        Foreground="#888888"
-                        Text="当前项目还没有添加任何章节内容"
-                        TextAlignment="Center" />
-                </StackPanel>
+        <Border Grid.Row="1" Padding="28,16" BorderBrush="{DynamicResource ArcBorder}" BorderThickness="0,0,0,1">
+            <WrapPanel>
+                <Button x:Name="SmartReviewButton" Content="智能复习" Click="ReviewMenuItem_Click" Style="{StaticResource PrimaryButtonStyle}" Margin="0,0,8,0" ToolTip="从项目所有聚类中安排复习题目" />
+                <Button x:Name="SimulateButton" Click="SimulateButton_Click" Content="模拟考试" Margin="0,0,8,0" />
+                <Button x:Name="KnowledgeButton" Click="KnowledgeButton_Click" Content="学习知识点" Margin="0,0,8,0" />
+                <Button x:Name="ExportButton" Click="ExportButton_Click" Content="功能菜单">
+                    <Button.ContextMenu><ContextMenu x:Name="FunctionMenu">
+                        <MenuItem Click="AddQuestionSourceMenuItem_Click" Header="增加题目来源" />
+                        <MenuItem Click="ImportExamMenuItem_Click" Header="导入试卷（PDF/TXT/HTML/MHTML）" />
+                        <MenuItem Click="ExportMenuItem_Click" Header="导出" />
+                        <MenuItem Click="GameMenuItem_Click" Header="运行游戏" />
+                        <MenuItem Click="ReviewMenuItem_Click" Header="智能复习" />
+                    </ContextMenu></Button.ContextMenu>
+                </Button>
+            </WrapPanel>
+        </Border>
+        <Grid Grid.Row="2" Margin="28,24"><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions>
+            <Grid Margin="0,0,0,20"><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                <TextBlock Text="章节与聚类" Style="{StaticResource SectionLabelTextStyle}" /><TextBlock x:Name="ChapterStatsText" Grid.Column="1" Style="{StaticResource CaptionTextStyle}" VerticalAlignment="Center" />
+            </Grid>
+            <Border Grid.Row="1" Background="{DynamicResource ArcSurfaceMuted}" BorderBrush="{DynamicResource ArcBorder}" BorderThickness="0,1" Padding="16,10">
+                <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="100" /><ColumnDefinition Width="180" /><ColumnDefinition Width="32" /></Grid.ColumnDefinitions>
+                    <TextBlock Text="名称" Style="{StaticResource CaptionTextStyle}" /><TextBlock Grid.Column="1" Text="题目" Style="{StaticResource CaptionTextStyle}" /><TextBlock Grid.Column="2" Text="掌握程度" Style="{StaticResource CaptionTextStyle}" />
+                </Grid>
             </Border>
+            <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                <ItemsControl x:Name="ChaptersItemsControl"><ItemsControl.ItemTemplate><DataTemplate>
+                    <Border BorderBrush="{DynamicResource ArcBorder}" BorderThickness="0,0,0,1">
+                        <Button Click="ChapterButton_Click" Tag="{Binding}" Style="{StaticResource ListRowButtonStyle}" Padding="16,18">
+                            <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="100" /><ColumnDefinition Width="180" /><ColumnDefinition Width="32" /></Grid.ColumnDefinitions>
+                                <TextBlock Text="{Binding Chapter.Name}" FontWeight="SemiBold" VerticalAlignment="Center" TextWrapping="Wrap" Margin="0,0,16,0" />
+                                <TextBlock Grid.Column="1" Text="{Binding QuestionCount, StringFormat={}{0} 道}" VerticalAlignment="Center" Foreground="{DynamicResource ArcTextSecondary}" />
+                                <Grid Grid.Column="2" Margin="0,0,20,0"><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                                    <TextBlock Text="{Binding MasteryLevel, StringFormat={}{0:F0}%}" Foreground="{DynamicResource ArcTextSecondary}" FontSize="12" Margin="0,0,0,6" />
+                                    <ProgressBar Grid.Row="1" Height="3" Minimum="0" Maximum="100" Value="{Binding MasteryLevel}" Foreground="{DynamicResource ArcAccent}" Background="{DynamicResource ArcBorder}" BorderThickness="0" />
+                                </Grid>
+                                <TextBlock Grid.Column="3" Text="&#xE76C;" Style="{StaticResource IconGlyphStyle}" FontSize="14" HorizontalAlignment="Right" />
+                            </Grid>
+                        </Button>
+                    </Border>
+                </DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
+            </ScrollViewer>
+            <StackPanel x:Name="EmptyStatePanel" Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Center" Visibility="Collapsed"><TextBlock Text="暂无章节" Style="{StaticResource SectionLabelTextStyle}" /><TextBlock Text="通过功能菜单增加题目来源或导入试卷。" Style="{StaticResource SubtitleTextStyle}" Margin="0,8,0,0" /></StackPanel>
         </Grid>
+        <Border Grid.Row="3" Padding="28,12" BorderBrush="{DynamicResource ArcBorder}" BorderThickness="0,1,0,0">
+            <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions><TextBlock x:Name="LastAccessedText" Style="{StaticResource CaptionTextStyle}" /><TextBlock x:Name="CurrentTimeText" Grid.Column="1" Style="{StaticResource CaptionTextStyle}" /></Grid>
+        </Border>
     </Grid>
 </Window>

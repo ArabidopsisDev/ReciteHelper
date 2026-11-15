@@ -1,0 +1,124 @@
+{
+  "retrievedAtUtc": "2026-10-13T04:03:28.1728484Z",
+  "commit": "6f8d05087b2a91e445ad986545977fda7eb1b6a4",
+  "commitDate": "2026-09-23T15:05:32Z",
+  "records": [
+    {
+      "path": "README.md",
+      "url": "https://raw.githubusercontent.com/ZebangCheng/Emotion-LLaMA/6f8d05087b2a91e445ad986545977fda7eb1b6a4/README.md",
+      "saved": "D:\\Projects\\OpenRecite\\research\\2026-10-13-knowledge-emotion-fsrs\\evidence\\emotion-llama\\README.md",
+      "sha256": "E7F0AA97905C530F510FE4999FEC46BE4699F92429E7A807911DE957AA35880E",
+      "status": "saved"
+    },
+    {
+      "path": "LICENSE.md",
+      "url": "https://raw.githubusercontent.com/ZebangCheng/Emotion-LLaMA/6f8d05087b2a91e445ad986545977fda7eb1b6a4/LICENSE.md",
+      "saved": "D:\\Projects\\OpenRecite\\research\\2026-10-13-knowledge-emotion-fsrs\\evidence\\emotion-llama\\LICENSE.md",
+      "sha256": "E0E4816D0291B69FD1E9196D201C6C599A6423EA89C1C99AE75ABF2C49D65DD4",
+      "status": "saved"
+    },
+    {
+      "path": "LICENSE_EULA.md",
+      "url": "https://raw.githubusercontent.com/ZebangCheng/Emotion-LLaMA/6f8d05087b2a91e445ad986545977fda7eb1b6a4/LICENSE_EULA.md",
+      "saved": "D:\\Projects\\OpenRecite\\research\\2026-10-13-knowledge-emotion-fsrs\\evidence\\emotion-llama\\LICENSE_EULA.md",
+      "sha256": "A212F988F44F6560EFE8E9B2E7146A0E96B3A60197CC40F6AA5884636E007B6F",
+      "status": "saved"
+    },
+    {
+      "path": "LICENSE_MiniGPT4.md",
+      "url": "https://raw.githubusercontent.com/ZebangCheng/Emotion-LLaMA/6f8d05087b2a91e445ad986545977fda7eb1b6a4/LICENSE_MiniGPT4.md",
+      "saved": "D:\\Projects\\OpenRecite\\research\\2026-10-13-knowledge-emotion-fsrs\\evidence\\emotion-llama\\LICENSE_MiniGPT4.md",
+      "sha256": "35641484CF5B1B9581F55073D84787ED9FB94A523CBAF9D671519917D8FC0AAE",
+      "status": "saved"
+    },
+    {
+      "path": "app.py",
+      "url": "https://raw.githubusercontent.com/ZebangCheng/Emotion-LLaMA/6f8d05087b2a91e445ad986545977fda7eb1b6a4/app.py",
+      "saved": "D:\\Projects\\OpenRecite\\research\\2026-10-13-knowledge-emotion-fsrs\\evidence\\emotion-llama\\app.py",
+      "sha256": "562DB2F78F36A4EADF846A826CAB2E76336E7D6CDD3128466E08A07DE37B397D",
+      "status": "saved"
+    },
+    {
+      "path": "environment.yaml",
+      "url": "https://raw.githubusercontent.com/ZebangCheng/Emotion-LLaMA/6f8d05087b2a91e445ad986545977fda7eb1b6a4/environment.yaml",
+      "saved": "D:\\Projects\\OpenRecite\\research\\2026-10-13-knowledge-emotion-fsrs\\evidence\\emotion-llama\\environment.yaml",
+      "sha256": "71342D8AF0062778E7F6AE53B10617B796D53747757C7437552BADB329F7D726",
+      "status": "saved"
+    },
+    {
+      "path": "eval_configs/demo.yaml",
+      "url": "https://raw.githubusercontent.com/ZebangCheng/Emotion-LLaMA/6f8d05087b2a91e445ad986545977fda7eb1b6a4/eval_configs/demo.yaml",
+      "saved": "D:\\Projects\\OpenRecite\\research\\2026-10-13-knowledge-emotion-fsrs\\evidence\\emotion-llama\\eval_configs__demo.yaml",
+      "sha256": "E4BA86DFFF22AC04F33DB2A673E85BF1380A045D5CEF100888A8DDAFDBE548A2",
+      "status": "saved"
+    },
+    {
+      "path": "minigpt4/models/minigpt_v2.py",
+      "url": "https://raw.githubusercontent.com/ZebangCheng/Emotion-LLaMA/6f8d05087b2a91e445ad986545977fda7eb1b6a4/minigpt4/models/minigpt_v2.py",
+      "saved": "D:\\Projects\\OpenRecite\\research\\2026-10-13-knowledge-emotion-fsrs\\evidence\\emotion-llama\\minigpt4__models__minigpt_v2.py",
+      "sha256": "00EF93F9B6BB2E620294D751BF0EC97B63464B327908E1CD198B299019091595",
+      "status": "saved"
+    },
+    {
+      "path": "docs/getting-started/installation.md",
+      "url": "https://raw.githubusercontent.com/ZebangCheng/Emotion-LLaMA/6f8d05087b2a91e445ad986545977fda7eb1b6a4/docs/getting-started/installation.md",
+      "status": "Response status code does not indicate success: 404 (Not Found)."
+    },
+    {
+      "path": "docs/api/batch-inference.md",
+      "url": "https://raw.githubusercontent.com/ZebangCheng/Emotion-LLaMA/6f8d05087b2a91e445ad986545977fda7eb1b6a4/docs/api/batch-inference.md",
+      "saved": "D:\\Projects\\OpenRecite\\research\\2026-10-13-knowledge-emotion-fsrs\\evidence\\emotion-llama\\docs__api__batch-inference.md",
+      "sha256": "288753241972DFB5CEEAB14A237854A5117A50F23E18C53D0849EC43CD60E7C7",
+      "status": "saved"
+    },
+    {
+      "path": "batch_infer.py",
+      "url": "https://raw.githubusercontent.com/ZebangCheng/Emotion-LLaMA/6f8d05087b2a91e445ad986545977fda7eb1b6a4/batch_infer.py",
+      "saved": "D:\\Projects\\OpenRecite\\research\\2026-10-13-knowledge-emotion-fsrs\\evidence\\emotion-llama\\batch_infer.py",
+      "sha256": "AE5744CEBD9B37616A030748654BFCC1D9ADD8EDC8113542E8DD6EB8EEA78195",
+      "status": "saved"
+    },
+    {
+      "path": "minigpt4/conversation/conversation.py",
+      "url": "https://raw.githubusercontent.com/ZebangCheng/Emotion-LLaMA/6f8d05087b2a91e445ad986545977fda7eb1b6a4/minigpt4/conversation/conversation.py",
+      "saved": "D:\\Projects\\OpenRecite\\research\\2026-10-13-knowledge-emotion-fsrs\\evidence\\emotion-llama\\minigpt4__conversation__conversation.py",
+      "sha256": "F6FC94E0349E404FBA8A0BE2F231D099769F2706C6B888C3FB8C990A5B91FA64",
+      "status": "saved"
+    },
+    {
+      "path": "minigpt4/inference/runtime.py",
+      "url": "https://raw.githubusercontent.com/ZebangCheng/Emotion-LLaMA/6f8d05087b2a91e445ad986545977fda7eb1b6a4/minigpt4/inference/runtime.py",
+      "saved": "D:\\Projects\\OpenRecite\\research\\2026-10-13-knowledge-emotion-fsrs\\evidence\\emotion-llama\\minigpt4__inference__runtime.py",
+      "sha256": "9ACA1FB05ECB9A7A80A5C7540518E49A265EBE108BDD21B98F17B15BE19C76C8",
+      "status": "saved"
+    },
+    {
+      "path": "minigpt4/models/minigpt_base.py",
+      "url": "https://raw.githubusercontent.com/ZebangCheng/Emotion-LLaMA/6f8d05087b2a91e445ad986545977fda7eb1b6a4/minigpt4/models/minigpt_base.py",
+      "saved": "D:\\Projects\\OpenRecite\\research\\2026-10-13-knowledge-emotion-fsrs\\evidence\\emotion-llama\\minigpt4__models__minigpt_base.py",
+      "sha256": "4B70B73F37EA5AE7D1D15DCFC69B502FB4AAEC436E2B01BDAA03BDF3A681F43D",
+      "status": "saved"
+    },
+    {
+      "path": "docs/getting-started/index.md",
+      "url": "https://raw.githubusercontent.com/ZebangCheng/Emotion-LLaMA/6f8d05087b2a91e445ad986545977fda7eb1b6a4/docs/getting-started/index.md",
+      "saved": "D:\\Projects\\OpenRecite\\research\\2026-10-13-knowledge-emotion-fsrs\\evidence\\emotion-llama\\docs__getting-started__index.md",
+      "sha256": "B5B3C5505E549B836389332162CAC7271A42899364997B388F5E93343B6F1F41",
+      "status": "saved"
+    },
+    {
+      "path": "docs/about/license.md",
+      "url": "https://raw.githubusercontent.com/ZebangCheng/Emotion-LLaMA/6f8d05087b2a91e445ad986545977fda7eb1b6a4/docs/about/license.md",
+      "saved": "D:\\Projects\\OpenRecite\\research\\2026-10-13-knowledge-emotion-fsrs\\evidence\\emotion-llama\\docs__about__license.md",
+      "sha256": "E1485ECE3496C567273C4C9D1EE74715D11C7050765B3B29185C35FA4DEE4839",
+      "status": "saved"
+    },
+    {
+      "path": "minigpt4/models/base_model.py",
+      "url": "https://raw.githubusercontent.com/ZebangCheng/Emotion-LLaMA/6f8d05087b2a91e445ad986545977fda7eb1b6a4/minigpt4/models/base_model.py",
+      "saved": "D:\\Projects\\OpenRecite\\research\\2026-10-13-knowledge-emotion-fsrs\\evidence\\emotion-llama\\minigpt4__models__base_model.py",
+      "sha256": "65257AEB94B1FA9678A85D5D77DABC28E0A413285E2ABCC1845DD9E6CB371D08",
+      "status": "saved"
+    }
+  ]
+}

@@ -55,6 +55,12 @@ public class Question : Entity
     [JsonPropertyName("correct_answer")]
     public string? CorrectAnswer { get; set; }
 
+    [JsonPropertyName("requires_ai_grading")]
+    public bool RequiresAiGrading { get; set; }
+
+    [JsonPropertyName("last_ai_assessment")]
+    public DTOs.AiAnswerAssessment? LastAiAssessment { get; set; }
+
     /// <summary>
     /// Legacy SM-2 easiness factor.  Retained so that project files written by earlier
     /// versions still load; scheduling no longer reads or updates it.

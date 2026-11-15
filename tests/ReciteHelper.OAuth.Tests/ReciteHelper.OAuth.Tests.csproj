@@ -13,6 +13,7 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <ProjectReference Include="../../ReciteHelper.Infrastructure/ReciteHelper.Infrastructure.csproj" />
+    <ProjectReference Include="../../ReciteHelper.Application/ReciteHelper.Application.csproj" />
     <Using Include="Xunit" />
   </ItemGroup>
 </Project>

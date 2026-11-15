@@ -10,6 +10,7 @@ public class ConfigOptions
 
     public string Version { get; set; } = "v3";
     public string? DeepSeekKey { get; set; }
+    public ModelAccessMode PreferredTextProvider { get; set; } = ModelAccessMode.None;
     public string? QwenKey { get; set; }
     public string? OpenRouterKey { get; set; }
     public string OpenRouterChatModel { get; set; } = "deepseek/deepseek-v3.2";

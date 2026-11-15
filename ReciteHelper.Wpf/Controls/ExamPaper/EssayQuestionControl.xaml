@@ -13,6 +13,7 @@
             <Run x:Name="QuestionRun" />
         </TextBlock>
         <Border
+            x:Name="AnswerBorder"
             Margin="18,7,0,0"
             Background="#FFFEFB"
             BorderBrush="#AFAFAF"

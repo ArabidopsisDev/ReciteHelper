@@ -4,5 +4,7 @@ public enum ProjectTemplateType
 {
     ClassicalReview,
     FlashCard,
-    PDFMerge
+    PDFMerge,
+    GalGame,
+    RuleBasedReview
 }

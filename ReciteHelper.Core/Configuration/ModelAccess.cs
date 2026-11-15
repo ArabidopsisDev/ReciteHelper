@@ -16,12 +16,14 @@ public static class ModelAccess
         if (config is null)
             return ModelAccessMode.None;
 
+        if (config.PreferredTextProvider != ModelAccessMode.None)
+            return IsConfigured(config, config.PreferredTextProvider) ? config.PreferredTextProvider : ModelAccessMode.None;
+
         if (!string.IsNullOrWhiteSpace(config.PiOAuthProvider) &&
             !string.IsNullOrWhiteSpace(config.PiOAuthModel))
             return ModelAccessMode.PiOAuth;
 
-        if (!string.IsNullOrWhiteSpace(config.DeepSeekKey) &&
-            !string.IsNullOrWhiteSpace(config.QwenKey))
+        if (!string.IsNullOrWhiteSpace(config.DeepSeekKey))
             return ModelAccessMode.DeepSeekAndQwen;
 
         if (!string.IsNullOrWhiteSpace(config.OpenRouterKey))
@@ -36,13 +38,21 @@ public static class ModelAccess
 
     public static bool HasTextGeneration(ConfigOptions? config) => Resolve(config) != ModelAccessMode.None;
 
+    public static bool IsConfigured(ConfigOptions config, ModelAccessMode mode) => mode switch
+    {
+        ModelAccessMode.PiOAuth => !string.IsNullOrWhiteSpace(config.PiOAuthProvider) && !string.IsNullOrWhiteSpace(config.PiOAuthModel),
+        ModelAccessMode.DeepSeekAndQwen => !string.IsNullOrWhiteSpace(config.DeepSeekKey),
+        ModelAccessMode.OpenRouter => !string.IsNullOrWhiteSpace(config.OpenRouterKey),
+        ModelAccessMode.Hosted => !string.IsNullOrWhiteSpace(config.HostedLicenseId) || !string.IsNullOrWhiteSpace(config.HostedLicenseCode),
+        _ => false
+    };
+
     public static ModelAccessMode ResolveEmbedding(ConfigOptions? config)
     {
-        if (Resolve(config) != ModelAccessMode.PiOAuth)
-            return Resolve(config);
-
-        // pi's chat OAuth providers do not expose a common embedding API.
-        if (!string.IsNullOrWhiteSpace(config!.QwenKey))
+        if (config is null) return ModelAccessMode.None;
+        var selected = Resolve(config);
+        if (selected is ModelAccessMode.OpenRouter or ModelAccessMode.Hosted) return selected;
+        if (!string.IsNullOrWhiteSpace(config.QwenKey))
             return ModelAccessMode.DeepSeekAndQwen;
         if (!string.IsNullOrWhiteSpace(config.OpenRouterKey))
             return ModelAccessMode.OpenRouter;

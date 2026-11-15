@@ -1,0 +1,120 @@
+model:
+  arch: emotion_llama_v2
+  model_type: pretrain
+  max_txt_len: 2000
+  end_sym: "</s>"
+  low_resource: False
+  prompt_template: '[INST] {} [/INST]'
+  llama_model: "/home/user/Emotion-LLaMA-v2/checkpoints/Llama-2-7b-chat-hf"
+  ckpt: "/home/user/Emotion-LLaMA-v2/checkpoints/save_checkpoint/xxx/checkpoint_best.pth"
+        
+  lora_r: 64
+  lora_alpha: 16
+
+datasets:
+  mer2023:
+    vis_processor:
+      train:
+        name: "blip2_image_eval"
+        image_size: 448
+    text_processor:
+      train:
+        name: "blip_caption"
+
+evaluation_datasets:
+  mer2023:
+    eval_file_path: /home/user/big_space/datasets/Emotion/MER2024/MER2024_label.csv
+    video_path: /home/user/big_space/datasets/Emotion/MER2024/video      
+    max_new_tokens: 200
+    batch_size: 1
+  mer2024_semi:
+    eval_file_path: /home/user/big_space/datasets/Emotion/MER2024/MER2024_label.csv
+    video_path: /home/user/big_space/datasets/Emotion/MER2024/video      
+    max_new_tokens: 200
+    batch_size: 1
+  meld_emotion:
+    eval_file_path: /home/user/big_space/datasets/Emotion/MELD/MELD_label.csv
+    video_path: /home/user/big_space/datasets/Emotion/MELD/video   
+    max_new_tokens: 200
+    batch_size: 1
+  caer:
+    eval_file_path: /home/user/big_space/datasets/Emotion/CAER/CAER_label.csv
+    video_path: /home/user/big_space/datasets/Emotion/CAER/video   
+    max_new_tokens: 200
+    batch_size: 1
+  dfew:
+    eval_file_path: /home/user/big_space/datasets/Emotion/DFEW/DFEW_label.csv
+    video_path: /home/user/big_space/datasets/Emotion/DFEW/video   
+    max_new_tokens: 200
+    batch_size: 1
+  e3:
+    eval_file_path: /home/user/big_space/datasets/Emotion/E3/E3_label.csv
+    video_path: /home/user/big_space/datasets/Emotion/E3/video   
+    max_new_tokens: 200
+    batch_size: 1
+  iemocap:
+    eval_file_path: /home/user/big_space/datasets/Emotion/IEMOCAP/IEMOCAP_label.csv
+    video_path: /home/user/big_space/datasets/Emotion/IEMOCAP/video   
+    max_new_tokens: 200
+    batch_size: 1
+  mafw:
+    eval_file_path: /home/user/big_space/datasets/Emotion/MAFW/MAFW_label.csv
+    video_path: /home/user/big_space/datasets/Emotion/MAFW/video   
+    max_new_tokens: 200
+    batch_size: 1
+  mafw_multi:
+    eval_file_path: /home/user/big_space/datasets/Emotion/MAFW/MAFW_label.csv
+    video_path: /home/user/big_space/datasets/Emotion/MAFW/video   
+    max_new_tokens: 200
+    batch_size: 1
+  mc_eiu_emotion:
+    eval_file_path: /home/user/big_space/datasets/Emotion/MC-EIU/MC-EIU_label.csv
+    video_path: /home/user/big_space/datasets/Emotion/MC-EIU/video   
+    max_new_tokens: 200
+    batch_size: 1
+  mc_eiu_intent:
+    eval_file_path: /home/user/big_space/datasets/Emotion/MC-EIU/MC-EIU_label.csv
+    video_path: /home/user/big_space/datasets/Emotion/MC-EIU/video   
+    max_new_tokens: 200
+    batch_size: 1
+  meld_sentiment:
+    eval_file_path: /home/user/big_space/datasets/Emotion/MELD/MELD_label.csv
+    video_path: /home/user/big_space/datasets/Emotion/MELD/video   
+    max_new_tokens: 200
+    batch_size: 1
+  cmu_mosi:
+    eval_file_path: /home/user/big_space/datasets/Emotion/CMU-MOSI/CMU-MOSI_label.csv
+    video_path: /home/user/big_space/datasets/Emotion/CMU-MOSI/video   
+    max_new_tokens: 200
+    batch_size: 1
+  cmu_mosei:
+    eval_file_path: /home/user/big_space/datasets/Emotion/CMU-MOSEI/CMU-MOSEI_label.csv
+    video_path: /home/user/big_space/datasets/Emotion/CMU-MOSEI/video   
+    max_new_tokens: 200
+    batch_size: 1
+  ch_sims_v2_s:
+    eval_file_path: /home/user/big_space/datasets/Emotion/CH-SIMS_v2_s/CH-SIMS_v2_s_label.csv
+    video_path: /home/user/big_space/datasets/Emotion/CH-SIMS_v2_s/video   
+    max_new_tokens: 200
+    batch_size: 1
+  sims:
+    eval_file_path: /home/user/big_space/datasets/Emotion/SIMS/SIMS_label.csv
+    video_path: /home/user/big_space/datasets/Emotion/SIMS/video   
+    max_new_tokens: 200
+    batch_size: 1
+  ov_merd+:
+    eval_file_path: /home/user/big_space/datasets/Emotion/OV-MERD+/OV-MERD+_label.csv
+    video_path: /home/user/big_space/datasets/Emotion/OV-MERD+/video   
+    max_new_tokens: 200
+    batch_size: 1
+  bold:
+    eval_file_path: /home/user/big_space/datasets/Emotion/BOLD/BOLD_label.csv
+    video_path: /home/user/big_space/datasets/Emotion/BOLD/video   
+    max_new_tokens: 200
+    batch_size: 1
+
+run:
+  task: image_text_pretrain
+  name: minigptv2_evaluation
+  save_path: /home/user/Emotion-LLaMA-v2/results/Emotion/xxx/checkpoint_best
+

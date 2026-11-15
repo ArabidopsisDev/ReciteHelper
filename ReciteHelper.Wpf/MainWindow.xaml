@@ -1,312 +1,37 @@
-<Window
-    x:Class="ReciteHelper.Wpf.MainWindow"
-    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-    xmlns:local="clr-namespace:ReciteHelper.Wpf"
-    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    Title="欢迎使用 Arabidopsis ReciteHelper"
-    Width="900"
-    Height="600"
-    Background="#F6F6F6"
-    Closing="Window_Closing"
-    WindowStartupLocation="CenterScreen"
-    mc:Ignorable="d">
-
+<Window x:Class="ReciteHelper.Wpf.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="ReciteHelper" Width="980" Height="660" MinWidth="800" MinHeight="540"
+        Closing="Window_Closing" WindowStartupLocation="CenterScreen" Style="{StaticResource AppWindowStyle}">
     <Window.Resources>
-        <Style x:Key="ActionButtonStyle" TargetType="Button">
-            <Setter Property="Background" Value="White" />
-            <Setter Property="BorderThickness" Value="0" />
-            <Setter Property="Padding" Value="0" />
-            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-            <Setter Property="VerticalContentAlignment" Value="Stretch" />
-            <Setter Property="Cursor" Value="Hand" />
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#F0F0F0" />
-                    <Setter Property="BorderBrush" Value="#007ACC" />
-                </Trigger>
-            </Style.Triggers>
-        </Style>
-
-        <Style x:Key="RecentItemStyle" TargetType="Button">
-            <Setter Property="Background" Value="Transparent" />
-            <Setter Property="BorderThickness" Value="0" />
-            <Setter Property="Padding" Value="12,8" />
-            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-            <Setter Property="Cursor" Value="Hand" />
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#E6E6E6" />
-                </Trigger>
-            </Style.Triggers>
-        </Style>
+        <Style x:Key="RecentItemStyle" TargetType="Button" BasedOn="{StaticResource ListRowButtonStyle}"><Setter Property="Padding" Value="0,14" /></Style>
     </Window.Resources>
-
-    <Grid Margin="20">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="20" />
-            <ColumnDefinition Width="300" />
-        </Grid.ColumnDefinitions>
-
-        <Border
-            Grid.Column="0"
-            Background="White"
-            BorderBrush="#DDDDDD"
-            BorderThickness="1"
-            CornerRadius="4">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" />
-                </Grid.RowDefinitions>
-
-                <Border
-                    Grid.Row="0"
-                    Background="#F8F8F8"
-                    BorderBrush="#DDDDDD"
-                    BorderThickness="0,0,0,1">
-                    <Grid>
-                        <TextBlock Margin="16,12" FontSize="14" FontWeight="SemiBold"
-                                   Foreground="#333333" Text="最近的项目" />
-                        <Button HorizontalAlignment="Right" Margin="12,6" Padding="12,4"
-                                Content="模型服务" Click="ModelSettings_Click" />
-                    </Grid>
-                </Border>
-
-                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-                    <StackPanel x:Name="RecentProjectsPanel" Margin="0,8">
-                        <Button Style="{StaticResource RecentItemStyle}">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-
-                                <Image
-                                    Grid.Column="0"
-                                    Width="24"
-                                    Height="24"
-                                    Margin="0,0,12,0"
-                                    Source="pack://application:,,,/ReciteHelper.Wpf;component/Images/project.png" />
-
-                                <StackPanel Grid.Column="1">
-                                    <TextBlock
-                                        FontWeight="SemiBold"
-                                        Foreground="#333333"
-                                        Text="示例项目.rhproj"
-                                        TextTrimming="CharacterEllipsis" />
-                                    <TextBlock
-                                        FontSize="11"
-                                        Foreground="#666666"
-                                        Text="C:\Projects\示例项目\示例项目.rhproj"
-                                        TextTrimming="CharacterEllipsis" />
-                                </StackPanel>
-                            </Grid>
-                        </Button>
-                    </StackPanel>
-                </ScrollViewer>
+    <Grid>
+        <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+        <Border Padding="32,28,32,24" BorderBrush="{DynamicResource ArcBorder}" BorderThickness="0,0,0,1">
+            <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                <StackPanel><TextBlock Text="ReciteHelper" FontSize="28" FontWeight="SemiBold" /><TextBlock Text="出题、练习、考试与复习" Style="{StaticResource SubtitleTextStyle}" Margin="0,6,0,0" /></StackPanel>
+                <Button Grid.Column="1" Click="ModelSettings_Click" Content="模型服务设置" VerticalAlignment="Center" />
             </Grid>
         </Border>
-
-        <StackPanel
-            Grid.Column="2"
-            Margin="0,20,0,0"
-            Orientation="Vertical">
-            <Button
-                Height="80"
-                Click="CreateNewProject_Click"
-                Style="{StaticResource ActionButtonStyle}">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-
-                    <Border
-                        Grid.Column="0"
-                        Width="80"
-                        Background="Green"
-                        CornerRadius="4,0,0,4">
-                        <Image
-                            Width="32"
-                            Height="32"
-                            RenderOptions.BitmapScalingMode="HighQuality"
-                            Source="pack://application:,,,/ReciteHelper.Wpf;component/Images/create.png" />
-                    </Border>
-
-                    <StackPanel
-                        Grid.Column="1"
-                        Margin="16,12"
-                        VerticalAlignment="Center">
-                        <TextBlock
-                            FontSize="14"
-                            FontWeight="SemiBold"
-                            Foreground="#333333"
-                            Text="创建新的项目" />
-                        <TextBlock
-                            Margin="0,4,0,0"
-                            FontSize="11"
-                            Foreground="#666666"
-                            Text="创建全新的背诵助手项目"
-                            TextWrapping="Wrap" />
-                    </StackPanel>
-                </Grid>
-            </Button>
-
-            <Button
-                Height="80"
-                Margin="0,30,0,0"
-                Click="LoadProject_Click"
-                Style="{StaticResource ActionButtonStyle}">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-
-                    <Border
-                        Grid.Column="0"
-                        Width="80"
-                        Background="#68217A"
-                        CornerRadius="4,0,0,4">
-                        <Image
-                            Width="32"
-                            Height="32"
-                            RenderOptions.BitmapScalingMode="HighQuality"
-                            Source="pack://application:,,,/ReciteHelper.Wpf;component/Images/load.png" />
-                    </Border>
-
-                    <StackPanel
-                        Grid.Column="1"
-                        Margin="16,12"
-                        VerticalAlignment="Center">
-                        <TextBlock
-                            FontSize="14"
-                            FontWeight="SemiBold"
-                            Foreground="#333333"
-                            Text="从已有项目加载" />
-                        <TextBlock
-                            Margin="0,4,0,0"
-                            FontSize="11"
-                            Foreground="#666666"
-                            Text="打开现有的背诵助手项目文件"
-                            TextWrapping="Wrap" />
-                    </StackPanel>
-                </Grid>
-            </Button>
-
-            <Button
-                Height="80"
-                Margin="0,30,0,0"
-                Click="OpenFolder_Click"
-                Style="{StaticResource ActionButtonStyle}">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-
-                    <Border
-                        Grid.Column="0"
-                        Width="80"
-                        Background="#CA5100"
-                        CornerRadius="4,0,0,4">
-                        <Image
-                            Width="32"
-                            Height="32"
-                            RenderOptions.BitmapScalingMode="HighQuality"
-                            Source="pack://application:,,,/ReciteHelper.Wpf;component/Images/folder.png" />
-                    </Border>
-
-                    <StackPanel
-                        Grid.Column="1"
-                        Margin="16,12"
-                        VerticalAlignment="Center">
-                        <TextBlock
-                            FontSize="14"
-                            FontWeight="SemiBold"
-                            Foreground="#333333"
-                            Text="导入项目" />
-                        <TextBlock
-                            Margin="0,4,0,0"
-                            FontSize="11"
-                            Foreground="#666666"
-                            Text="导入他人分享的复习项目"
-                            TextWrapping="Wrap" />
-                    </StackPanel>
-                </Grid>
-            </Button>
-
-            <Button
-                Height="80"
-                Margin="0,30,0,0"
-                Click="ResourceCenter_Click"
-                Style="{StaticResource ActionButtonStyle}">
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-
-                    <Border
-                        Grid.Column="0"
-                        Width="80"
-                        Background="#0F766E"
-                        CornerRadius="4,0,0,4">
-                        <Image
-                            Width="32"
-                            Height="32"
-                            RenderOptions.BitmapScalingMode="HighQuality"
-                            Source="pack://application:,,,/ReciteHelper.Wpf;component/Images/zip.png" />
-                    </Border>
-
-                    <StackPanel
-                        Grid.Column="1"
-                        Margin="16,12"
-                        VerticalAlignment="Center">
-                        <TextBlock
-                            FontSize="14"
-                            FontWeight="SemiBold"
-                            Foreground="#333333"
-                            Text="资源中心" />
-                        <TextBlock
-                            Margin="0,4,0,0"
-                            FontSize="11"
-                            Foreground="#666666"
-                            Text="上传和检索共享项目包"
-                            TextWrapping="Wrap" />
-                    </StackPanel>
-                </Grid>
-            </Button>
-
-            <Label
-                Name="SloganLabel"
-                Margin="0,40,0,0"
-                HorizontalAlignment="Center"
-                Content="自力更生，艰苦奋斗。"
-                FontFamily="Times New Roman, KaiTi"
-                FontSize="20"
-                Foreground="Red" />
-
-            <Border
-                Margin="0,20,0,0"
-                Padding="8"
-                Background="Transparent">
-                <TextBlock
-                    Margin="0,20,0,0"
-                    FontSize="11"
-                    Foreground="#888888"
-                    Text="Copyright Arabidopsis© 2025. All rights reserved."
-                    TextAlignment="Center"
-                    TextDecorations="Underline" />
+        <Grid Grid.Row="1"><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="340" /></Grid.ColumnDefinitions>
+            <Grid Margin="32,24"><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions>
+                <TextBlock Text="最近的项目" Style="{StaticResource SectionLabelTextStyle}" Margin="0,0,0,12" />
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"><StackPanel x:Name="RecentProjectsPanel" /></ScrollViewer>
+            </Grid>
+            <Border Grid.Column="1" Background="{DynamicResource ArcSurfaceMuted}" BorderBrush="{DynamicResource ArcBorder}" BorderThickness="1,0,0,0" Padding="24">
+                <StackPanel>
+                    <TextBlock Text="开始" Style="{StaticResource SectionLabelTextStyle}" Margin="0,0,0,20" />
+                    <Button Click="CreateNewProject_Click" Content="创建新项目" Style="{StaticResource PrimaryButtonStyle}" HorizontalAlignment="Stretch" />
+                    <TextBlock Text="选择项目类型，导入资料或填写出题范围。" Style="{StaticResource CaptionTextStyle}" Margin="0,8,0,24" />
+                    <Button Click="LoadProject_Click" Style="{StaticResource ListRowButtonStyle}"><StackPanel Orientation="Horizontal"><TextBlock Text="&#xE8E5;" Style="{StaticResource IconGlyphStyle}" Margin="0,0,12,0" /><TextBlock Text="打开已有项目" VerticalAlignment="Center" /></StackPanel></Button>
+                    <Button Click="OpenFolder_Click" Style="{StaticResource ListRowButtonStyle}"><StackPanel Orientation="Horizontal"><TextBlock Text="&#xE8B5;" Style="{StaticResource IconGlyphStyle}" Margin="0,0,12,0" /><TextBlock Text="导入共享项目" VerticalAlignment="Center" /></StackPanel></Button>
+                    <Button Click="ResourceCenter_Click" Style="{StaticResource ListRowButtonStyle}"><StackPanel Orientation="Horizontal"><TextBlock Text="&#xE774;" Style="{StaticResource IconGlyphStyle}" Margin="0,0,12,0" /><TextBlock Text="资源中心" VerticalAlignment="Center" /></StackPanel></Button>
+                    <Label x:Name="SloganLabel" Padding="0" Margin="0,32,0,0" FontSize="13" Foreground="{DynamicResource ArcTextMuted}"><Label.ContentTemplate><DataTemplate><TextBlock Text="{Binding}" TextWrapping="Wrap" /></DataTemplate></Label.ContentTemplate></Label>
+                </StackPanel>
             </Border>
-        </StackPanel>
-
-        <Image
-            Width="600"
-            Margin="0,400,0,0"
-            Source="/Images/background.png" />
+        </Grid>
+        <Border Grid.Row="2" BorderBrush="{DynamicResource ArcBorder}" BorderThickness="0,1,0,0" Padding="32,12">
+            <TextBlock Text="Arabidopsis · ReciteHelper" Style="{StaticResource CaptionTextStyle}" />
+        </Border>
     </Grid>
 </Window>

@@ -23,6 +23,7 @@ namespace ReciteHelper.Wpf.Views;
 
 public partial class QuizWindow : Window, INotifyPropertyChanged
 {
+    private bool _grading;
     private readonly IQuizService _quizService;
     private readonly IProjectFileService _projectFileService;
     private readonly IQuestionHelpService _questionHelpService;
@@ -107,6 +108,7 @@ public partial class QuizWindow : Window, INotifyPropertyChanged
 
     private void SwitchToQuestion(int questionNumber)
     {
+        if (_grading) return;
         if (questionNumber < 1 || questionNumber > _totalQuestions)
             return;
 
@@ -137,6 +139,7 @@ public partial class QuizWindow : Window, INotifyPropertyChanged
             {
                 Number = i + 1,
                 Question = questions[i],
+                UserAnswer = questions[i].Status is null ? null : questions[i].LastAiAssessment?.UserAnswer,
                 Status = questions[i].Status switch
                 {
                     true => AnswerStatus.Correct,
@@ -166,6 +169,7 @@ public partial class QuizWindow : Window, INotifyPropertyChanged
         QuestionTextBlock.Text = currentQuestion.Question!.Text;
 
         ConfigureAnswerInput(currentQuestion);
+        SubmitButton.IsEnabled = currentQuestion.Status == AnswerStatus.NotAnswered;
         AskDeepSeekButton.IsEnabled = currentQuestion.Status != AnswerStatus.NotAnswered;
 
         // Update button state
@@ -187,6 +191,9 @@ public partial class QuizWindow : Window, INotifyPropertyChanged
 
     private void ConfigureAnswerInput(QuestionItem currentQuestion)
     {
+        InlineAnswerFeedbackBorder.Visibility = Visibility.Collapsed;
+        AiReferenceExpander.Visibility = Visibility.Collapsed;
+        AiReferenceExpander.IsExpanded = false;
         var question = currentQuestion.Question!;
         var isEnabled = currentQuestion.Status == AnswerStatus.NotAnswered;
 
@@ -238,7 +245,7 @@ public partial class QuizWindow : Window, INotifyPropertyChanged
         {
             AnswerPromptText.Text = question.IsTermDefinition ? "请输入名词解释：" : "请输入解答：";
             AnswerTextBox.Visibility = Visibility.Visible;
-            AnswerTextBox.Height = question.IsTermDefinition ? 64d : 100d;
+            AnswerTextBox.Height = question.IsTermDefinition ? 120d : 180d;
             AnswerTextBox.Text = currentQuestion.UserAnswer ?? string.Empty;
             AnswerTextBox.IsEnabled = isEnabled;
         }
@@ -269,8 +276,8 @@ public partial class QuizWindow : Window, INotifyPropertyChanged
             if (question.Number == _currentQuestionIndex + 1)
             {
                 var currentStyle = new Style(typeof(Button), question.StatusStyle);
-                currentStyle.Setters.Add(new Setter(Button.BorderBrushProperty, new SolidColorBrush(Colors.Blue)));
-                currentStyle.Setters.Add(new Setter(Button.BorderThicknessProperty, new Thickness(3)));
+                currentStyle.Setters.Add(new Setter(Button.BorderBrushProperty, FindResource("ArcAccent")));
+                currentStyle.Setters.Add(new Setter(Button.BorderThicknessProperty, new Thickness(2)));
                 question.StatusStyle = currentStyle;
             }
         }
@@ -320,6 +327,19 @@ public partial class QuizWindow : Window, INotifyPropertyChanged
             ? string.Join("；", Question.SplitBlankAnswers(question.UserAnswer).Select((answer, index) => $"{index + 1}. {answer}"))
             : question.UserAnswer ?? "";
         CorrectAnswerText.Text = question.Question.GetCorrectAnswerText();
+        if (question.Question.LastAiAssessment is { } assessment && assessment.UserAnswer == question.UserAnswer)
+        {
+            InlineAnswerFeedback.Assessment = assessment;
+            InlineAnswerFeedbackBorder.Visibility = Visibility.Visible;
+            AnswerTextBox.Visibility = Visibility.Collapsed;
+            ChoiceOptionsItemsControl.Visibility = Visibility.Collapsed;
+            FillBlankAnswersItemsControl.Visibility = Visibility.Collapsed;
+            TrueFalseOptionsPanel.Visibility = Visibility.Collapsed;
+            AnswerPromptText.Text = $"您的答案 · AI 评分 {assessment.ScoreRatio:P0}（悬停标记查看说明）";
+            AiReferenceText.Text = question.Question.GetCorrectAnswerText();
+            AiReferenceExpander.Visibility = Visibility.Visible;
+            ResultArea.Visibility = Visibility.Collapsed;
+        }
     }
 
     private bool HasUsableKnowledgeBase => _project.KnowledgeBase is { Entries.Count: > 0 };
@@ -692,6 +712,7 @@ public partial class QuizWindow : Window, INotifyPropertyChanged
 
     private async void SubmitButton_Click(object sender, RoutedEventArgs e)
     {
+        if (_grading || _questions.Count == 0) return;
         var currentQuestion = _questions[_currentQuestionIndex];
         var answerText = GetCurrentAnswerText(currentQuestion);
 
@@ -701,32 +722,51 @@ public partial class QuizWindow : Window, INotifyPropertyChanged
             return;
         }
 
-        currentQuestion.UserAnswer = answerText.Trim();
+        _grading = true;
+        IsEnabled = false;
+        SubmitButton.Content = "正在批改…";
+        try
+        {
+            currentQuestion.UserAnswer = answerText.Trim();
 
-        var answerResult = await _quizService.ProcessAnswerAsync(
-            _project,
-            currentQuestion.Question!,
-            currentQuestion.UserAnswer,
-            _startTime);
+            var answerResult = await _quizService.ProcessAnswerAsync(
+                _project,
+                currentQuestion.Question!,
+                currentQuestion.UserAnswer,
+                _startTime);
 
-        currentQuestion.Status = answerResult.IsCorrect ? AnswerStatus.Correct : AnswerStatus.Wrong;
+            currentQuestion.Status = answerResult.IsCorrect ? AnswerStatus.Correct : AnswerStatus.Wrong;
 
-        // Show result
-        ShowResult(currentQuestion);
-        AskDeepSeekButton.IsEnabled = true;
-        AnswerTextBox.IsEnabled = false;
-        ChoiceOptionsItemsControl.IsEnabled = false;
-        FillBlankAnswersItemsControl.IsEnabled = false;
-        TrueFalseOptionsPanel.IsEnabled = false;
-        UpdateAnswerCardStyles();
+            // Show result
+            ShowResult(currentQuestion);
+            AskDeepSeekButton.IsEnabled = true;
+            AnswerTextBox.IsEnabled = false;
+            ChoiceOptionsItemsControl.IsEnabled = false;
+            FillBlankAnswersItemsControl.IsEnabled = false;
+            TrueFalseOptionsPanel.IsEnabled = false;
+            UpdateAnswerCardStyles();
 
-        currentQuestion.Question!.Status = answerResult.IsCorrect;
-        QDisplayLabel.Content = MemoryHintFormatter.Format(answerResult.Outcome);
+            currentQuestion.Question!.Status = answerResult.IsCorrect;
+            QDisplayLabel.Content = MemoryHintFormatter.Format(answerResult.Outcome);
 
-        // Play phonk effect
-        _latest.Add(answerResult.IsCorrect);
-        if (_latest.EqualsTo(false) && Config.Configure.PhonkOptions.EnablePhonk)
-            await PlayPhonkEffect();
+            await _projectFileService.SaveProjectAsync(_project);
+
+            // Play phonk effect
+            _latest.Add(answerResult.IsCorrect);
+            if (_latest.EqualsTo(false) && Config.Configure.PhonkOptions.EnablePhonk)
+                await PlayPhonkEffect();
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"提交未完成：{ex.Message}", "批改提示", MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
+        finally
+        {
+            _grading = false;
+            IsEnabled = true;
+            SubmitButton.Content = "提交答案";
+            SubmitButton.IsEnabled = currentQuestion.Status == AnswerStatus.NotAnswered;
+        }
     }
 
     private string GetCurrentAnswerText(QuestionItem currentQuestion)
@@ -800,6 +840,7 @@ public partial class QuizWindow : Window, INotifyPropertyChanged
 
     private void PrevButton_Click(object sender, RoutedEventArgs e)
     {
+        if (_grading) return;
         if (_currentQuestionIndex > 0)
         {
             _currentQuestionIndex--;
@@ -809,6 +850,7 @@ public partial class QuizWindow : Window, INotifyPropertyChanged
 
     private void NextButton_Click(object sender, RoutedEventArgs e)
     {
+        if (_grading) return;
         if (_currentQuestionIndex < _totalQuestions - 1)
         {
             _currentQuestionIndex++;
@@ -842,6 +884,7 @@ public partial class QuizWindow : Window, INotifyPropertyChanged
 
     private async void Window_Closing(object sender, CancelEventArgs e)
     {
+        if (_grading && e is not null) { e.Cancel = true; return; }
         if (_project is null) return;
 
         // Save record (works for chapter practice and for review plans that span chapters)

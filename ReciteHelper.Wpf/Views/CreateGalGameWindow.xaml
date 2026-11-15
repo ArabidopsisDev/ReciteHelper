@@ -1,0 +1,245 @@
+<Window
+    x:Class="ReciteHelper.Wpf.Views.CreateGalGameWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:ReciteHelper.Wpf.Views"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Title="创建GalGame"
+    Width="500"
+    Height="450"
+    ResizeMode="NoResize"
+    WindowStartupLocation="CenterOwner"
+    mc:Ignorable="d">
+
+    <Window.Resources>
+        <Style TargetType="TextBlock">
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+
+        <Style TargetType="Button">
+            <Setter Property="Padding" Value="12,8" />
+            <Setter Property="MinWidth" Value="100" />
+        </Style>
+
+        <Style x:Key="WarningStyle" TargetType="Border">
+            <Setter Property="Background" Value="#FFF9F2E6" />
+            <Setter Property="BorderBrush" Value="#FFF0C27B" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="5" />
+            <Setter Property="Padding" Value="15" />
+        </Style>
+
+        <Style x:Key="FileInfoStyle" TargetType="Border">
+            <Setter Property="Background" Value="#F8F9FA" />
+            <Setter Property="BorderBrush" Value="#E9ECEF" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="CornerRadius" Value="5" />
+            <Setter Property="Padding" Value="10" />
+        </Style>
+
+        <LinearGradientBrush x:Key="HeaderBackground" StartPoint="0,0" EndPoint="1,0">
+            <GradientStop Offset="0" Color="#6C5CE7" />
+            <GradientStop Offset="1" Color="#A29BFE" />
+        </LinearGradientBrush>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <Border
+            Grid.Row="0"
+            Padding="20,15"
+            Background="{StaticResource HeaderBackground}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <Border
+                    Grid.Column="0"
+                    Width="40"
+                    Height="40"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Background="White"
+                    CornerRadius="8">
+                    <TextBlock
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        FontSize="20"
+                        Text="🎮" />
+                </Border>
+
+                <StackPanel Grid.Column="1" Margin="15,0,0,0">
+                    <TextBlock
+                        FontSize="20"
+                        FontWeight="Bold"
+                        Foreground="White"
+                        Text="创建 GalGame" />
+                    <TextBlock
+                        Margin="0,2,0,0"
+                        FontSize="13"
+                        Foreground="#F0F0F0"
+                        Text="将复习资料转换为视觉小说游戏" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <Grid Grid.Row="1" Margin="20">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+
+            <Border Grid.Row="0" Style="{StaticResource FileInfoStyle}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <TextBlock
+                        Grid.Row="0"
+                        Margin="0,0,0,10"
+                        FontSize="14"
+                        FontWeight="SemiBold"
+                        Foreground="#333"
+                        Text="选择复习项目文件" />
+
+                    <Grid Grid.Row="1">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <TextBox
+                            x:Name="FilePathTextBox"
+                            Grid.Column="0"
+                            Height="36"
+                            Padding="10"
+                            VerticalContentAlignment="Center"
+                            Background="White"
+                            BorderBrush="#CED4DA"
+                            BorderThickness="1"
+                            FontSize="13"
+                            IsReadOnly="True"
+                            Text="{Binding SelectedFilePath, Mode=OneWay}" />
+
+                        <Button
+                            x:Name="BrowseButton"
+                            Grid.Column="1"
+                            Margin="10,0,0,0"
+                            Background="#6C5CE7"
+                            Click="BrowseButton_Click"
+                            Content="浏览..."
+                            FontWeight="SemiBold"
+                            Foreground="White">
+                            <Button.Resources>
+                                <Style TargetType="Border">
+                                    <Setter Property="CornerRadius" Value="4" />
+                                </Style>
+                            </Button.Resources>
+                        </Button>
+                    </Grid>
+
+                    <TextBlock
+                        Grid.Row="1"
+                        Margin="0,8,0,0"
+                        FontSize="12"
+                        Foreground="#666" />
+                </Grid>
+            </Border>
+
+            <Border
+                Grid.Row="1"
+                Margin="0,15,0,0"
+                Style="{StaticResource WarningStyle}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <Border
+                        Grid.Column="0"
+                        Width="40"
+                        Height="40"
+                        Margin="0,0,10,0"
+                        Background="#FFF0C27B"
+                        CornerRadius="20">
+                        <TextBlock
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            FontSize="18"
+                            FontWeight="Bold"
+                            Foreground="#8B572A"
+                            Text="⚠" />
+                    </Border>
+
+                    <StackPanel Grid.Column="1">
+                        <TextBlock
+                            FontSize="14"
+                            FontWeight="Bold"
+                            Foreground="#8B572A"
+                            Text="重要提醒" />
+                        <TextBlock
+                            Margin="0,4,0,0"
+                            FontSize="13"
+                            Foreground="#8B572A"
+                            Text="该功能将使用 AquaAvgEngine 将您的复习资料转换为视觉小说游戏，可能会消耗较多系统资源和Tokens，请确保在良好的网络和电源环境下使用。"
+                            TextWrapping="Wrap" />
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <StackPanel Grid.Row="2" Margin="0,20,0,0" />
+        </Grid>
+
+        <Border
+            Grid.Row="2"
+            Padding="20"
+            Background="White"
+            BorderBrush="#E9ECEF"
+            BorderThickness="0,1,0,0">
+            <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+                <Button
+                    x:Name="CancelButton"
+                    Background="Transparent"
+                    BorderBrush="#DEE2E6"
+                    BorderThickness="1"
+                    Click="CancelButton_Click"
+                    Content="取消"
+                    FontWeight="SemiBold"
+                    Foreground="#666">
+                    <Button.Resources>
+                        <Style TargetType="Border">
+                            <Setter Property="CornerRadius" Value="4" />
+                        </Style>
+                    </Button.Resources>
+                </Button>
+
+                <Button
+                    x:Name="StartButton"
+                    Margin="10,0,0,0"
+                    Background="#00B894"
+                    Click="StartButton_Click"
+                    Content="开始创建"
+                    FontWeight="SemiBold"
+                    Foreground="White">
+                    <Button.Resources>
+                        <Style TargetType="Border">
+                            <Setter Property="CornerRadius" Value="4" />
+                        </Style>
+                    </Button.Resources>
+                </Button>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>
