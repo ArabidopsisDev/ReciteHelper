@@ -78,7 +78,7 @@ public partial class ExamWindow : Window
     {
         StudentNameText.Text = "考生0429";
         ExamNumberText.Text = $"RH{DateTime.Now:yyyyMMdd}{Random.Shared.Next(1000, 9999)}";
-        ToolbarTitleText.Text = $"{_paperTitle ?? _examName} · A卷";
+        ToolbarTitleText.Text = $"{_paperTitle ?? _examName} A卷";
     }
 
     private void InitializeQuestions(
@@ -555,11 +555,15 @@ public partial class ExamWindow : Window
             {
                 if (item.Question is null) continue;
                 if (item.AiAssessment is null || item.AiAssessment.UserAnswer != item.UserAnswer)
-                    item.AiAssessment = await _examAnswerService.GradeAsync(item.Question, item.UserAnswer);
+                    item.AiAssessment = _project is not null && !_isImportedExamSet
+                        ? await _examAnswerService.GradeForReviewAsync(_project, item.Question, item.UserAnswer, _submittedAt)
+                        : await _examAnswerService.GradeAsync(item.Question, item.UserAnswer);
                 item.EarnedScore = item.AiAssessment is { } assessment
                     ? Math.Round(item.Score * assessment.ScoreRatio, 2)
                     : _examAnswerService.IsCorrect(item.Question, item.UserAnswer) ? item.Score : 0;
             }
+            if (_project is not null && _projectFileService is not null)
+                await _projectFileService.SaveProjectAsync(_project);
             _isSubmitted = true;
             RunningPanel.Visibility = Visibility.Collapsed;
             CalculateScore();
@@ -589,7 +593,7 @@ public partial class ExamWindow : Window
         var timeUsed = _submittedAt - _examStartTime;
 
         ScoreText.Text = earnedScore.ToString();
-        ScoreDetailText.Text = $"满分 {totalScore} 分 · 正确率 {accuracy:F1}%";
+        ScoreDetailText.Text = $"满分 {totalScore} 分，正确率 {accuracy:F1}%";
         CorrectCountText.Text = $"答对 {correctCount} 题";
         WrongCountText.Text = $"答错 {wrongCount} 题";
         TimeUsedText.Text = $"用时 {timeUsed:mm\\:ss}";

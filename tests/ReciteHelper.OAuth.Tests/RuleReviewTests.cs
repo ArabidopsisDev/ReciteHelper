@@ -38,17 +38,18 @@ public sealed class RuleReviewTests
     }
 
     [Theory]
+    [InlineData(1)]
     [InlineData(2)]
     [InlineData(5)]
     public async Task AiPlanDeterminesQuestionCount(int plannedCount)
     {
-        var chat = new ChatStub(PreviewBatch("预览", plannedCount), Batch("其余", plannedCount - 2));
+        var chat = new ChatStub(PreviewBatch("预览", plannedCount), Batch("其余", Math.Max(0, plannedCount - 2)));
         var service = new RuleReviewService(chat);
         var preview = await service.PreviewAsync(new() { Name = "细菌", Prompt = "考查各病原体的寄主和传播途径" });
         Assert.Equal(plannedCount, preview.QuestionCount);
         var chapter = await service.CompleteAsync(preview);
         Assert.Equal(plannedCount, chapter.Questions!.Count);
-        Assert.Equal(plannedCount == 2 ? 1 : 2, chat.Prompts.Count);
+        Assert.Equal(plannedCount <= 2 ? 1 : 2, chat.Prompts.Count);
     }
 
     [Theory]
@@ -113,6 +114,10 @@ public sealed class RuleReviewTests
         var assessment = new AiAnswerAssessment
         {
             ScoreRatio = 0.6, Explanation = "请补充传播途径。", MissingPoints = ["防治措施"],
+            Facets = [new() { Key = "known", Name = "已答对内容", Weight = 0.6, WeightReason = "对应六成得分要点",
+                ScoreRatio = 1, IsCorrect = true, Question = "说明已答对部分。", ReferenceAnswer = "完整答案。" },
+                new() { Key = "missing", Name = "防治措施", Weight = 0.4, WeightReason = "对应四成得分要点",
+                ScoreRatio = 0, IsCorrect = false, Question = "说明防治措施。", ReferenceAnswer = "防治答案。" }],
             Annotations = [new() { Text = "正确\n", Status = "correct" }, new() { Text = "错误", Status = "incorrect" }, new() { Text = " 不全", Status = "partial" }]
         };
         var result = await new AiAnswerGrader(new ChatStub(JsonSerializer.Serialize(assessment))).GradeAsync(new Question(), "正确\n错误 不全");
@@ -199,7 +204,9 @@ public sealed class RuleReviewTests
             Assert.True(restored.Chapters[0].Questions![0].RequiresAiGrading);
             Assert.Equal("答案", restored.Chapters[0].Questions![0].LastAiAssessment!.UserAnswer);
             Assert.Equal(ProjectTemplateType.ClassicalReview, JsonSerializer.Deserialize<Project>("{}")!.TemplateType);
-            Assert.Equal(3, (int)ProjectTemplateType.GalGame);
+            Assert.Equal(4, (int)ProjectTemplateType.RuleBasedReview);
+            Assert.Equal(ProjectTemplateType.RuleBasedReview, JsonSerializer.Deserialize<Project>("{\"template_type\":4}")!.TemplateType);
+            Assert.False(Enum.IsDefined((ProjectTemplateType)3));
         }
         finally { if (Directory.Exists(root)) Directory.Delete(root, true); }
     }
@@ -219,7 +226,7 @@ public sealed class RuleReviewTests
     private static string PreviewBatch(string prefix, int plannedCount) => JsonSerializer.Serialize(new
     {
         questionPlan = Enumerable.Range(1, plannedCount).Select(i => $"{prefix}考查范围{i}"),
-        questions = JsonSerializer.Deserialize<JsonElement>(Batch(prefix, 2))
+        questions = JsonSerializer.Deserialize<JsonElement>(Batch(prefix, Math.Min(2, plannedCount)))
     });
 
     private static string Batch(string prefix, int count) => JsonSerializer.Serialize(Enumerable.Range(1, count)

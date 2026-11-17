@@ -28,6 +28,8 @@ public sealed class FsrsReviewScheduler : IReviewScheduler
 
     public double? PredictRecall(Project project, Question question, DateTime now)
     {
+        if (question.ReviewFacets.Count > 0)
+            return FacetMemoryProjection.Recall(question, now, ParametersFor(project));
         EnsureMemory(project, question);
         if (question.Memory is null) return null;
         var elapsed = ReviewCalendar.ElapsedDays(question.Memory.LastReview, now);

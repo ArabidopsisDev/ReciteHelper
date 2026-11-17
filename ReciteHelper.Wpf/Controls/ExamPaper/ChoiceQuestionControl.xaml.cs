@@ -1,5 +1,6 @@
 using ReciteHelper.Core.ValueObjects;
 using ReciteHelper.Wpf.Models;
+using ReciteHelper.Wpf.Utilities;
 using System.Globalization;
 using System.Windows;
 using System.Windows.Controls;
@@ -59,7 +60,7 @@ public partial class ChoiceQuestionControl : UserControl
             CultureInfo.CurrentUICulture,
             FlowDirection.LeftToRight,
             new Typeface(
-                new FontFamily("Times New Roman,SimSun"),
+                AppFonts.Serif,
                 FontStyles.Normal,
                 FontWeights.Normal,
                 FontStretches.Normal),

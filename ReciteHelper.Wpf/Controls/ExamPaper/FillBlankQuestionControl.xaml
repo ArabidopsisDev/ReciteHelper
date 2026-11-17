@@ -5,7 +5,7 @@
     <StackPanel Margin="0,3,0,10">
         <TextBlock
             x:Name="QuestionTextBlock"
-            FontFamily="Times New Roman,SimSun"
+            FontFamily="{DynamicResource ArcReadingFont}"
             FontSize="16"
             LineHeight="24"
             TextWrapping="Wrap" />

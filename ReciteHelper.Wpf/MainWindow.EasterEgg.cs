@@ -1,0 +1,21 @@
+using ReciteHelper.Wpf.Views;
+using System.Windows.Controls;
+
+namespace ReciteHelper.Wpf;
+
+public partial class MainWindow
+{
+    private void ShowAiHomeEasterEgg()
+    {
+        var page = new AiHomeEasterEgg();
+        ((ScrollViewer)RecentProjectsPanel.Parent).Content = null;
+        page.RecentProjectsHost.Content = RecentProjectsPanel;
+        Resources["RecentItemStyle"] = page.FindResource("AiRecentItemStyle");
+        page.CreateProjectButton.Click += CreateNewProject_Click;
+        page.OpenProjectButton.Click += LoadProject_Click;
+        page.ImportProjectButton.Click += OpenFolder_Click;
+        page.ResourceCenterButton.Click += ResourceCenter_Click;
+        page.ModelSettingsButton.Click += ModelSettings_Click;
+        Content = page;
+    }
+}

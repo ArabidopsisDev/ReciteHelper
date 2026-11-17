@@ -4,6 +4,7 @@ using ReciteHelper.Core.Entities;
 using ReciteHelper.Core.Enums;
 using ReciteHelper.Core.ValueObjects;
 using ReciteHelper.Core.DTOs;
+using ReciteHelper.Core.Services;
 using ReciteHelper.Wpf.Models;
 using ReciteHelper.Wpf.Utilities;
 using ReciteHelper.Wpf.ViewModels;
@@ -24,10 +25,13 @@ namespace ReciteHelper.Wpf.Views;
 public partial class QuizWindow : Window, INotifyPropertyChanged
 {
     private bool _grading;
+    private bool _savingOnClose;
+    private bool _savedOnClose;
     private readonly IQuizService _quizService;
     private readonly IProjectFileService _projectFileService;
     private readonly IQuestionHelpService _questionHelpService;
     private readonly IReviewPersonalizationService _reviewPersonalizationService;
+    private readonly IRuleReviewService? _ruleReviewService;
     private ObservableCollection<QuestionItem> _questions;
     private LatestBuffer<bool> _latest;
     private int _currentQuestionIndex = 0;
@@ -61,17 +65,20 @@ public partial class QuizWindow : Window, INotifyPropertyChanged
         IQuizService quizService,
         IProjectFileService projectFileService,
         IQuestionHelpService questionHelpService,
-        IReviewPersonalizationService reviewPersonalizationService)
+        IReviewPersonalizationService reviewPersonalizationService,
+        IRuleReviewService? ruleReviewService = null)
     {
         _reviewPersonalizationService = reviewPersonalizationService;
         _quizService = quizService;
         _projectFileService = projectFileService;
         _questionHelpService = questionHelpService;
+        _ruleReviewService = ruleReviewService;
 
         InitializeComponent();
         DataContext = this;
 
         _project = project;
+        ManageRuleQuestionsButton.Visibility = project.TemplateType == ProjectTemplateType.RuleBasedReview ? Visibility.Visible : Visibility.Collapsed;
         _chapterName= chapterName;
         _latest = LatestBuffer<bool>.Create<bool>(Config.Configure.PhonkOptions.WrongCount);
 
@@ -87,23 +94,33 @@ public partial class QuizWindow : Window, INotifyPropertyChanged
         IQuizService quizService,
         IProjectFileService projectFileService,
         IQuestionHelpService questionHelpService,
-        IReviewPersonalizationService reviewPersonalizationService)
+        IReviewPersonalizationService reviewPersonalizationService,
+        IRuleReviewService? ruleReviewService = null)
     {
         _reviewPersonalizationService = reviewPersonalizationService;
         _quizService = quizService;
         _projectFileService = projectFileService;
         _questionHelpService = questionHelpService;
+        _ruleReviewService = ruleReviewService;
 
         InitializeComponent();
         DataContext = this;
 
         _project = project;
+        ManageRuleQuestionsButton.Visibility = project.TemplateType == ProjectTemplateType.RuleBasedReview ? Visibility.Visible : Visibility.Collapsed;
         _chapterName= "复习计划";
         _latest = LatestBuffer<bool>.Create<bool>(Config.Configure.PhonkOptions.WrongCount);
 
         InitializeQuestions(recitePlan);
         LocateCurrent();
         UpdateDisplay();
+    }
+
+    private void ManageRuleQuestions_Click(object sender, RoutedEventArgs e)
+    {
+        if (_grading || _project.TemplateType != ProjectTemplateType.RuleBasedReview || _ruleReviewService is null) return;
+        new CreateRuleReviewWindow(_ruleReviewService, _projectFileService, _ => Task.CompletedTask, _project)
+            { Owner = this }.ShowDialog();
     }
 
     private void SwitchToQuestion(int questionNumber)
@@ -167,6 +184,14 @@ public partial class QuizWindow : Window, INotifyPropertyChanged
         CurrentQuestionText.Text = (_currentQuestionIndex + 1).ToString();
         TotalQuestionsText.Text = _totalQuestions.ToString();
         QuestionTextBlock.Text = currentQuestion.Question!.Text;
+        var facetSource = ReciteHelper.Core.Scheduling.ReviewQuestionCatalog.FindFacet(_project, currentQuestion.Question);
+        FacetContextText.Visibility = facetSource is null ? Visibility.Collapsed : Visibility.Visible;
+        if (facetSource is { } source)
+        {
+            FacetContextText.Text = $"cFSRS 切面复习：{source.Facet.Name}（占原题 {source.Facet.Weight:P0}）";
+            FacetContextText.ToolTip = $"原题：{source.Parent.Text}\n占比依据：{source.Facet.WeightReason}";
+        }
+        QDisplayLabel.Content = null;
 
         ConfigureAnswerInput(currentQuestion);
         SubmitButton.IsEnabled = currentQuestion.Status == AnswerStatus.NotAnswered;
@@ -191,6 +216,7 @@ public partial class QuizWindow : Window, INotifyPropertyChanged
 
     private void ConfigureAnswerInput(QuestionItem currentQuestion)
     {
+        PartResults.Assessment = null;
         InlineAnswerFeedbackBorder.Visibility = Visibility.Collapsed;
         AiReferenceExpander.Visibility = Visibility.Collapsed;
         AiReferenceExpander.IsExpanded = false;
@@ -201,6 +227,7 @@ public partial class QuizWindow : Window, INotifyPropertyChanged
         _selectedTrueFalseAnswer = null;
         _fillBlankAnswers = [];
         AnswerTextBox.Visibility = Visibility.Collapsed;
+        MultipartAnswers.Visibility = Visibility.Collapsed;
         ChoiceOptionsItemsControl.Visibility = Visibility.Collapsed;
         FillBlankAnswersItemsControl.Visibility = Visibility.Collapsed;
         TrueFalseOptionsPanel.Visibility = Visibility.Collapsed;
@@ -240,6 +267,15 @@ public partial class QuizWindow : Window, INotifyPropertyChanged
             FalseOptionRadioButton.IsChecked = _selectedTrueFalseAnswer == "错误";
             TrueFalseOptionsPanel.Visibility = Visibility.Visible;
             TrueFalseOptionsPanel.IsEnabled = isEnabled;
+        }
+        else if (EssayAnswerLayout.Parts(question).Count > 1 &&
+            (isEnabled || !EssayAnswerLayout.NeedsFacetRegrouping(question)))
+        {
+            AnswerPromptText.Text = "请分别回答各问，可暂时留空不会的部分：";
+            MultipartAnswers.SetQuestion(question, currentQuestion.UserAnswer, isEnabled);
+            MultipartAnswers.Visibility = Visibility.Visible;
+            MultipartAnswers.AnswerChanged -= MultipartAnswers_AnswerChanged;
+            MultipartAnswers.AnswerChanged += MultipartAnswers_AnswerChanged;
         }
         else
         {
@@ -285,18 +321,24 @@ public partial class QuizWindow : Window, INotifyPropertyChanged
 
     private void ClearButton_Click(object sender, RoutedEventArgs e)
     {
-        if (MessageBox.Show("是否确认清空答题记录？", "清空记录",
-            MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
-        {
-            for (int i = 0; i < _questions.Count(); i++)
-            {
-                _questions[i].UserAnswer = null;
-                _questions[i].Status = AnswerStatus.NotAnswered;
-            }
-        }
+        if (MessageBox.Show("是否清空当前题目的答题与复习记录？清空后，掌握度将重新计算。", "清空记录",
+            MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
+            return;
 
-        Window_Closing(sender, null!);
+        ClearRecords();
         Close();
+    }
+
+    private void ClearRecords()
+    {
+        ReciteHelper.Application.Services.ReviewHistory.Clear(_project, _questions.Select(item => item.Question!));
+        foreach (var item in _questions)
+        {
+            item.UserAnswer = null;
+            item.Status = AnswerStatus.NotAnswered;
+        }
+        _currentQuestionIndex = 0;
+        UpdateDisplay();
     }
 
     private void ShowResult(QuestionItem question)
@@ -329,14 +371,23 @@ public partial class QuizWindow : Window, INotifyPropertyChanged
         CorrectAnswerText.Text = question.Question.GetCorrectAnswerText();
         if (question.Question.LastAiAssessment is { } assessment && assessment.UserAnswer == question.UserAnswer)
         {
+            PartResults.Assessment = EssayAnswerLayout.NeedsFacetRegrouping(question.Question) ? null : assessment;
             InlineAnswerFeedback.Assessment = assessment;
             InlineAnswerFeedbackBorder.Visibility = Visibility.Visible;
+            if (MultipartAnswers.Visibility == Visibility.Visible)
+            {
+                MultipartAnswers.SetAssessment(assessment);
+                InlineAnswerFeedbackBorder.Visibility = Visibility.Collapsed;
+            }
             AnswerTextBox.Visibility = Visibility.Collapsed;
             ChoiceOptionsItemsControl.Visibility = Visibility.Collapsed;
             FillBlankAnswersItemsControl.Visibility = Visibility.Collapsed;
             TrueFalseOptionsPanel.Visibility = Visibility.Collapsed;
-            AnswerPromptText.Text = $"您的答案 · AI 评分 {assessment.ScoreRatio:P0}（悬停标记查看说明）";
+            AnswerPromptText.Text = $"您的答案：得分 {assessment.ScoreRatio:P0}" +
+                (assessment.RawScoreRatio is { } raw && Math.Abs(raw - assessment.ScoreRatio) > 0.001 ? $"（核心要点覆盖 {raw:P0}，每问 70% 达标，FL 除外）" : "（每问 70% 达标，FL 除外）");
             AiReferenceText.Text = question.Question.GetCorrectAnswerText();
+            if (question.Question.SourceExcerpts.Count > 0)
+                AiReferenceText.Text += "\n\n资料原文：\n" + string.Join("\n\n", question.Question.SourceExcerpts);
             AiReferenceExpander.Visibility = Visibility.Visible;
             ResultArea.Visibility = Visibility.Collapsed;
         }
@@ -526,7 +577,7 @@ public partial class QuizWindow : Window, INotifyPropertyChanged
             {
                 run.Background = HighlightBackground;
                 run.Foreground = new SolidColorBrush(Color.FromRgb(22, 101, 52));
-                run.FontWeight = FontWeights.SemiBold;
+                run.FontWeight = FontWeights.Medium;
             }
 
             textBlock.Inlines.Add(run);
@@ -727,7 +778,7 @@ public partial class QuizWindow : Window, INotifyPropertyChanged
         SubmitButton.Content = "正在批改…";
         try
         {
-            currentQuestion.UserAnswer = answerText.Trim();
+            currentQuestion.UserAnswer = answerText;
 
             var answerResult = await _quizService.ProcessAnswerAsync(
                 _project,
@@ -747,7 +798,7 @@ public partial class QuizWindow : Window, INotifyPropertyChanged
             UpdateAnswerCardStyles();
 
             currentQuestion.Question!.Status = answerResult.IsCorrect;
-            QDisplayLabel.Content = MemoryHintFormatter.Format(answerResult.Outcome);
+            QDisplayLabel.Content = MemoryHintFormatter.Format(answerResult);
 
             await _projectFileService.SaveProjectAsync(_project);
 
@@ -784,6 +835,8 @@ public partial class QuizWindow : Window, INotifyPropertyChanged
 
         if (question.IsTrueFalse)
             return _selectedTrueFalseAnswer ?? string.Empty;
+
+        if (EssayAnswerLayout.Parts(question).Count > 1) return MultipartAnswers.AnswerText;
 
         return AnswerTextBox.Text.Trim();
     }
@@ -863,6 +916,12 @@ public partial class QuizWindow : Window, INotifyPropertyChanged
         // Trash
     }
 
+    private void MultipartAnswers_AnswerChanged(object? sender, EventArgs e)
+    {
+        if (_questions.Count > 0 && _questions[_currentQuestionIndex].Status == AnswerStatus.NotAnswered)
+            _questions[_currentQuestionIndex].UserAnswer = MultipartAnswers.AnswerText;
+    }
+
     private void ChoiceOption_Checked(object sender, RoutedEventArgs e)
     {
         if (sender is RadioButton radioButton)
@@ -884,34 +943,51 @@ public partial class QuizWindow : Window, INotifyPropertyChanged
 
     private async void Window_Closing(object sender, CancelEventArgs e)
     {
-        if (_grading && e is not null) { e.Cancel = true; return; }
-        if (_project is null) return;
+        if (_savedOnClose) return;
+        e.Cancel = true;
+        if (_grading || _savingOnClose) return;
 
-        // Save record (works for chapter practice and for review plans that span chapters)
-        for (int i = 0; i < _questions.Count; i++)
-        {
-            _questions[i].Question!.Status = _questions[i].Status switch
-            {
-                AnswerStatus.NotAnswered => null,
-                AnswerStatus.Correct => true,
-                AnswerStatus.Wrong => false,
-                _ => null
-            };
-        }
-
-        await _projectFileService.SaveProjectAsync(_project);
-
-        // Personalise the memory model once enough history exists (runs off the UI thread and
-        // keeps the defaults unless the fit is measurably better), then persist the result.
+        _savingOnClose = true;
+        IsEnabled = false;
         try
         {
-            var fit = await _reviewPersonalizationService.TryPersonalizeAsync(_project);
-            if (fit is not null)
-                await _projectFileService.SaveProjectAsync(_project);
+            // Closing is deferred until the project is saved, so the chapter page
+            // refreshes after persistence and repeated close requests cannot overlap.
+            foreach (var item in _questions)
+            {
+                item.Question!.Status = item.Status switch
+                {
+                    AnswerStatus.Correct => true,
+                    AnswerStatus.Wrong => false,
+                    _ => null
+                };
+            }
+
+            await _projectFileService.SaveProjectAsync(_project);
+            try
+            {
+                var fit = await _reviewPersonalizationService.TryPersonalizeAsync(_project);
+                if (fit is not null)
+                    await _projectFileService.SaveProjectAsync(_project);
+            }
+            catch (Exception)
+            {
+                // A failed optional fit must not prevent closing after a successful save.
+            }
+            _savedOnClose = true;
+            // Queue the final close to avoid re-entering a Closing event when a save
+            // completes synchronously.
+            _ = Dispatcher.BeginInvoke(new Action(Close));
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            // Personalisation is best-effort; the population defaults remain in force.
+            MessageBox.Show($"记录未能保存，请重试。\n{ex.Message}", "保存失败",
+                MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
+        finally
+        {
+            _savingOnClose = false;
+            IsEnabled = true;
         }
     }
 }

@@ -13,13 +13,16 @@ public class QuizService : IQuizService
     private readonly IAnswerJudge _judgeService;
     private readonly IReviewScheduler _scheduler;
     private readonly IAiAnswerGrader _aiGrader;
+    private readonly IFacetReviewService _facetReviews;
 
-    public QuizService(IConfigService configService, IAnswerJudge judgeService, IReviewScheduler scheduler, IAiAnswerGrader aiGrader)
+    public QuizService(IConfigService configService, IAnswerJudge judgeService, IReviewScheduler scheduler, IAiAnswerGrader aiGrader,
+        IFacetReviewService? facetReviews = null)
     {
         _configService = configService;
         _judgeService = judgeService;
         _scheduler = scheduler;
         _aiGrader = aiGrader;
+        _facetReviews = facetReviews ?? new FacetReviewService(scheduler);
     }
 
     public async Task<AnswerResult> ProcessAnswerAsync(Project project, Question question, string userAnswer, DateTime startTime)
@@ -41,9 +44,16 @@ public class QuizService : IQuizService
         var rate = userAnswer.Length / Math.Max(0.1d, responseSeconds);
         var rRelative = config.RStandard > 0 ? rate / config.RStandard : 0d;
 
-        // The scheduler consumes only the judged outcome (validated binary interface).
+        var facetUpdate = assessment is null ? null : _facetReviews.RecordAssessment(project, question, assessment, now);
+        // Each observed component uses the FSRS binary recall interface.
         var grade = ReviewGrader.FromJudgement(isCorrect);
         var outcome = _scheduler.Record(project, question, grade, now);
+        if (facetUpdate is not null)
+        {
+            var parent = ReviewQuestionCatalog.FindFacet(project, question)?.Parent ?? question;
+            facetUpdate = facetUpdate with { ParentNextIntervalDays = CfsrsPolicy.NextReviewInterval(
+                parent, now, _scheduler.DesiredRetention, _scheduler.ParametersFor(project)) };
+        }
 
         var reviewTag = new ReviewTag
         {
@@ -67,6 +77,7 @@ public class QuizService : IQuizService
         return new AnswerResult
         {
             AiAssessment = assessment,
+            FacetUpdate = facetUpdate,
             IsCorrect = isCorrect,
             Similarity = similarity,
             RRelative = rRelative,

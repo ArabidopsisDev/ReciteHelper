@@ -1,0 +1,116 @@
+<UserControl x:Class="ReciteHelper.Wpf.Views.AiHomeEasterEgg"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- Intentionally clumsy home-only parody, selected on 1% of startups. -->
+    <UserControl.Resources>
+        <LinearGradientBrush x:Key="AiGradient" StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#FF00D4" Offset="0" /><GradientStop Color="#5AFF00" Offset="0.45" /><GradientStop Color="#00B7FF" Offset="1" /></LinearGradientBrush>
+        <Style x:Key="AiCard" TargetType="Border">
+            <Setter Property="Background" Value="#FFFBD1" /><Setter Property="BorderBrush" Value="#FF00C8" />
+            <Setter Property="BorderThickness" Value="4" /><Setter Property="CornerRadius" Value="42,2,50,6" />
+            <Setter Property="Padding" Value="6" /><Setter Property="Margin" Value="2,-2,5,4" />
+            <Setter Property="Effect"><Setter.Value><DropShadowEffect Color="#38205C" BlurRadius="1" ShadowDepth="9" Opacity="0.65" /></Setter.Value></Setter>
+        </Style>
+        <Style x:Key="AiChip" TargetType="Border" BasedOn="{StaticResource AiCard}">
+            <Setter Property="Padding" Value="6,3" /><Setter Property="CornerRadius" Value="2,22,3,28" /><Setter Property="Background" Value="#CEFF32" />
+        </Style>
+        <Style x:Key="AiAction" TargetType="Button" BasedOn="{StaticResource PrimaryButtonStyle}">
+            <Setter Property="Background" Value="{StaticResource AiGradient}" /><Setter Property="BorderThickness" Value="0" />
+            <Setter Property="FontSize" Value="14" /><Setter Property="Foreground" Value="#000000" /><Setter Property="FontWeight" Value="Black" /><Setter Property="Padding" Value="6,7" /><Setter Property="Margin" Value="0,1,-3,1" />
+        </Style>
+        <Style x:Key="AiRecentItemStyle" TargetType="Button" BasedOn="{StaticResource BaseButtonStyle}">
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" /><Setter Property="Background" Value="#DFFFF2" />
+            <Setter Property="BorderBrush" Value="#FF6A00" /><Setter Property="Padding" Value="5" /><Setter Property="Margin" Value="2" />
+            <Setter Property="FontSize" Value="14" />
+        </Style>
+        <Style x:Key="AiHeading" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="23" /><Setter Property="FontWeight" Value="Black" /><Setter Property="FontStyle" Value="Italic" /><Setter Property="Foreground" Value="#F00063" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+        </Style>
+        <Style x:Key="AiTiny" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="11" /><Setter Property="Foreground" Value="#F00000" /><Setter Property="TextWrapping" Value="Wrap" />
+        </Style>
+    </UserControl.Resources>
+    <Border>
+        <Border.Background><LinearGradientBrush StartPoint="0,0" EndPoint="1,1"><GradientStop Color="#E4FF00" /><GradientStop Color="#FFAFEF" Offset="0.45" /><GradientStop Color="#00F4EC" Offset="1" /></LinearGradientBrush></Border.Background>
+        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="5">
+            <StackPanel MaxWidth="1040">
+                <Border Style="{StaticResource AiCard}" Background="{StaticResource AiGradient}" Padding="18,12">
+                    <Grid>
+                        <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <StackPanel>
+                            <TextBlock Text="✨ NEW！AI！智能！全新升级！AI POWERED × AI ENHANCED × AI EVERYTHING" FontSize="13" Foreground="#0000FF" FontWeight="Bold" />
+                            <TextBlock Text="ReciteHelper：以 AI 赋能复习新质生产力" FontSize="34" FontWeight="Black" Foreground="#6700FF" TextWrapping="Wrap" Margin="0,3,0,0" />
+                            <TextBlock Text="这不仅是一个工具，更是一段旅程。让我们共同拥抱智能时代，开启属于你的全新学习篇章！" TextWrapping="Wrap" FontSize="13" FontWeight="Bold" Foreground="#000000" Margin="0,0,-20,0" />
+                            <WrapPanel Margin="-5,2,0,-4">
+                                <Border Style="{StaticResource AiChip}"><TextBlock Text="🚀 智能出题" Foreground="#7C3AED" FontSize="12" /></Border>
+                                <Border Style="{StaticResource AiChip}"><TextBlock Text="🧠 AI 批改" Foreground="#2563EB" FontSize="12" /></Border>
+                                <Border Style="{StaticResource AiChip}"><TextBlock Text="✨ cFSRS" Foreground="#DB2777" FontSize="12" /></Border>
+                                <Border Style="{StaticResource AiChip}"><TextBlock Text="🔥 模拟考试" Foreground="#EA580C" FontSize="12" /></Border>
+                            </WrapPanel>
+                        </StackPanel>
+                        <Border Grid.Column="1" Style="{StaticResource AiCard}" Background="#FEFF00" Padding="12" Margin="8,-3,-5,-3" Width="138" RenderTransformOrigin="0.5,0.5">
+                            <Border.RenderTransform><RotateTransform Angle="-11" /></Border.RenderTransform>
+                            <StackPanel><TextBlock Text="🚨 革命性范式升级" Style="{StaticResource AiTiny}" /><TextBlock Text="AI+&#x0a;AI MAX！" Foreground="#9333EA" FontSize="30" FontWeight="Black" /><TextBlock Text="BALSAMINE，智学中台" Style="{StaticResource AiTiny}" Margin="0,5,0,0" /></StackPanel>
+                        </Border>
+                    </Grid>
+                </Border>
+                <Grid Margin="0,-2,0,0">
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="240" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                    <StackPanel>
+                        <Border Style="{StaticResource AiCard}">
+                            <StackPanel>
+                                <TextBlock Text="🚀 打造你的专属成长闭环" Style="{StaticResource AiHeading}" />
+                                <Border Style="{StaticResource AiCard}" Background="#FAF5FF" Padding="5" Margin="-2,4,-2,0">
+                                    <StackPanel>
+                                        <Border Style="{StaticResource AiChip}"><TextBlock Text="全场景，一站式，深度赋能抓手" Style="{StaticResource AiTiny}" /></Border>
+                                        <Button x:Name="CreateProjectButton" Content="✨ 创建项目，解锁无限潜能" Style="{StaticResource AiAction}" />
+                                        <Button x:Name="OpenProjectButton" Content="📂 打开项目，激活知识资产" Style="{StaticResource AiAction}" />
+                                        <Button x:Name="ImportProjectButton" Content="🎁 导入项目，打破认知边界" Style="{StaticResource AiAction}" />
+                                    </StackPanel>
+                                </Border>
+                            </StackPanel>
+                        </Border>
+                        <Border Style="{StaticResource AiCard}" Padding="10">
+                            <StackPanel>
+                                <TextBlock Text="🌐 生态协同，价值跃迁！" Style="{StaticResource AiHeading}" />
+                                <Button x:Name="ResourceCenterButton" Content="🌈 资源中心，探索无限可能" Style="{StaticResource AiAction}" />
+                                <Border Style="{StaticResource AiCard}" Padding="4" Background="#EFF6FF"><StackPanel><TextBlock Text="底层逻辑 × 核心引擎 × 智能基座" Style="{StaticResource AiTiny}" Margin="8,2" /><Button x:Name="ModelSettingsButton" Content="⚡ 模型设置，构建智能底座" Style="{StaticResource AiAction}" /></StackPanel></Border>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Margin="-8,8,0,0">
+                        <UniformGrid Columns="3" Margin="8,-10,0,-9">
+                            <Border Style="{StaticResource AiCard}" Background="#FEFF00" Padding="4" RenderTransformOrigin="0.5,0.5"><Border.RenderTransform><RotateTransform Angle="-4" /></Border.RenderTransform><StackPanel><TextBlock Text="AI 浓度" Style="{StaticResource AiTiny}" /><TextBlock Text="200%" Foreground="#FF0066" FontSize="28" FontWeight="Black" /></StackPanel></Border>
+                            <Border Style="{StaticResource AiCard}" Background="#00FFCB" Padding="4"><StackPanel><TextBlock Text="卡片密度" Style="{StaticResource AiTiny}" /><TextBlock Text="999+" Foreground="#6600FF" FontSize="28" FontWeight="Black" /></StackPanel></Border>
+                            <Border Style="{StaticResource AiCard}" Background="#FF9CFA" Padding="4" RenderTransformOrigin="0.5,0.5"><Border.RenderTransform><RotateTransform Angle="5" /></Border.RenderTransform><StackPanel><TextBlock Text="赋能指数" Style="{StaticResource AiTiny}" /><TextBlock Text="MAX!!!" Foreground="#0000FF" FontSize="28" FontWeight="Black" /></StackPanel></Border>
+                        </UniformGrid>
+                        <Border Style="{StaticResource AiCard}" Padding="10">
+                            <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                                <StackPanel><TextBlock Text="💎 不仅仅是复习，更是一场知识的盛宴" Style="{StaticResource AiHeading}" /><TextBlock Text="在当今瞬息万变的时代，让我们一起深入探索学习的无限可能！" Style="{StaticResource AiTiny}" /></StackPanel>
+                                <Border Grid.Column="1" Style="{StaticResource AiChip}" VerticalAlignment="Center"><TextBlock Text="✨ 赋能 MAX" Style="{StaticResource AiTiny}" /></Border>
+                            </Grid>
+                        </Border>
+                        <Border Style="{StaticResource AiCard}" Padding="8">
+                            <StackPanel>
+                                <Border Style="{StaticResource AiCard}" Padding="8" Background="#F5F3FF">
+                                    <StackPanel><TextBlock Text="📚 最近项目：以知识资产为抓手，驱动学习飞轮" Foreground="#7C3AED" FontWeight="Bold" FontSize="15" />
+                                        <Border Style="{StaticResource AiCard}" Padding="4" Margin="-2,5,-2,0"><ContentControl x:Name="RecentProjectsHost" HorizontalContentAlignment="Stretch" /></Border>
+                                    </StackPanel>
+                                </Border>
+                                <Border Style="{StaticResource AiCard}" Padding="8" Background="#FFF1F8"><StackPanel><TextBlock Text="💥 不是卡片太多，而是你的想象力还没打开！" FontSize="16" FontWeight="Bold" Foreground="#DB2777" />
+                                    <UniformGrid Columns="4">
+                                        <Border Style="{StaticResource AiChip}"><StackPanel><TextBlock Text="01" FontSize="22" FontWeight="Black" Foreground="#9333EA" /><TextBlock Text="出题赋能" Style="{StaticResource AiTiny}" /></StackPanel></Border>
+                                        <Border Style="{StaticResource AiChip}"><StackPanel><TextBlock Text="02" FontSize="22" FontWeight="Black" Foreground="#2563EB" /><TextBlock Text="考试抓手" Style="{StaticResource AiTiny}" /></StackPanel></Border>
+                                        <Border Style="{StaticResource AiChip}"><StackPanel><TextBlock Text="03" FontSize="22" FontWeight="Black" Foreground="#DB2777" /><TextBlock Text="批改闭环" Style="{StaticResource AiTiny}" /></StackPanel></Border>
+                                        <Border Style="{StaticResource AiChip}"><StackPanel><TextBlock Text="04" FontSize="22" FontWeight="Black" Foreground="#F97316" /><TextBlock Text="复习飞轮" Style="{StaticResource AiTiny}" /></StackPanel></Border>
+                                    </UniformGrid>
+                                </StackPanel></Border>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </Grid>
+                <Border Style="{StaticResource AiChip}" Padding="8,5"><TextBlock Text="综上所述：值得注意的是，这不只是一个首页，而是一个全方位、多层次、立体化的卡片生态。1% 彩蛋，重启重新抽签。" HorizontalAlignment="Center" FontSize="11" Foreground="#9333EA" /></Border>
+            </StackPanel>
+        </ScrollViewer>
+    </Border>
+</UserControl>

@@ -1,6 +1,7 @@
 using ReciteHelper.Core.Entities;
 using ReciteHelper.Core.Services;
 using ReciteHelper.Wpf.Models;
+using ReciteHelper.Wpf.Utilities;
 using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
@@ -71,13 +72,15 @@ public partial class FillBlankQuestionControl : UserControl
     {
         var field = new TextBox
         {
+            // Paper fields keep their compact baseline geometry independently of app forms.
+            Style = null,
             Width = 92,
             MinWidth = 76,
             Padding = new Thickness(3, 1, 3, 1),
             Background = new SolidColorBrush(Color.FromRgb(255, 253, 232)),
             BorderBrush = new SolidColorBrush(Color.FromRgb(0, 122, 204)),
             BorderThickness = new Thickness(0, 0, 0, 1.5),
-            FontFamily = new FontFamily("Times New Roman,SimSun"),
+            FontFamily = AppFonts.Serif,
             FontSize = 16,
             Foreground = new SolidColorBrush(Color.FromRgb(159, 24, 38)),
             IsReadOnly = !isExamActive,
@@ -100,7 +103,7 @@ public partial class FillBlankQuestionControl : UserControl
         {
             Margin = new Thickness(0, 0, 3, 0),
             VerticalAlignment = VerticalAlignment.Center,
-            FontFamily = new FontFamily("Times New Roman,SimSun"),
+            FontFamily = AppFonts.Serif,
             FontSize = 12,
             FontWeight = FontWeights.SemiBold,
             Foreground = new SolidColorBrush(Color.FromRgb(0, 92, 168)),

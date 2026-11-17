@@ -1,92 +1,46 @@
 # ReciteHelper 界面设计规范
 
-## 1. 产品目标
+界面围绕导入资料或设定范围、出题、练习与考试、批改、按掌握情况复习组织。采用 TKCode.Arc 的默认中性设计，并在 WPF 中实现。研究来源和适配范围见 [研究记录](arc-research.md)。
 
-ReciteHelper 是一款给考前复习的学生使用的 Windows 桌面工具：导入课程资料，生成题目，练习或模拟考试，看错题，再按 FSRS-6 安排复习。用户每次会连续使用几十分钟，大部分时间都在读题和输入答案。
+## 页面结构
 
-所以界面要做到：
+首页和项目页以左侧导航提供稳定入口，正文保留充足宽度。模型配置、大类维护和知识点阅读分别使用导航与内容分栏。普通表单最大宽度 760，项目列表最大宽度 880。
 
-- 看起来像一个可靠的 Windows 工具，不像网页落地页，也不像 AI 产品演示。
-- 阅读区域（题干、知识点、解析）优先，其它界面元素往后放。
-- 对错反馈要清楚，但不能吵。要像老师在作业本上批改，而不是满屏弹窗。
-- 模拟考试窗口继续保留仿纸质试卷的排版（宋体/黑体、密级标识），这是本产品特有的语境。
+配置、记录和资源使用连续表单或列表，以标题、间距和细线分组。不将每个功能装进卡片，不使用卡片嵌套、渐变、彩色图标底块、装饰阴影或悬停缩放。可选择的项目类型行和文本输入保留必要边界。
 
-## 2. 参考资料
+每个操作区突出一个主要动作。次要动作使用描边或文字按钮。题量由模型根据规则化出题范围安排；模拟考试的抽题数量仍由考试设置决定。
 
-| 参考 | 借鉴内容 |
+所有界面文案和回复禁止使用间隔点 U+00B7 串联短语。按语义使用完整句子、逗号、冒号、括号或换行；彩蛋文案也遵守这一字符限制。
+
+首页有一个刻意违反本规范的彩蛋：每次启动抽取一次，概率为 1/100。它使用拥挤卡片、撞色渐变、错位阴影和夸张的 AI 套话；样式仅放在 AiHomeEasterEgg 中，复用原有功能入口与项目列表。其余 99% 的启动保持正常首页。
+
+## 颜色与尺寸
+
+| 资源 | 值 |
 | --- | --- |
-| Microsoft Fluent 2 / Windows 11 原生控件 | 4px 控件圆角，1px 描边，32px 控件高度，系统图标字体（Segoe Fluent Icons / Segoe MDL2 Assets），焦点框规范 |
-| Visual Studio 启动窗口 | 主窗口“最近项目 + 开始操作”的布局。原界面本来就是这个结构，只调整视觉，不改用户习惯 |
-| Anki / 纸质练习册 | 题目区以排版为主，答题卡是密集的数字格，不做成卡片 |
-| 纸质试卷 | 考试窗口沿用试卷字体和版式 |
+| ArcSurface / ArcSurfaceMuted | #FFFFFF / #F8F8F8 |
+| ArcForeground | #0B0B0B |
+| ArcTextSecondary / ArcTextMuted | #585858 / #7D7D7D |
+| ArcBorder / ArcBorderStrong | #E9E9E9 / #C4C4C4 |
+| ArcAccent / ArcAccentSubtle | #353535 / #EAEAEA |
+| ArcSuccess / ArcDanger / ArcWarning | #007824 / #CD1526 / #AA6B00 |
 
-## 3. 需要避开的“AI 生成感”
+默认控件最小高度 44、圆角 18；导航圆角 14。间距按 4 像素递增，页面内边距通常为横向 40、纵向 32。小号控件只用于紧凑辅助操作。
 
-根据 Anthropic frontend-design skill、AwesomeDesignSystem《AI slop vs human》、ai-design-tells、open-design anti-ai-slop 等分析，下面这些是最常被认出的特征，本项目一律不用：
+导航、表单、按钮和辅助信息采用 Noto Sans CJK SC；页面大标题、题干、作答、批注、参考答案、解析和试卷正文采用 Noto Serif CJK SC。字体随程序嵌入，界面字体资源为 ArcBodyFont，阅读字体资源为 ArcReadingFont。普通正文、字段标签和普通按钮使用 Regular 400；分区标题、列表标题和主要按钮使用真正的 Sans Medium 500。普通界面不使用 SemiBold 600，避免缺少对应字重时匹配到 Bold 700。试卷分节和分值保留粗体强调。
 
-- 用 emoji 当图标（💡 📢 ✨ 🚀 等），需要图标时使用系统图标字体。
-- 紫色、靛蓝（如 #6366F1、#8B5CF6），以及蓝到紫这类双色渐变。
-- 卡片套卡片，每层都有自己的内边距、圆角和阴影。
-- 所有元素都用同一个大圆角（≥12px），或在所有面板下铺同一种柔和阴影。
-- 圆角卡片左侧加一条粗彩色边。
-- 悬停上浮、缩放、发光，悬浮在内容上方的装饰卡片，渐入动画。
-- 三张一样的功能卡片，每张一个彩色图标块。
-- 奶油色底色 + 衬线大标题 + 陶土色强调色（这种组合同样已被识别为 AI 风格）。
-- 空洞的文案，例如“开启智能学习新体验”，以及到处出现“AI 驱动”标签和星星图标。
+页面标题 28，分区标题 18，说明 14、行高 23；辅助信息 12，输入正文 16。答题题干 21、行高 34。窗口使用 Ideal 字体度量、灰度抗锯齿和静态文字提示，配合布局取整，减少小字号显得过重的情况。程序清单声明 PerMonitorV2，使窗口按所在显示器的 DPI 排版。字体改动需检查实际绘制字形所用的字体文件和字重，并按当前 DPI 导出原尺寸预览。
 
-## 4. 视觉语言
+## 阅读与交互
 
-### 颜色
+题干、答案与批改按阅读顺序排列。多问题目每问一个输入框，批注显示在各问原答案的位置：绿为正确、红为错误、黄为不完整，悬停查看说明。参考答案可展开，不在下方重复一份彩色答案。
 
-强调色用墨蓝：取钢笔墨水的颜色，契合“做题、批改”的语境。错误色用朱红：取批改红笔的颜色。整套界面只用一个强调色，其余都是中性色。
+预览窗口按实际题目高度收缩，长内容滚动。标题、范围提示、试卷分节标题、题号分值和确认按钮均需保留。短预览不使用固定的大画布。
 
-| 令牌 | 值 | 用途 |
-| --- | --- | --- |
-| `WindowBackground` | `#F2F3F5` | 窗口底色 |
-| `Surface` | `#FFFFFF` | 内容面板 |
-| `SurfaceAlt` | `#F7F8FA` | 侧栏、面板标题栏、只读区 |
-| `SurfaceHover` / `SurfacePressed` | `#EEF0F3` / `#E4E7EB` | 列表行、次要按钮的交互状态 |
-| `Divider` | `#E1E4E8` | 面板边框、分隔线 |
-| `ControlStroke` | `#C9CED4` | 输入框、按钮描边 |
-| `TextPrimary` / `Secondary` / `Tertiary` | `#1E2227` / `#59616A` / `#868D95` | 文字三级 |
-| `Accent` | `#24527A` | 主按钮、选中、当前题 |
-| `AccentSubtle` | `#E7EEF5` | 选中项底色 |
-| `Correct` | `#2E6B3F`，底 `#EAF3EC` | 答对 |
-| `Wrong` | `#B3261E`，底 `#FBECEA` | 答错、危险操作 |
-| `Warning` | `#8A5A00`，底 `#FFF4DC` | 提醒 |
+较小窗口下正文可滚动，提交、跳过、保存等操作保持可访问。焦点描边在控件外侧绘制，避免改变排版。输入模板保留 PART_ContentHost；下拉框保留选择、编辑和弹出列表部件。
 
-### 字体
+## 维护
 
-- 界面字体：`Segoe UI, Microsoft YaHei UI`。这是系统原生字体，不另外引入字体。
-- 字号：说明文字 12，正文 14，题干 16（行高 26），小标题 16 半粗，窗口标题 20 半粗。
-- 只用 Regular 和 SemiBold 两种字重。数字题号使用 SemiBold。
-- 考试试卷区继续使用 `Times New Roman, SimSun / SimHei`。
+共享资源入口为 `ReciteHelper.Wpf/Themes/Generic.xaml`。窗口采用 AppWindowStyle 和共享控件样式，不重复定义同名的主按钮或输入模板。上游 MIT 声明随构建输出保留。
 
-### 形状与层级
-
-- 圆角分三档：答题卡格子 2，控件 4，面板 6。不使用更大的圆角。
-- 不使用阴影。层级靠底色差异和 1px 分隔线表达。
-- 每个区域只有一层面板。面板里的列表用分隔线区分各行，不再嵌套带边框的卡片。
-- 间距统一用 4 / 8 / 12 / 16 / 24 / 32。
-
-### 动效
-
-- 只保留对用户操作的反馈（悬停变色、按下变深）。不做装饰性动画。
-- 原有的 Phonk 彩蛋属于功能，保持不变。
-
-### 图标
-
-- 使用 `Segoe Fluent Icons, Segoe MDL2 Assets` 字形，例如关闭 `E711`、对勾 `E73E`、警告 `E7BA`、信息 `E946`、对话 `E8F2`。
-- 原有 PNG 图标可以继续用在文件类型、项目图标等位置，但不再放进彩色色块里。
-
-## 5. 共享资源
-
-所有样式放在 `ReciteHelper.Wpf/Themes`，由 `Generic.xaml` 合并。各窗口不再在本地重复定义主按钮、输入框等样式。
-
-- 窗口：`AppWindowStyle`
-- 按钮：默认按钮（隐式样式）、`PrimaryButtonStyle`、`SecondaryButtonStyle`、`SubtleButtonStyle`、`DangerButtonStyle`、`IconButtonStyle`、`ListRowButtonStyle`、`LinkButtonStyle`
-- 输入：隐式 TextBox / PasswordBox / ComboBox / CheckBox / RadioButton，并保留 `ModernTextBox`、`ModernPasswordBox` 两个旧键名
-- 文字：`TitleTextStyle`、`SubtitleTextStyle`、`SectionLabelTextStyle`、`BodyTextStyle`、`CaptionTextStyle`、`FieldLabel`、`IconGlyphStyle`
-- 面板：`PanelStyle`、`PaneHeaderStyle`、`FooterBarStyle`
-- 提示条：`NoticeInfoStyle`、`NoticeCorrectStyle`、`NoticeWrongStyle`、`NoticeWarningStyle`
-- 答题卡：`AnswerCardButtonStyle`、`CorrectAnswerStyle`、`WrongAnswerStyle`、`CurrentQuestionStyle`，以及旧键名 `*CardStyle`
+检查真实 WPF 窗口的默认、选中、禁用、空内容、长内容和焦点状态。必要的交互检查与在线模型质量实验分别记录；纯视觉修改不新增业务测试。

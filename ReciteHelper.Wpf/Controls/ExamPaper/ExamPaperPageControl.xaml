@@ -29,11 +29,10 @@
                 <TextBlock
                     HorizontalAlignment="Center"
                     VerticalAlignment="Center"
-                    FontFamily="Times New Roman,SimSun"
+                    FontFamily="{DynamicResource ArcReadingFont}"
                     FontSize="12"
                     Foreground="#454545"
-                    Text="密封线内禁止答题"
-                    TextOptions.TextFormattingMode="Display">
+                    Text="密封线内禁止答题">
                     <TextBlock.LayoutTransform>
                         <RotateTransform Angle="-90" />
                     </TextBlock.LayoutTransform>
@@ -51,7 +50,7 @@
                     Grid.Row="1"
                     HorizontalAlignment="Center"
                     VerticalAlignment="Bottom"
-                    FontFamily="Times New Roman,SimSun"
+                    FontFamily="{DynamicResource ArcReadingFont}"
                     FontSize="13"
                     Foreground="#303030" />
             </Grid>

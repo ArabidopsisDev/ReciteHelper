@@ -5,5 +5,7 @@ namespace ReciteHelper.Core.Interfaces.Services;
 public interface IExamAnswerService
 {
     Task<DTOs.AiAnswerAssessment?> GradeAsync(Question question, string? userAnswer);
+    Task<DTOs.AiAnswerAssessment?> GradeForReviewAsync(Aggregates.Project project, Question question, string? userAnswer, DateTime reviewedAt)
+        => GradeAsync(question, userAnswer);
     bool IsCorrect(Question question, string? userAnswer);
 }

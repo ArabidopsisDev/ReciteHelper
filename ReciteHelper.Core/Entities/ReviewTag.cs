@@ -56,4 +56,8 @@ public class ReviewTag : Entity
 
     [JsonPropertyName("difficulty")]
     public double? Difficulty { get; set; }
+
+    /// <summary>Rubric shares sum to one for components observed in a full-question attempt.</summary>
+    [JsonPropertyName("optimizer_weight")]
+    public double OptimizerWeight { get; set; } = 1.0;
 }

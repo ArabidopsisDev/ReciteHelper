@@ -1,5 +1,7 @@
 using ReciteHelper.Wpf.Models;
 using System.Windows.Controls;
+using ReciteHelper.Core.Services;
+using System.Windows;
 
 namespace ReciteHelper.Wpf.Controls.ExamPaper;
 
@@ -7,6 +9,7 @@ public partial class EssayQuestionControl : UserControl
 {
     private ExamQuestionItem? _item;
     private bool _isLoading;
+    private MultipartAnswerEditor? _multipart;
 
     public EssayQuestionControl()
     {
@@ -16,7 +19,8 @@ public partial class EssayQuestionControl : UserControl
     public void SetQuestion(ExamQuestionItem item, bool isExamActive, bool showAnswer = true)
     {
         _item = item;
-        AnswerBorder.Visibility = showAnswer ? System.Windows.Visibility.Visible : System.Windows.Visibility.Collapsed;
+        AnswerPanel.Visibility = showAnswer ? Visibility.Visible : Visibility.Collapsed;
+        AnswerBorder.Visibility = Visibility.Visible;
         NumberRun.Text = $"{item.Number}. ";
         ScoreRun.Text = $"{item.ScoreLabel} ";
         QuestionRun.Text = item.QuestionText;
@@ -27,6 +31,17 @@ public partial class EssayQuestionControl : UserControl
         AnswerTextBox.IsReadOnly = !isExamActive;
         AnswerTextBox.IsTabStop = isExamActive;
         _isLoading = false;
+        if (_multipart is not null) AnswerPanel.Children.Remove(_multipart);
+        _multipart = null;
+        if (showAnswer && item.Question is { } question && EssayAnswerLayout.Parts(question).Count > 1)
+        {
+            AnswerBorder.Visibility = Visibility.Collapsed;
+            _multipart = new MultipartAnswerEditor { Margin = new Thickness(18, 10, 0, 0) };
+            _multipart.SetQuestion(question, item.UserAnswer, isExamActive, paper: true);
+            _multipart.AnswerChanged += (_, _) => item.UserAnswer = _multipart.AnswerText;
+            if (item.AiAssessment is { } assessment && !isExamActive) _multipart.SetAssessment(assessment);
+            AnswerPanel.Children.Add(_multipart);
+        }
     }
 
     private void AnswerTextBox_TextChanged(object sender, TextChangedEventArgs e)

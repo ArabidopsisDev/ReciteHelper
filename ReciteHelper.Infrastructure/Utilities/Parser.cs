@@ -1,4 +1,3 @@
-using AquaAvgFramework.StoryLineComponents;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.Scripting;
 using ReciteHelper.SharedKernel.Result;
@@ -29,33 +28,6 @@ public class Parser
         else throw new InvalidOperationException(result.ErrorMessage);
     }
 
-
-    public static async Task<StoryLine> CompileStoryAsync(string storyCode)
-    {
-        try
-        {
-            var options = ScriptOptions.Default
-                .WithReferences(typeof(StoryLine).Assembly)
-                .AddImports("AquaAvgFramework",
-                            "AquaAvgFramework.Animation",
-                            "AquaAvgFramework.Animation.Common",
-                            "AquaAvgFramework.Animation.Switch",
-                            "AquaAvgFramework.GameElements.Blocks",
-                            "AquaAvgFramework.GameElements.Events",
-                            "AquaAvgFramework.GameElements",
-                            "AquaAvgFramework.StoryLineComponents",
-                            "AquaAvgFramework.Spirits",
-                            "AquaAvgFramework.Global",
-                            "AquaAvgFramework.Pools");
-
-            return await CSharpScript.EvaluateAsync<StoryLine>(storyCode, options);
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Failed: {ex.Message}");
-            return null!;
-        }
-    }
 
     private async static Task<ExecutionResult<TOut>> ExecuteAsync<TOut>
         (List<Type> allowedTypes, List<string> allowedNamespaces, string code)

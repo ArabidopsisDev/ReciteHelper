@@ -1,0 +1,20 @@
+{
+  "date": "2026-11-16",
+  "base_commit": "f68557c353accb9885a0b8bfb0f70e57a64503d5",
+  "includes_uncommitted_work": true,
+  "sha256": {
+    "ReciteHelper.Core/Scheduling/FsrsAlgorithm.cs": "41133d7c60a5036d2666475db4ab47aa4c363148d58c45a0cecae7619e87bf6d",
+    "ReciteHelper.Core/Scheduling/AiGradingPolicy.cs": "1f0017fc0849e30d3baf7f308f4e14017ea01da0b680f766c120788c83801320",
+    "ReciteHelper.Core/Scheduling/CfsrsPolicy.cs": "b13dbacabda754f77f71ebf48a3580351b37e787bd5b9dd98040e92be4d24338",
+    "ReciteHelper.Core/Scheduling/FacetMemoryProjection.cs": "bbe9cca5233ef3532ade9297f8c2760000e91c600075b1b92c0d16ba98564495",
+    "ReciteHelper.Core/Scheduling/FsrsOptimizer.cs": "a1e856637339d4264e9379202bb85cf79aa02f74d9e20ff01c2dff8558826fe5",
+    "ReciteHelper.Core/Services/EssayAnswerLayout.cs": "d4824fe603a8ab0fb90304b848e15633d870b1b166f41fce8fad59c3aefab849",
+    "ReciteHelper.Application/Services/FacetReviewService.cs": "700d324a00eec4aaeacaf1f56f57bb4d26f496a5c094720de6ef6362b9cb77ae",
+    "ReciteHelper.Application/Services/ReviewGenerator.cs": "cc851f6550c1ace6ed79a13081ae7d30b6e6a6af59a9563e8d61cf9ebca34409",
+    "docs/experiments/cfsrs-generated-answer-2026-11-16.json": "1c94729804953ce47ee79fcc6d9e1797972536e4f60192cc96bb58a29432b684",
+    "docs/experiments/cfsrs-generation-2026-11-16.json": "ba82a0c2f0e523837cb75d2694635ba2e71797f0335e3d738a5946ede7a58d2a",
+    "docs/experiments/cfsrs-grading-2026-11-16.json": "c6c0e26e951eb4bc74db8cbe59cbe08624fa04baa3f9a376e6def9aa71fbeb16",
+    "docs/experiments/cfsrs-offline-2026-11-16.json": "751b4f5841d74824ddbfa43d8e210936afbd25c5f080a47ac94acdc71b8f13f8",
+    "docs/experiments/cfsrs-single-2026-11-16.json": "9d7238792e9a98adf6528cd1e48d9f2beae73eefd66306e2f9f5ae80c349ee29"
+  }
+}

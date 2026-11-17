@@ -7,6 +7,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
     <ApplicationIcon>Images\icon.ico</ApplicationIcon>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
 		
   </PropertyGroup>
 
@@ -21,7 +22,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\external\AquaAvgFramework\AquaAvgFramework.csproj" />
     <ProjectReference Include="..\ReciteHelper.Application\ReciteHelper.Application.csproj" />
     <ProjectReference Include="..\ReciteHelper.Infrastructure\ReciteHelper.Infrastructure.csproj" />
   </ItemGroup>
@@ -35,6 +35,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Resource Include="Images\**\*.png" />
+    <Resource Include="Fonts\*.otf" />
     <Content Include="Images\Phonk\Soundfx\*.mp3">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

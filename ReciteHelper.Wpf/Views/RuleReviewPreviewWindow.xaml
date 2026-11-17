@@ -15,6 +15,7 @@
             <TextBlock Text="确认预览题目" Style="{StaticResource TitleTextStyle}" />
             <TextBlock x:Name="IntroductionText" Margin="0,9,0,0" Style="{StaticResource SubtitleTextStyle}" />
             <TextBlock x:Name="PlanSummaryText" Margin="0,7,0,0" Foreground="{DynamicResource ArcAccent}" FontSize="13" />
+            <TextBlock x:Name="CoverageNoteText" Margin="0,7,0,0" Foreground="#8A5A00" FontSize="13" Visibility="Collapsed" />
         </StackPanel>
         <Border Grid.Row="1" Background="White" BorderBrush="{DynamicResource ArcBorder}" BorderThickness="0,1" Padding="0,12">
             <ScrollViewer x:Name="PreviewScroll" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
@@ -22,7 +23,7 @@
             </ScrollViewer>
         </Border>
         <StackPanel x:Name="ConfirmationPanel" Grid.Row="2" Margin="0,18,0,0">
-            <TextBlock Text="是否接受以上题目的提问范围和详细程度？" FontWeight="SemiBold" />
+            <TextBlock Text="是否接受以上题目的提问范围和详细程度？" FontWeight="Medium" />
             <TextBlock x:Name="AcceptHintText" Margin="0,6,0,14" Style="{StaticResource SubtitleTextStyle}" />
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                 <Button Content="修改提示词" Click="Revise_Click" Style="{StaticResource RuleReviewButton}" Margin="0,0,10,0" IsCancel="True" />

@@ -6,60 +6,27 @@
     Title="模拟考试 - ReciteHelper"
     MinWidth="1180"
     MinHeight="760"
-    Background="#D8D6D1"
+    Background="{DynamicResource ArcSurfaceMuted}"
+    Style="{StaticResource AppWindowStyle}"
     WindowStartupLocation="CenterScreen"
     WindowState="Maximized">
     <Window.Resources>
-        <Style x:Key="ToolbarButtonStyle" TargetType="Button">
-            <Setter Property="MinWidth" Value="42" />
-            <Setter Property="Height" Value="34" />
-            <Setter Property="Padding" Value="12,0" />
-            <Setter Property="Background" Value="#FFFFFF" />
-            <Setter Property="BorderBrush" Value="#CACACA" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="Foreground" Value="#252525" />
-            <Setter Property="FontSize" Value="14" />
-            <Setter Property="Cursor" Value="Hand" />
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#F1F1F1" />
-                    <Setter Property="BorderBrush" Value="#8E8E8E" />
-                </Trigger>
-                <Trigger Property="IsEnabled" Value="False">
-                    <Setter Property="Opacity" Value="0.45" />
-                </Trigger>
-            </Style.Triggers>
-        </Style>
-        <Style
-            x:Key="SubmitButtonStyle"
-            BasedOn="{StaticResource ToolbarButtonStyle}"
-            TargetType="Button">
-            <Setter Property="Background" Value="#A61F2B" />
-            <Setter Property="BorderBrush" Value="#A61F2B" />
-            <Setter Property="Foreground" Value="White" />
-            <Setter Property="FontWeight" Value="SemiBold" />
-            <Setter Property="MinWidth" Value="78" />
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#861722" />
-                    <Setter Property="BorderBrush" Value="#861722" />
-                </Trigger>
-            </Style.Triggers>
-        </Style>
+        <Style x:Key="ToolbarButtonStyle" TargetType="Button" BasedOn="{StaticResource SecondaryButtonStyle}"><Setter Property="MinWidth" Value="44" /><Setter Property="Padding" Value="16,0" /></Style>
+        <Style x:Key="SubmitButtonStyle" TargetType="Button" BasedOn="{StaticResource PrimaryButtonStyle}"><Setter Property="MinWidth" Value="88" /></Style>
     </Window.Resources>
 
     <Grid>
         <Grid.RowDefinitions>
-            <RowDefinition Height="58" />
+            <RowDefinition Height="76" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
         <Border
             Grid.Row="0"
-            Background="#F8F8F7"
-            BorderBrush="#BDBDBA"
+            Background="{DynamicResource ArcSurface}"
+            BorderBrush="{DynamicResource ArcBorder}"
             BorderThickness="0,0,0,1">
-            <Grid Margin="18,0">
+            <Grid Margin="24,0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
@@ -69,29 +36,29 @@
                 <StackPanel VerticalAlignment="Center">
                     <TextBlock
                         x:Name="ToolbarTitleText"
-                        FontFamily="Times New Roman,SimHei"
+                        FontFamily="{DynamicResource ArcBodyFont}"
                         FontSize="15"
-                        FontWeight="Bold" />
+                        FontWeight="Medium" />
                     <StackPanel Margin="0,2,0,0" Orientation="Horizontal">
                         <TextBlock
-                            FontFamily="Times New Roman,SimSun"
+                            FontFamily="{DynamicResource ArcBodyFont}"
                             FontSize="12"
                             Foreground="#555555"
                             Text="考生：" />
                         <TextBlock
                             x:Name="StudentNameText"
-                            FontFamily="Times New Roman,SimSun"
+                            FontFamily="{DynamicResource ArcBodyFont}"
                             FontSize="12"
                             Foreground="#333333" />
                         <TextBlock
                             Margin="14,0,0,0"
-                            FontFamily="Times New Roman,SimSun"
+                            FontFamily="{DynamicResource ArcBodyFont}"
                             FontSize="12"
                             Foreground="#555555"
                             Text="准考证号：" />
                         <TextBlock
                             x:Name="ExamNumberText"
-                            FontFamily="Times New Roman"
+                            FontFamily="{DynamicResource ArcBodyFont}"
                             FontSize="12"
                             Foreground="#333333" />
                     </StackPanel>
@@ -105,7 +72,7 @@
                         x:Name="PreviousSpreadButton"
                         Click="PreviousSpreadButton_Click"
                         Content="‹"
-                        FontFamily="Times New Roman"
+                        FontFamily="{DynamicResource ArcBodyFont}"
                         FontSize="24"
                         Style="{StaticResource ToolbarButtonStyle}"
                         ToolTip="上一组试卷页" />
@@ -113,14 +80,14 @@
                         x:Name="SpreadIndicatorText"
                         Width="112"
                         VerticalAlignment="Center"
-                        FontFamily="Times New Roman,SimSun"
+                        FontFamily="{DynamicResource ArcBodyFont}"
                         FontSize="13"
                         TextAlignment="Center" />
                     <Button
                         x:Name="NextSpreadButton"
                         Click="NextSpreadButton_Click"
                         Content="›"
-                        FontFamily="Times New Roman"
+                        FontFamily="{DynamicResource ArcBodyFont}"
                         FontSize="24"
                         Style="{StaticResource ToolbarButtonStyle}"
                         ToolTip="下一组试卷页" />
@@ -160,9 +127,9 @@
                         <TextBlock
                             x:Name="AnsweredCountText"
                             VerticalAlignment="Center"
-                            FontFamily="Times New Roman"
+                            FontFamily="{DynamicResource ArcBodyFont}"
                             FontSize="14"
-                            FontWeight="Bold" />
+                            FontWeight="Medium" />
                         <TextBlock
                             Margin="18,0,0,0"
                             VerticalAlignment="Center"
@@ -173,9 +140,9 @@
                             x:Name="TimeRemainingText"
                             Width="68"
                             VerticalAlignment="Center"
-                            FontFamily="Times New Roman"
+                            FontFamily="{DynamicResource ArcBodyFont}"
                             FontSize="16"
-                            FontWeight="Bold"
+                            FontWeight="Medium"
                             Foreground="#A61F2B" />
                         <Button
                             Margin="12,0,0,0"
@@ -233,13 +200,13 @@
                 <StackPanel>
                     <TextBlock
                         HorizontalAlignment="Center"
-                        FontFamily="Times New Roman,SimHei"
+                        FontFamily="{DynamicResource ArcBodyFont}"
                         FontSize="21"
-                        FontWeight="Bold"
+                        FontWeight="Medium"
                         Text="考生守则" />
                     <TextBlock
                         Margin="0,18,0,0"
-                        FontFamily="Times New Roman,SimSun"
+                        FontFamily="{DynamicResource ArcReadingFont}"
                         FontSize="15"
                         LineHeight="24"
                         Text="1. 答题前请核对考试科目、试卷类型和个人信息。&#x0a;2. 考试期间不得关闭窗口，不得借助未经允许的外部资料。&#x0a;3. 选择题直接点击选项，解答题应写出必要的作答过程。&#x0a;4. 考试时间结束后系统将自动交卷，交卷后答案不可修改。"
@@ -251,9 +218,9 @@
                         BorderBrush="#C1C1BD"
                         BorderThickness="1">
                         <TextBlock
-                            FontFamily="Times New Roman,SimHei"
+                            FontFamily="{DynamicResource ArcBodyFont}"
                             FontSize="14"
-                            FontWeight="Bold"
+                            FontWeight="Medium"
                             Text="请在窗口右上角确认考生守则，确认后方可领取试卷。"
                             TextAlignment="Center"
                             TextWrapping="Wrap" />
@@ -274,22 +241,22 @@
                 <StackPanel>
                     <TextBlock
                         HorizontalAlignment="Center"
-                        FontFamily="Times New Roman,SimHei"
+                        FontFamily="{DynamicResource ArcBodyFont}"
                         FontSize="23"
-                        FontWeight="Bold"
+                        FontWeight="Medium"
                         Text="考试成绩" />
                     <TextBlock
                         x:Name="ScoreText"
                         Margin="0,18,0,0"
                         HorizontalAlignment="Center"
-                        FontFamily="Times New Roman"
+                        FontFamily="{DynamicResource ArcBodyFont}"
                         FontSize="62"
-                        FontWeight="Bold"
+                        FontWeight="Medium"
                         Foreground="#A61F2B" />
                     <TextBlock
                         x:Name="ScoreDetailText"
                         HorizontalAlignment="Center"
-                        FontFamily="Times New Roman,SimSun"
+                        FontFamily="{DynamicResource ArcReadingFont}"
                         FontSize="15" />
                     <UniformGrid Margin="0,18,0,0" Columns="3">
                         <TextBlock x:Name="CorrectCountText" TextAlignment="Center" />
@@ -301,7 +268,7 @@
                         Margin="0,18,0,0"
                         HorizontalAlignment="Center"
                         FontSize="14"
-                        FontWeight="SemiBold" />
+                        FontWeight="Medium" />
                     <StackPanel
                         Margin="0,24,0,0"
                         HorizontalAlignment="Center"

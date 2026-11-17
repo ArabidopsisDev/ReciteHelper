@@ -8,7 +8,15 @@ namespace ReciteHelper.Core.Scheduling;
 /// One question's graded review history, expressed in whole study days between
 /// consecutive reviews (the first entry always has <c>ElapsedDays = 0</c>).
 /// </summary>
-public sealed record ReviewSequence(IReadOnlyList<(int ElapsedDays, ReviewGrade Grade)> Reviews);
+public sealed record ReviewSequence(IReadOnlyList<(int ElapsedDays, ReviewGrade Grade)> Reviews,
+    IReadOnlyList<double>? ObservationWeights = null)
+{
+    public double WeightAt(int index)
+    {
+        var weight = ObservationWeights is null ? 1d : ObservationWeights[index];
+        return double.IsFinite(weight) ? Math.Clamp(weight, 0, 1) : 0;
+    }
+}
 
 public sealed record FitResult(
     SchedulerParameters Parameters,
@@ -62,33 +70,43 @@ public sealed class FsrsOptimizer
     public static List<ReviewSequence> ExtractSequences(Project project)
     {
         var sequences = new List<ReviewSequence>();
-        foreach (var question in project.Chapters?.SelectMany(c => c.Questions ?? []) ?? [])
+        foreach (var question in ReviewQuestionCatalog.All(project))
         {
-            if (question.ReviewTag.Count < 2) continue;
+            var tags = question.ReviewTag.AsEnumerable();
+            if (question.ReviewFacets.Count > 0)
+            {
+                var cutoff = question.FacetsCreatedAt ?? question.ReviewFacets.SelectMany(f => f.Question.ReviewTag)
+                    .Select(tag => tag.Time).DefaultIfEmpty(DateTime.MinValue).Min();
+                tags = tags.Where(tag => tag.Time < cutoff);
+            }
+            var ordered = tags.OrderBy(tag => tag.Time).ToList();
+            if (ordered.Count < 2) continue;
             var reviews = new List<(int, ReviewGrade)>();
+            var weights = new List<double>();
             DateTime? previous = null;
-            foreach (var tag in question.ReviewTag.OrderBy(t => t.Time))
+            foreach (var tag in ordered)
             {
                 var grade = tag.Grade > 0 ? (ReviewGrade)tag.Grade : ReviewGrader.FromLegacyQuality(tag.QValue);
                 var elapsed = previous is null ? 0 : ReviewCalendar.ElapsedDays(previous.Value, tag.Time);
                 reviews.Add((elapsed, grade));
+                weights.Add(tag.OptimizerWeight);
                 previous = tag.Time;
             }
-            sequences.Add(new ReviewSequence(reviews));
+            sequences.Add(new ReviewSequence(reviews, weights));
         }
         return sequences;
     }
 
-    /// <summary>Number of scored (predictable) reviews contained in the sequences.</summary>
+    /// <summary>Effective number of predictable observations, after rubric weighting.</summary>
     public static int CountExamples(IReadOnlyList<ReviewSequence> sequences)
-        => sequences.Sum(s => s.Reviews.Skip(1).Count(r => r.ElapsedDays >= 1));
+        => (int)Math.Floor(sequences.Sum(s => s.Reviews.Select((r, i) => i > 0 && r.ElapsedDays >= 1 ? s.WeightAt(i) : 0).Sum()) + 1e-9);
 
     /// <summary>Loss and its exact gradient at the given weights.</summary>
     public (double Loss, double[] Gradient) Evaluate(IReadOnlyList<ReviewSequence> sequences, IReadOnlyList<double> weights)
     {
         var model = new FsrsDualModel(weights);
         var total = new Dual(0.0);
-        var examples = 0;
+        var examples = 0d;
 
         foreach (var sequence in sequences)
         {
@@ -100,8 +118,9 @@ public sealed class FsrsOptimizer
                 if (elapsed >= 1)
                 {
                     var r = Dual.Clamp(model.Retrievability(s, elapsed), Epsilon, 1.0 - Epsilon);
-                    total += ReviewGrader.IsRecall(grade) ? -Dual.Log(r) : -Dual.Log(1.0 - r);
-                    examples++;
+                    var weight = sequence.WeightAt(k);
+                    total += weight * (ReviewGrader.IsRecall(grade) ? -Dual.Log(r) : -Dual.Log(1.0 - r));
+                    examples += weight;
                 }
                 (s, d) = model.NextState(s, d, elapsed, grade);
             }

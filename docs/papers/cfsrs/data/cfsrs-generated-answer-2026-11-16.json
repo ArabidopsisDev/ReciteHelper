@@ -1,0 +1,75 @@
+{
+  "inputFields": 2,
+  "assessment": {
+    "UserAnswer": "【第1问】\n后进先出。\n\n【第2问】\n",
+    "IsCorrect": false,
+    "ScoreRatio": 0.5,
+    "RawScoreRatio": 0.5,
+    "Explanation": "第1问正确回答了栈的后进先出特点；第2问未作答，遗漏了入栈和出栈均在栈顶进行这一核心要点。",
+    "Annotations": [
+      {
+        "SegmentId": 0,
+        "Text": "【第1问】\n",
+        "Status": "correct",
+        "Comment": "结构标签，不扣分。"
+      },
+      {
+        "SegmentId": 1,
+        "Text": "后进先出。",
+        "Status": "correct",
+        "Comment": "正确指出栈的后进先出（LIFO）特点。"
+      },
+      {
+        "SegmentId": 2,
+        "Text": "\n",
+        "Status": "correct",
+        "Comment": "换行结构，不扣分。"
+      },
+      {
+        "SegmentId": 3,
+        "Text": "\n",
+        "Status": "correct",
+        "Comment": "换行结构，不扣分。"
+      },
+      {
+        "SegmentId": 4,
+        "Text": "【第2问】\n",
+        "Status": "incorrect",
+        "Comment": "第2问未作答，应补充：入栈和出栈操作均在栈顶进行。"
+      }
+    ],
+    "MissingPoints": [
+      "入栈和出栈操作均在栈顶进行"
+    ],
+    "Facets": [
+      {
+        "Key": "part1",
+        "Name": "栈的基本特点",
+        "Weight": 0.5,
+        "WeightReason": "两问各占一半分值",
+        "ScoreRatio": 1,
+        "RawScoreRatio": 1,
+        "IsCorrect": true,
+        "Question": "栈的基本特点是什么？",
+        "ReferenceAnswer": "栈采用后进先出（LIFO）规则。"
+      },
+      {
+        "Key": "part2",
+        "Name": "入栈出栈位置",
+        "Weight": 0.5,
+        "WeightReason": "两问各占一半分值",
+        "ScoreRatio": 0,
+        "RawScoreRatio": 0,
+        "IsCorrect": false,
+        "Question": "入栈和出栈操作分别在什么位置进行？",
+        "ReferenceAnswer": "入栈和出栈均在栈顶进行。"
+      }
+    ]
+  },
+  "weakComponents": 1,
+  "immediatelyAvailable": 0,
+  "laterQuestion": [
+    "入栈和出栈操作分别在什么位置进行？"
+  ],
+  "mastery": 0.5
+}

@@ -1,0 +1,21 @@
+{
+  "batchDelayMs": 200,
+  "batchCount": 6,
+  "sequentialMs": 1204,
+  "parallelMs": 672,
+  "maxConcurrency": 2,
+  "firstFourParentCountBeforeInterleaving": 2,
+  "firstFourParentCount": 4,
+  "ordering": [
+    "\u5207\u97620-0",
+    "\u5207\u97621-0",
+    "\u5207\u97622-0",
+    "\u5207\u97623-0",
+    "\u5207\u97621-1",
+    "\u5207\u97620-1",
+    "\u5207\u97622-1",
+    "\u5207\u97623-1"
+  ],
+  "threshold": 0.7,
+  "relearningDelayMinutes": 10
+}

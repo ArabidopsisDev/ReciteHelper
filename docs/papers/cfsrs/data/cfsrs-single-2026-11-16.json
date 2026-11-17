@@ -1,0 +1,40 @@
+{
+  "previewMs": 2417,
+  "totalMs": 2419,
+  "plannedCount": 1,
+  "questionCount": 1,
+  "coverageNote": "",
+  "questions": [
+    {
+      "status": null,
+      "text": "小麦叶锈病在叶片上表现出哪些典型病症？",
+      "type": "Essay",
+      "options": [],
+      "correct_option_ids": [],
+      "correct_answers": [],
+      "review_tag": [],
+      "correct_answer": "发病部位产生圆形或近圆形的橘红色夏孢子堆，多发生于叶片正面；后期在叶片背面形成黑褐色冬孢子堆。",
+      "requires_ai_grading": true,
+      "answer_parts": [
+        {
+          "key": "symptoms",
+          "prompt": "说明小麦叶锈病的典型病症。",
+          "reference_answer": "发病部位产生圆形或近圆形的橘红色夏孢子堆，多发生于叶片正面；后期在叶片背面形成黑褐色冬孢子堆。",
+          "weight": 1
+        }
+      ],
+      "source_excerpts": [
+        "发病部产生圆形或近圆形的橘红色夏孢子堆，多发生于叶片正面，后期在叶片背面形成黑褐色冬孢子堆。"
+      ],
+      "last_ai_assessment": null,
+      "review_facets": [],
+      "review_identity": "15835b5d-3ee4-4f03-92ad-0a5848a3a4ff",
+      "facets_created_at": null,
+      "review_facet_id": null,
+      "ef_value": 2.5,
+      "memory": null,
+      "id": 0,
+      "IsTransient": true
+    }
+  ]
+}

@@ -11,6 +11,7 @@ public class Question : Entity
     private List<QuestionOption> _options = [];
     private List<string> _correctOptionIds = [];
     private List<string> _correctAnswers = [];
+    private List<ReviewFacet> _reviewFacets = [];
 
     [JsonConstructor]
     public Question() { }
@@ -58,8 +59,38 @@ public class Question : Entity
     [JsonPropertyName("requires_ai_grading")]
     public bool RequiresAiGrading { get; set; }
 
+    [JsonPropertyName("answer_parts")]
+    public List<QuestionPart> AnswerParts { get; set; } = [];
+
+    [JsonPropertyName("source_excerpts")]
+    public List<string> SourceExcerpts { get; set; } = [];
+
     [JsonPropertyName("last_ai_assessment")]
     public DTOs.AiAnswerAssessment? LastAiAssessment { get; set; }
+
+    [JsonPropertyName("review_facets")]
+    public List<ReviewFacet> ReviewFacets
+    {
+        get => _reviewFacets;
+        set => _reviewFacets = value ?? [];
+    }
+
+    [JsonPropertyName("archived_review_facets")]
+    public List<ReviewFacet> ArchivedReviewFacets { get; set; } = [];
+
+    /// <summary>Stable across project reloads and exam clones; independent of chapter-local numeric IDs.</summary>
+    [JsonPropertyName("review_identity")]
+    public Guid ReviewIdentity { get; set; } = Guid.NewGuid();
+
+    [JsonPropertyName("facets_created_at")]
+    public DateTime? FacetsCreatedAt { get; set; }
+
+    /// <summary>Stable identity for a nested facet question; roots have no facet identity.</summary>
+    [JsonPropertyName("review_facet_id")]
+    public Guid? ReviewFacetId { get; set; }
+
+    [JsonIgnore]
+    public bool IsReviewFacet => ReviewFacetId.HasValue;
 
     /// <summary>
     /// Legacy SM-2 easiness factor.  Retained so that project files written by earlier

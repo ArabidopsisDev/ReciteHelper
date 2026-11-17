@@ -10,7 +10,7 @@
     Title="考试答案回顾"
     Width="1120"
     Height="760"
-    Background="#F5F7F9"
+    Style="{StaticResource AppWindowStyle}"
     WindowStartupLocation="CenterOwner"
     mc:Ignorable="d">
 
@@ -22,8 +22,8 @@
         <Style x:Key="QuestionItemStyle" TargetType="Border">
             <Setter Property="Background" Value="White" />
             <Setter Property="BorderBrush" Value="#E9ECEF" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="8" />
+            <Setter Property="BorderThickness" Value="0,0,0,1" />
+            <Setter Property="CornerRadius" Value="0" />
             <Setter Property="Margin" Value="0,0,0,10" />
             <Setter Property="Padding" Value="0" />
         </Style>
@@ -32,33 +32,18 @@
             x:Key="CorrectAnswerStyle"
             BasedOn="{StaticResource QuestionItemStyle}"
             TargetType="Border">
-            <Setter Property="Background" Value="#F8FFF9" />
-            <Setter Property="BorderBrush" Value="#D4EDDA" />
+            <Setter Property="Background" Value="{DynamicResource ArcSurface}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource ArcBorder}" />
         </Style>
 
         <Style
             x:Key="WrongAnswerStyle"
             BasedOn="{StaticResource QuestionItemStyle}"
             TargetType="Border">
-            <Setter Property="Background" Value="#FFF9F9" />
-            <Setter Property="BorderBrush" Value="#F8D7DA" />
+            <Setter Property="Background" Value="{DynamicResource ArcSurface}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource ArcBorder}" />
         </Style>
 
-        <Style x:Key="PrimaryButtonStyle" TargetType="Button">
-            <Setter Property="Background" Value="#007ACC" />
-            <Setter Property="Foreground" Value="White" />
-            <Setter Property="BorderThickness" Value="0" />
-            <Setter Property="Padding" Value="20,10" />
-            <Setter Property="FontSize" Value="13" />
-            <Setter Property="FontWeight" Value="SemiBold" />
-            <Setter Property="Cursor" Value="Hand" />
-            <Setter Property="MinWidth" Value="100" />
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#005A9E" />
-                </Trigger>
-            </Style.Triggers>
-        </Style>
     </Window.Resources>
 
     <Grid>
@@ -70,9 +55,9 @@
 
         <Border
             Grid.Row="0"
-            Padding="20,15"
+            Padding="40,24"
             Background="White"
-            BorderBrush="#E9ECEF"
+            BorderBrush="{DynamicResource ArcBorder}"
             BorderThickness="0,0,0,1">
             <Grid>
                 <Grid.ColumnDefinitions>
@@ -82,15 +67,13 @@
 
                 <StackPanel Grid.Column="0" Orientation="Vertical">
                     <TextBlock
-                        FontSize="18"
-                        FontWeight="Bold"
-                        Foreground="#333333"
+                        Style="{StaticResource TitleTextStyle}"
                         Text="考试答案回顾" />
                     <TextBlock
                         x:Name="ExamInfoText"
                         Margin="0,4,0,0"
                         FontSize="12"
-                        Foreground="#666666"
+                        Foreground="{DynamicResource ArcTextSecondary}"
                         Text="模拟考试 - 答题详情" />
                 </StackPanel>
 
@@ -102,28 +85,29 @@
                         x:Name="ScoreSummaryText"
                         Margin="0,0,30,0"
                         VerticalAlignment="Center"
-                        FontSize="13"
-                        FontWeight="SemiBold"
-                        Foreground="#007ACC"
+                        FontSize="14"
+                        FontWeight="Medium"
+                        Foreground="{DynamicResource ArcForeground}"
                         Text="得分：0/0" />
                     <Button
                         Click="CloseButton_Click"
                         Content="关闭"
-                        Style="{StaticResource PrimaryButtonStyle}" />
+                        Style="{StaticResource SecondaryButtonStyle}" />
                 </StackPanel>
             </Grid>
         </Border>
 
         <ScrollViewer
             Grid.Row="1"
-            Padding="20"
+            Padding="40,8"
             VerticalScrollBarVisibility="Auto">
-            <ItemsControl x:Name="ReviewItemsControl">
+            <ItemsControl x:Name="ReviewItemsControl" MaxWidth="880">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
                         <Border Style="{Binding ItemStyle}">
                             <Grid Margin="20">
                                 <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
                                     <RowDefinition Height="Auto" />
                                     <RowDefinition Height="Auto" />
                                     <RowDefinition Height="Auto" />
@@ -137,8 +121,8 @@
                                     Orientation="Horizontal">
                                     <TextBlock
                                         FontSize="14"
-                                        FontWeight="Bold"
-                                        Foreground="#007ACC"
+                                        FontWeight="Medium"
+                                        Foreground="{DynamicResource ArcForeground}"
                                         Text="{Binding QuestionNumber, StringFormat='第{0}题'}" />
                                     <Border
                                         Margin="10,0,0,0"
@@ -148,7 +132,7 @@
                                         <TextBlock
                                             HorizontalAlignment="Center"
                                             FontSize="11"
-                                            FontWeight="SemiBold"
+                                            FontWeight="Medium"
                                             Foreground="White"
                                             Text="{Binding IsCorrect, Converter={StaticResource BooleanToResultConverter}}" />
                                     </Border>
@@ -160,13 +144,12 @@
                                     Orientation="Vertical">
                                     <TextBlock
                                         Margin="0,0,0,4"
-                                        FontWeight="SemiBold"
-                                        Foreground="#495057"
+                                        FontWeight="Medium"
+                                        Foreground="{DynamicResource ArcTextSecondary}"
                                         Text="题目：" />
                                     <TextBlock
-                                        FontSize="13"
-                                        Foreground="#333333"
-                                        LineHeight="20"
+                                        Style="{StaticResource ReadingTextStyle}"
+                                        Foreground="{DynamicResource ArcForeground}"
                                         Text="{Binding QuestionContent}"
                                         TextWrapping="Wrap" />
                                 </StackPanel>
@@ -175,60 +158,61 @@
                                     Grid.Row="2"
                                     Margin="0,0,0,4"
                                     Padding="12"
-                                    Background="#F8FAFC"
-                                    CornerRadius="6">
+                                    Background="{DynamicResource ArcSurfaceMuted}"
+                                    CornerRadius="{DynamicResource ArcRadiusControl}">
                                     <StackPanel>
                                         <TextBlock
-                                            FontWeight="SemiBold"
-                                            Foreground="#495057"
+                                            FontWeight="Medium"
+                                            Foreground="{DynamicResource ArcTextSecondary}"
                                             Text="您的答案" />
                                         <controls:AiAnnotatedAnswer
                                             Margin="0,5,0,0"
-                                            FontSize="13"
-                                            Foreground="#333333"
-                                            LineHeight="20"
+                                            FontSize="17"
+                                            Foreground="{DynamicResource ArcForeground}"
+                                            LineHeight="24"
                                             FallbackText="{Binding UserAnswer}"
                                             Assessment="{Binding AiAssessment}"
                                             TextWrapping="Wrap" />
                                     </StackPanel>
                                 </Border>
 
+                                <controls:SubquestionResults Grid.Row="3" Assessment="{Binding AiAssessment}" Margin="12,16,12,12" />
+
                                 <Border
-                                    Grid.Row="3"
+                                    Grid.Row="4"
                                     Margin="0,8,0,4"
                                     Padding="12"
-                                    Background="#F0FDF4"
+                                    Background="Transparent"
                                     CornerRadius="6">
                                     <StackPanel>
                                         <TextBlock
-                                            FontWeight="SemiBold"
-                                            Foreground="#15803D"
+                                            FontWeight="Medium"
+                                            Foreground="{DynamicResource ArcTextSecondary}"
                                             Text="正确答案" />
                                         <TextBlock
                                             Margin="0,5,0,0"
-                                            FontSize="13"
-                                            FontWeight="SemiBold"
-                                            Foreground="#166534"
-                                            LineHeight="20"
+                                            Style="{StaticResource ReadingTextStyle}"
+                                            Foreground="{DynamicResource ArcForeground}"
+                                            LineHeight="24"
                                             Text="{Binding CorrectAnswer}"
                                             TextWrapping="Wrap" />
                                     </StackPanel>
                                 </Border>
 
                                 <StackPanel
-                                    Grid.Row="4"
+                                    Grid.Row="5"
                                     Margin="0,8,0,0"
                                     Orientation="Vertical"
                                     Visibility="{Binding HasExplanation, Converter={StaticResource BooleanToVisibilityConverter}}">
                                     <TextBlock
                                         Margin="0,0,0,4"
-                                        FontWeight="SemiBold"
-                                        Foreground="#495057"
+                                        FontWeight="Medium"
+                                        Foreground="{DynamicResource ArcTextSecondary}"
                                         Text="解析：" />
                                     <TextBlock
-                                        FontSize="12"
-                                        Foreground="#666666"
-                                        LineHeight="20"
+                                        Style="{StaticResource ReadingTextStyle}"
+                                        Foreground="{DynamicResource ArcTextSecondary}"
+                                        LineHeight="24"
                                         Text="{Binding Explanation}"
                                         TextWrapping="Wrap" />
                                 </StackPanel>
@@ -241,9 +225,9 @@
 
         <Border
             Grid.Row="2"
-            Padding="20,15"
-            Background="#F8F9FA"
-            BorderBrush="#E9ECEF"
+            Padding="40,24"
+            Background="{DynamicResource ArcSurface}"
+            BorderBrush="{DynamicResource ArcBorder}"
             BorderThickness="0,1,0,0">
             <Grid>
                 <Grid.ColumnDefinitions>
@@ -256,53 +240,53 @@
                     <StackPanel Orientation="Horizontal">
                         <TextBlock
                             FontSize="12"
-                            Foreground="#666666"
+                            Foreground="{DynamicResource ArcTextSecondary}"
                             Text="总题数：" />
                         <TextBlock
                             x:Name="TotalQuestionsText"
                             Margin="5,0,0,0"
                             FontSize="12"
-                            FontWeight="SemiBold"
-                            Foreground="#333333"
+                            FontWeight="Medium"
+                            Foreground="{DynamicResource ArcForeground}"
                             Text="0" />
                     </StackPanel>
                     <StackPanel Orientation="Horizontal">
                         <TextBlock
                             FontSize="12"
-                            Foreground="#666666"
+                            Foreground="{DynamicResource ArcTextSecondary}"
                             Text="答对：" />
                         <TextBlock
                             x:Name="CorrectCountText"
                             Margin="5,0,0,0"
                             FontSize="12"
-                            FontWeight="SemiBold"
+                            FontWeight="Medium"
                             Foreground="#28A745"
                             Text="0" />
                     </StackPanel>
                     <StackPanel Orientation="Horizontal">
                         <TextBlock
                             FontSize="12"
-                            Foreground="#666666"
+                            Foreground="{DynamicResource ArcTextSecondary}"
                             Text="答错：" />
                         <TextBlock
                             x:Name="WrongCountText"
                             Margin="5,0,0,0"
                             FontSize="12"
-                            FontWeight="SemiBold"
+                            FontWeight="Medium"
                             Foreground="#DC3545"
                             Text="0" />
                     </StackPanel>
                     <StackPanel Orientation="Horizontal">
                         <TextBlock
                             FontSize="12"
-                            Foreground="#666666"
+                            Foreground="{DynamicResource ArcTextSecondary}"
                             Text="正确率：" />
                         <TextBlock
                             x:Name="AccuracyText"
                             Margin="5,0,0,0"
                             FontSize="12"
-                            FontWeight="SemiBold"
-                            Foreground="#007ACC"
+                            FontWeight="Medium"
+                            Foreground="{DynamicResource ArcForeground}"
                             Text="0%" />
                     </StackPanel>
                 </StackPanel>
@@ -316,7 +300,7 @@
                         Margin="0,0,12,0"
                         Click="ImportWrongQuestionsButton_Click"
                         Content="导入错题"
-                        Style="{StaticResource PrimaryButtonStyle}"
+                        Style="{StaticResource SecondaryButtonStyle}"
                         Visibility="Collapsed" />
                     <Button
                         Click="ExportReportButton_Click"
@@ -331,8 +315,8 @@
                     BorderThickness="1"
                     Click="CloseButton_Click"
                     Content="返回"
-                    Foreground="#666666"
-                    Style="{StaticResource PrimaryButtonStyle}" />
+                    Foreground="{DynamicResource ArcTextSecondary}"
+                    Style="{StaticResource SecondaryButtonStyle}" />
             </Grid>
         </Border>
     </Grid>

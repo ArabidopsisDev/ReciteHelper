@@ -5,6 +5,7 @@ namespace ReciteHelper.Core.DTOs;
 public class AnswerResult
 {
     public AiAnswerAssessment? AiAssessment { get; set; }
+    public FacetReviewUpdate? FacetUpdate { get; set; }
     public bool IsCorrect { get; set; }
 
     /// <summary>Similarity between the submitted answer and the reference answer (0..1).</summary>

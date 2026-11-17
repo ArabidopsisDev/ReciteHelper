@@ -7,104 +7,50 @@
     xmlns:markdig="clr-namespace:Markdig.Wpf;assembly=Markdig.Wpf"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     Title="知识点学习 - ReciteHelper"
-    Width="1000"
-    Height="700"
-    Background="#F5F7F9"
+    Width="1120"
+    Height="780"
+    MinWidth="960"
+    MinHeight="640"
+    Style="{StaticResource AppWindowStyle}"
     Loaded="Window_Loaded"
     WindowStartupLocation="CenterOwner"
     mc:Ignorable="d">
 
     <Window.Resources>
-        <Style x:Key="ChapterHeaderStyle" TargetType="Border">
-            <Setter Property="Background" Value="White" />
-            <Setter Property="BorderBrush" Value="#E9ECEF" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="CornerRadius" Value="4" />
-            <Setter Property="Padding" Value="0" />
-        </Style>
-
-        <Style x:Key="ChapterToggleButtonStyle" TargetType="Button">
-            <Setter Property="Background" Value="Transparent" />
-            <Setter Property="BorderThickness" Value="0" />
-            <Setter Property="Padding" Value="20,15" />
-            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-            <Setter Property="Cursor" Value="Hand" />
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#F8F9FA" />
-                </Trigger>
-            </Style.Triggers>
-        </Style>
-
-        <Style x:Key="KnowledgeItemStyle" TargetType="Border">
-            <Setter Property="Background" Value="#F8F9FA" />
-            <Setter Property="BorderBrush" Value="#E9ECEF" />
-            <Setter Property="BorderThickness" Value="0,0,0,1" />
-            <Setter Property="Padding" Value="0" />
-        </Style>
-
-        <Style x:Key="KnowledgeButtonStyle" TargetType="Button">
-            <Setter Property="Background" Value="Transparent" />
-            <Setter Property="BorderThickness" Value="0" />
-            <Setter Property="Padding" Value="40,12,20,12" />
-            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-            <Setter Property="Cursor" Value="Hand" />
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#E9ECEF" />
-                </Trigger>
-            </Style.Triggers>
-        </Style>
-
-        <!--  掌握状态样式  -->
-        <Style x:Key="MasteredCheckBoxStyle" TargetType="CheckBox">
-            <Setter Property="VerticalAlignment" Value="Center" />
-            <Setter Property="Cursor" Value="Hand" />
-        </Style>
-
-        <Style x:Key="PrimaryButtonStyle" TargetType="Button">
-            <Setter Property="Background" Value="#007ACC" />
-            <Setter Property="Foreground" Value="White" />
-            <Setter Property="BorderThickness" Value="0" />
-            <Setter Property="Padding" Value="15,8" />
-            <Setter Property="FontSize" Value="12" />
-            <Setter Property="FontWeight" Value="SemiBold" />
-            <Setter Property="Cursor" Value="Hand" />
-            <Setter Property="MinWidth" Value="80" />
-            <Style.Triggers>
-                <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#005A9E" />
-                </Trigger>
-            </Style.Triggers>
-        </Style>
+        <Style x:Key="ChapterHeaderStyle" TargetType="Border"><Setter Property="Background" Value="Transparent" /><Setter Property="BorderThickness" Value="0" /></Style>
+        <Style x:Key="ChapterToggleButtonStyle" TargetType="Button" BasedOn="{StaticResource ListRowButtonStyle}"><Setter Property="Padding" Value="16,16" /></Style>
+        <Style x:Key="KnowledgeItemStyle" TargetType="Border"><Setter Property="Background" Value="Transparent" /></Style>
+        <Style x:Key="KnowledgeButtonStyle" TargetType="Button" BasedOn="{StaticResource ListRowButtonStyle}"><Setter Property="Padding" Value="24,14,16,14" /></Style>
+        <Style x:Key="MasteredCheckBoxStyle" TargetType="CheckBox" BasedOn="{StaticResource {x:Type CheckBox}}"><Setter Property="VerticalAlignment" Value="Center" /></Style>
     </Window.Resources>
 
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="400" />
+            <ColumnDefinition Width="320" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
         <Border
             Grid.Column="0"
-            Background="White"
-            BorderBrush="#E9ECEF"
-            BorderThickness="0,0,1,0">
-            <DockPanel>
+            Background="{DynamicResource ArcSurfaceMuted}"
+            BorderBrush="{DynamicResource ArcBorder}"
+            BorderThickness="0">
+            <Grid>
+                <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions>
                 <Border
-                    Padding="20,15"
-                    Background="#F8F9FA"
-                    BorderBrush="#E9ECEF"
+                    Padding="24,32"
+                    Background="Transparent"
+                    BorderBrush="{DynamicResource ArcBorder}"
                     BorderThickness="0,0,0,1"
-                    DockPanel.Dock="Top">
+                    Grid.Row="0">
                     <TextBlock
-                        FontSize="16"
-                        FontWeight="Bold"
-                        Foreground="#333333"
+                        FontSize="21"
+                        FontWeight="Medium"
+                        Foreground="{DynamicResource ArcForeground}"
                         Text="知识点列表" />
                 </Border>
 
-                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
                     <ItemsControl x:Name="ChaptersItemsControl" Margin="10">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
@@ -120,16 +66,16 @@
                                                     <ColumnDefinition Width="Auto" />
                                                 </Grid.ColumnDefinitions>
 
-                                                <StackPanel Grid.Column="0" Orientation="Horizontal">
+                                                <StackPanel Grid.Column="0" Margin="0,0,12,0">
                                                     <TextBlock
-                                                        FontSize="14"
-                                                        FontWeight="SemiBold"
-                                                        Foreground="#333333"
+                                                        FontSize="15" TextWrapping="Wrap"
+                                                        FontWeight="Medium"
+                                                        Foreground="{DynamicResource ArcForeground}"
                                                         Text="{Binding Name}" />
                                                     <TextBlock
                                                         Margin="5,0,0,0"
                                                         FontSize="13"
-                                                        Foreground="#666666"
+                                                        Foreground="{DynamicResource ArcTextSecondary}"
                                                         Text="{Binding Number, StringFormat=' (第{0}章)'}" />
                                                 </StackPanel>
 
@@ -172,7 +118,7 @@
                                                                 <TextBlock
                                                                     Grid.Column="0"
                                                                     FontSize="13"
-                                                                    Foreground="#333333"
+                                                                    Foreground="{DynamicResource ArcForeground}"
                                                                     Text="{Binding Name}"
                                                                     TextWrapping="Wrap" />
 
@@ -202,8 +148,8 @@
                 </ScrollViewer>
 
                 <Border
-                    x:Name="EmptyStatePanel"
-                    Padding="40"
+                    x:Name="EmptyStatePanel" Grid.Row="1"
+                    Padding="24" Background="{DynamicResource ArcSurfaceMuted}"
                     Visibility="Collapsed">
                     <StackPanel
                         HorizontalAlignment="Center"
@@ -212,22 +158,22 @@
                         <TextBlock
                             Margin="0,0,0,8"
                             FontSize="16"
-                            FontWeight="SemiBold"
-                            Foreground="#666666"
+                            FontWeight="Medium"
+                            Foreground="{DynamicResource ArcTextSecondary}"
                             Text="暂无知识点" />
                         <TextBlock
                             FontSize="13"
-                            Foreground="#888888"
+                            Foreground="{DynamicResource ArcTextMuted}"
                             Text="当前项目还没有添加任何知识点"
                             TextAlignment="Center" />
                     </StackPanel>
                 </Border>
-            </DockPanel>
+            </Grid>
         </Border>
 
         <Border
             Grid.Column="1"
-            Margin="20"
+            Margin="16,0"
             Background="White">
             <Grid>
                 <Grid.RowDefinitions>
@@ -237,9 +183,9 @@
 
                 <Border
                     Grid.Row="0"
-                    Padding="20,15"
-                    Background="#F8F9FA"
-                    BorderBrush="#E9ECEF"
+                    Padding="24,32"
+                    Background="Transparent"
+                    BorderBrush="{DynamicResource ArcBorder}"
                     BorderThickness="0,0,0,1">
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -250,21 +196,21 @@
                         <StackPanel Grid.Column="0" Orientation="Vertical">
                             <TextBlock
                                 x:Name="KnowledgePointTitle"
-                                FontSize="18"
-                                FontWeight="Bold"
-                                Foreground="#333333"
+                                FontSize="28"
+                                FontWeight="Medium"
+                                Foreground="{DynamicResource ArcForeground}"
                                 Text="选择知识点" />
                             <StackPanel Margin="0,5,0,0" Orientation="Horizontal">
                                 <TextBlock
                                     FontSize="12"
-                                    Foreground="#666666"
+                                    Foreground="{DynamicResource ArcTextSecondary}"
                                     Text="掌握状态：" />
                                 <TextBlock
                                     x:Name="MasteryStatusText"
                                     Margin="5,0,0,0"
                                     FontSize="12"
-                                    FontWeight="SemiBold"
-                                    Foreground="#DC3545"
+                                    FontWeight="Medium"
+                                    Foreground="{DynamicResource ArcDanger}"
                                     Text="未掌握" />
                             </StackPanel>
                         </StackPanel>
@@ -281,7 +227,7 @@
 
                 <ScrollViewer
                     Grid.Row="1"
-                    Padding="20"
+                    Padding="24,32"
                     VerticalScrollBarVisibility="Auto">
                     <markdig:MarkdownViewer
                         x:Name="MarkdownViewer"
@@ -302,12 +248,12 @@
                         <TextBlock
                             Margin="0,0,0,8"
                             FontSize="16"
-                            FontWeight="SemiBold"
-                            Foreground="#666666"
+                            FontWeight="Medium"
+                            Foreground="{DynamicResource ArcTextSecondary}"
                             Text="选择知识点" />
                         <TextBlock
                             FontSize="13"
-                            Foreground="#888888"
+                            Foreground="{DynamicResource ArcTextMuted}"
                             Text="请在左侧选择一个知识点查看详情"
                             TextAlignment="Center" />
                     </StackPanel>

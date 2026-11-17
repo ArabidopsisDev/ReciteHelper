@@ -4,7 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <StackPanel Margin="0,4,0,11">
         <TextBlock
-            FontFamily="Times New Roman,SimSun"
+            FontFamily="{DynamicResource ArcReadingFont}"
             FontSize="16"
             LineHeight="24"
             TextWrapping="Wrap">
@@ -12,6 +12,7 @@
             <Run x:Name="ScoreRun" FontWeight="Bold" />
             <Run x:Name="QuestionRun" />
         </TextBlock>
+        <StackPanel x:Name="AnswerPanel">
         <Border
             x:Name="AnswerBorder"
             Margin="18,7,0,0"
@@ -20,17 +21,19 @@
             BorderThickness="0,0,0,1">
             <TextBox
                 x:Name="AnswerTextBox"
+                Style="{x:Null}"
                 Height="112"
                 Padding="4,3"
                 AcceptsReturn="True"
                 Background="Transparent"
                 BorderThickness="0"
-                FontFamily="Times New Roman,SimSun"
+                FontFamily="{DynamicResource ArcReadingFont}"
                 FontSize="16"
                 Foreground="#9F1826"
                 TextChanged="AnswerTextBox_TextChanged"
                 TextWrapping="Wrap"
                 VerticalScrollBarVisibility="Auto" />
         </Border>
+        </StackPanel>
     </StackPanel>
 </UserControl>

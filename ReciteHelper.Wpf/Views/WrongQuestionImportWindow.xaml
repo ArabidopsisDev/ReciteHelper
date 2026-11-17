@@ -7,28 +7,12 @@
     Title="导入错题"
     Width="920"
     Height="680"
-    Background="#F5F7F9"
+    Style="{StaticResource AppWindowStyle}"
     WindowStartupLocation="CenterOwner"
     mc:Ignorable="d">
 
     <Window.Resources>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
-        <Style x:Key="PrimaryButtonStyle" TargetType="Button">
-            <Setter Property="Background" Value="#007ACC" />
-            <Setter Property="Foreground" Value="White" />
-            <Setter Property="BorderThickness" Value="0" />
-            <Setter Property="Padding" Value="18,9" />
-            <Setter Property="FontSize" Value="13" />
-            <Setter Property="FontWeight" Value="SemiBold" />
-            <Setter Property="Cursor" Value="Hand" />
-            <Setter Property="MinWidth" Value="96" />
-        </Style>
-        <Style x:Key="SecondaryButtonStyle" TargetType="Button" BasedOn="{StaticResource PrimaryButtonStyle}">
-            <Setter Property="Background" Value="Transparent" />
-            <Setter Property="Foreground" Value="#475569" />
-            <Setter Property="BorderBrush" Value="#CBD5E1" />
-            <Setter Property="BorderThickness" Value="1" />
-        </Style>
     </Window.Resources>
 
     <Grid>
@@ -38,29 +22,29 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <Border Padding="26,22" Background="White" BorderBrush="#E2E8F0" BorderThickness="0,0,0,1">
+        <Border Padding="40,28" Background="White" BorderBrush="{DynamicResource ArcBorder}" BorderThickness="0,0,0,1">
             <StackPanel>
-                <TextBlock FontSize="22" FontWeight="SemiBold" Foreground="#0F172A" Text="将错题导入项目" />
+                <TextBlock FontSize="22" FontWeight="Medium" Foreground="{DynamicResource ArcForeground}" Text="将错题导入项目" />
                 <TextBlock
                     x:Name="SummaryText"
                     Margin="0,8,0,0"
                     FontSize="13"
-                    Foreground="#64748B"
+                    Foreground="{DynamicResource ArcTextSecondary}"
                     TextWrapping="Wrap" />
             </StackPanel>
         </Border>
 
-        <ScrollViewer Grid.Row="1" Padding="26" VerticalScrollBarVisibility="Auto">
+        <ScrollViewer Grid.Row="1" Padding="40,16" VerticalScrollBarVisibility="Auto">
             <ItemsControl x:Name="CandidatesItemsControl">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate>
                         <Border
                             Margin="0,0,0,12"
-                            Padding="18"
+                            Padding="0,20"
                             Background="White"
-                            BorderBrush="#E2E8F0"
-                            BorderThickness="1"
-                            CornerRadius="8">
+                            BorderBrush="{DynamicResource ArcBorder}"
+                            BorderThickness="0,0,0,1"
+                            CornerRadius="0">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto" />
@@ -74,8 +58,8 @@
                                 <StackPanel Grid.Column="1">
                                     <TextBlock
                                         FontSize="14"
-                                        FontWeight="SemiBold"
-                                        Foreground="#0F172A"
+                                        FontWeight="Medium"
+                                        Foreground="{DynamicResource ArcForeground}"
                                         Text="{Binding Number, StringFormat='第{0}题'}" />
                                     <TextBlock
                                         Margin="0,8,0,0"
@@ -83,22 +67,23 @@
                                         Foreground="#1E293B"
                                         LineHeight="22"
                                         Text="{Binding Question.Text}"
+                                        FontFamily="{DynamicResource ArcReadingFont}"
                                         TextWrapping="Wrap" />
                                     <Grid Margin="0,12,0,0">
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="*" />
                                             <ColumnDefinition Width="*" />
                                         </Grid.ColumnDefinitions>
-                                        <Border Grid.Column="0" Margin="0,0,8,0" Padding="10" Background="#F8FAFC" CornerRadius="6">
+                                        <Border Grid.Column="0" Margin="0,0,8,0" Padding="10" Background="Transparent" CornerRadius="0">
                                             <StackPanel>
-                                                <TextBlock FontSize="12" FontWeight="SemiBold" Foreground="#64748B" Text="你的答案" />
-                                                <TextBlock Margin="0,4,0,0" Foreground="#334155" Text="{Binding UserAnswer}" TextWrapping="Wrap" />
+                                                <TextBlock FontSize="12" FontWeight="Medium" Foreground="{DynamicResource ArcTextSecondary}" Text="你的答案" />
+                                                <TextBlock Margin="0,4,0,0" Foreground="#334155" Text="{Binding UserAnswer}" Style="{StaticResource ReadingTextStyle}" />
                                             </StackPanel>
                                         </Border>
-                                        <Border Grid.Column="1" Margin="8,0,0,0" Padding="10" Background="#F0FDF4" CornerRadius="6">
+                                        <Border Grid.Column="1" Margin="8,0,0,0" Padding="10" Background="Transparent" CornerRadius="6">
                                             <StackPanel>
-                                                <TextBlock FontSize="12" FontWeight="SemiBold" Foreground="#15803D" Text="正确答案" />
-                                                <TextBlock Margin="0,4,0,0" Foreground="#166534" Text="{Binding CorrectAnswer}" TextWrapping="Wrap" />
+                                                <TextBlock FontSize="12" FontWeight="Medium" Foreground="#15803D" Text="正确答案" />
+                                                <TextBlock Margin="0,4,0,0" Foreground="#166534" Text="{Binding CorrectAnswer}" Style="{StaticResource ReadingTextStyle}" />
                                             </StackPanel>
                                         </Border>
                                     </Grid>
@@ -117,7 +102,7 @@
             </ItemsControl>
         </ScrollViewer>
 
-        <Border Grid.Row="2" Padding="24,16" Background="White" BorderBrush="#E2E8F0" BorderThickness="0,1,0,0">
+        <Border Grid.Row="2" Padding="24,16" Background="White" BorderBrush="{DynamicResource ArcBorder}" BorderThickness="0,1,0,0">
             <Grid>
                 <StackPanel HorizontalAlignment="Left" Orientation="Horizontal">
                     <Button Click="SelectAllButton_Click" Content="全选" Style="{StaticResource SecondaryButtonStyle}" />

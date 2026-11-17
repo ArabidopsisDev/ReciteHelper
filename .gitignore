@@ -406,3 +406,6 @@ model_training/json_merge.json
 model_training/data.json
 model_training/data_in.json
 src/Resources/Models/sbert.onnx
+
+# Local handoff packages and their source materials
+/handoff/

@@ -1,29 +1,29 @@
 <Window x:Class="ReciteHelper.Wpf.Views.ProjectTypeSelectionWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="选择项目类型" Width="1000" Height="740" MinWidth="800" MinHeight="600"
+        Title="选择项目类型" Width="960" Height="800" MinWidth="800" MinHeight="640"
         WindowStartupLocation="CenterOwner" Style="{StaticResource AppWindowStyle}">
     <Window.Resources>
         <Style x:Key="ProjectTypeItemStyle" TargetType="Border">
-            <Setter Property="Background" Value="{DynamicResource ArcSurface}" /><Setter Property="BorderBrush" Value="{DynamicResource ArcBorder}" /><Setter Property="BorderThickness" Value="0,0,0,1" />
+            <Setter Property="Background" Value="{DynamicResource ArcSurface}" /><Setter Property="BorderBrush" Value="{DynamicResource ArcBorder}" /><Setter Property="BorderThickness" Value="1" /><Setter Property="CornerRadius" Value="{DynamicResource ArcRadiusControl}" /><Setter Property="Margin" Value="0,0,0,12" />
         </Style>
         <Style x:Key="SelectedProjectTypeItemStyle" TargetType="Border" BasedOn="{StaticResource ProjectTypeItemStyle}">
-            <Setter Property="Background" Value="{DynamicResource ArcAccentSubtle}" /><Setter Property="BorderBrush" Value="{DynamicResource ArcAccent}" />
+            <Setter Property="Background" Value="{DynamicResource ArcSurfaceMuted}" /><Setter Property="BorderBrush" Value="{DynamicResource ArcBorderStrong}" />
         </Style>
     </Window.Resources>
     <Grid><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
-        <Border Padding="28,24" BorderBrush="{DynamicResource ArcBorder}" BorderThickness="0,0,0,1">
+        <Border Padding="40,32" BorderBrush="{DynamicResource ArcBorder}" BorderThickness="0">
             <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="240" /></Grid.ColumnDefinitions>
                 <StackPanel><TextBlock Text="选择项目类型" Style="{StaticResource TitleTextStyle}" /><TextBlock Text="根据已有资料和复习方式选择。" Style="{StaticResource SubtitleTextStyle}" Margin="0,6,0,0" /></StackPanel>
                 <StackPanel Grid.Column="1" VerticalAlignment="Center"><TextBlock Text="搜索项目类型" Style="{StaticResource FieldLabel}" /><TextBox x:Name="SearchTextBox" TextChanged="SearchTextBox_TextChanged" AutomationProperties.Name="搜索项目类型" /></StackPanel>
             </Grid>
         </Border>
-        <Grid Grid.Row="1">
+        <Grid Grid.Row="1" Margin="40,8,40,24" MaxWidth="880">
             <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                 <ItemsControl x:Name="ProjectTypesItemsControl"><ItemsControl.ItemTemplate><DataTemplate>
                     <Border x:Name="ProjectTypeBorder" Style="{StaticResource ProjectTypeItemStyle}">
-                        <Button Click="ProjectTypeButton_Click" Tag="{Binding}" Style="{StaticResource ListRowButtonStyle}" Padding="28,18" Background="Transparent">
+                        <Button Click="ProjectTypeButton_Click" Tag="{Binding}" Style="{StaticResource ListRowButtonStyle}" Padding="24,22" Background="Transparent">
                             <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-                                <StackPanel Margin="0,0,20,0"><TextBlock Text="{Binding TypeName}" FontSize="16" FontWeight="SemiBold" /><TextBlock Text="{Binding Description}" Style="{StaticResource SubtitleTextStyle}" Margin="0,6,0,0" /></StackPanel>
+                                <StackPanel Margin="0,0,20,0"><TextBlock Text="{Binding TypeName}" FontSize="18" FontWeight="Medium" /><TextBlock Text="{Binding Description}" Style="{StaticResource SubtitleTextStyle}" Margin="0,6,0,0" /></StackPanel>
                                 <TextBlock Grid.Column="1" Text="&#xE76C;" Style="{StaticResource IconGlyphStyle}" FontSize="14" />
                             </Grid>
                         </Button>
@@ -32,7 +32,7 @@
             </ScrollViewer>
             <StackPanel x:Name="NoResultsPanel" VerticalAlignment="Center" HorizontalAlignment="Center" Visibility="Collapsed"><TextBlock Text="未找到项目类型" Style="{StaticResource SectionLabelTextStyle}" /><TextBlock Text="尝试更短的关键词。" Style="{StaticResource SubtitleTextStyle}" Margin="0,8,0,0" /></StackPanel>
         </Grid>
-        <Border Grid.Row="2" Padding="28,16" Background="{DynamicResource ArcSurfaceMuted}" BorderBrush="{DynamicResource ArcBorder}" BorderThickness="0,1,0,0">
+        <Border Grid.Row="2" Padding="40,20" Background="{DynamicResource ArcSurface}" BorderBrush="{DynamicResource ArcBorder}" BorderThickness="0,1,0,0">
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right"><Button x:Name="BackButton" Click="BackButton_Click" Content="返回" Margin="0,0,8,0" IsCancel="True" /><Button x:Name="ConfirmButton" Click="ConfirmButton_Click" Content="创建所选项目" Style="{StaticResource PrimaryButtonStyle}" IsEnabled="False" /></StackPanel>
         </Border>
     </Grid>

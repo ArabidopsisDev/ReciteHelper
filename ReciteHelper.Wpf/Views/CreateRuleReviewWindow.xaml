@@ -1,40 +1,40 @@
 <Window x:Class="ReciteHelper.Wpf.Views.CreateRuleReviewWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="创建规则化复习项目" Width="1100" Height="830" MinWidth="940" MinHeight="700"
+        Title="创建规则化复习项目" Width="1160" Height="880" MinWidth="960" MinHeight="720"
         WindowStartupLocation="CenterOwner" Style="{StaticResource AppWindowStyle}">
     <Grid>
         <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
-        <Grid Margin="28,24,28,20">
+        <Grid Margin="40,32,40,24">
             <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
             <StackPanel>
-                <TextBlock Text="创建规则化复习项目" Style="{StaticResource TitleTextStyle}" />
-                <TextBlock Margin="0,6,0,0" Text="适用于无复习资料pdf且复习时间较为紧急的情况。" Style="{StaticResource SubtitleTextStyle}" />
+                <TextBlock x:Name="PageTitleText" Text="创建规则化复习项目" Style="{StaticResource TitleTextStyle}" />
+                <TextBlock x:Name="PageDescriptionText" Margin="0,6,0,0" Text="手动设定复习范围，结合课程资料生成简答题。" Style="{StaticResource SubtitleTextStyle}" />
             </StackPanel>
             <TextBlock x:Name="WorkflowText" Grid.Column="1" VerticalAlignment="Center" Margin="24,0,0,0"
-                       Text="建立大类 → 预览两题 → 完成出题" Style="{StaticResource CaptionTextStyle}" />
+                       Text="建立大类 → 预览题目 → 完成出题" Style="{StaticResource CaptionTextStyle}" />
         </Grid>
-        <Border Grid.Row="1" BorderBrush="{DynamicResource ArcBorder}" BorderThickness="0,0,0,1" Padding="28,0,28,24">
+        <Border x:Name="ProjectDetailsSection" Grid.Row="1" BorderBrush="{DynamicResource ArcBorder}" BorderThickness="0,0,0,1" Padding="40,0,40,28">
             <Grid x:Name="ProjectFields">
                 <Grid.ColumnDefinitions><ColumnDefinition Width="260" /><ColumnDefinition Width="24" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
                 <StackPanel><TextBlock Text="项目名称" Style="{StaticResource FieldLabel}" /><TextBox x:Name="NameBox" /></StackPanel>
                 <StackPanel Grid.Column="2"><TextBlock Text="保存目录" Style="{StaticResource FieldLabel}" />
-                    <DockPanel><Button DockPanel.Dock="Right" Content="选择目录…" Click="ChooseFolder_Click" Margin="8,0,0,0" /><TextBox x:Name="FolderBox" IsReadOnly="True" /></DockPanel>
+                    <DockPanel><Button x:Name="ChooseFolderButton" DockPanel.Dock="Right" Content="选择目录…" Click="ChooseFolder_Click" Margin="8,0,0,0" /><TextBox x:Name="FolderBox" IsReadOnly="True" /></DockPanel>
                 </StackPanel>
             </Grid>
         </Border>
         <Grid Grid.Row="2">
-            <Grid.ColumnDefinitions><ColumnDefinition Width="256" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
-            <Border Background="{DynamicResource ArcSurfaceMuted}" BorderBrush="{DynamicResource ArcBorder}" BorderThickness="0,0,1,0">
+            <Grid.ColumnDefinitions><ColumnDefinition Width="244" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+            <Border Background="{DynamicResource ArcSurfaceMuted}" BorderBrush="{DynamicResource ArcBorder}" BorderThickness="0">
                 <Grid>
                     <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
-                    <StackPanel Margin="24,24,16,16"><TextBlock Text="聚类大类" Style="{StaticResource SectionLabelTextStyle}" /><TextBlock Margin="0,6,0,0" Text="按列表顺序依次预览和出题。" Style="{StaticResource CaptionTextStyle}" /></StackPanel>
+                    <StackPanel Margin="26,28,20,20"><TextBlock Text="聚类大类" Style="{StaticResource SectionLabelTextStyle}" /><TextBlock x:Name="CategoryListHint" Margin="0,6,0,0" Text="按列表顺序依次预览和出题。" Style="{StaticResource CaptionTextStyle}" /></StackPanel>
                     <ListBox x:Name="CategoryList" Grid.Row="1" BorderThickness="0" Background="Transparent" Padding="0"
                              ItemContainerStyle="{StaticResource NavigationItemStyle}" ScrollViewer.HorizontalScrollBarVisibility="Disabled" SelectionChanged="CategoryList_SelectionChanged">
                         <ListBox.ItemTemplate><DataTemplate>
                             <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="28" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
                                 <TextBlock Text="{Binding Number, StringFormat={}{0:00}}" Foreground="{DynamicResource ArcTextMuted}" Margin="0,2,0,0" FontSize="12" />
-                                <StackPanel Grid.Column="1"><TextBlock Text="{Binding DisplayName}" FontWeight="SemiBold" TextWrapping="Wrap" /><TextBlock Text="{Binding StatusText}" Style="{StaticResource CaptionTextStyle}" Margin="0,4,0,0" /></StackPanel>
+                                <StackPanel Grid.Column="1"><TextBlock Text="{Binding DisplayName}" FontWeight="Medium" TextWrapping="Wrap" /><TextBlock Text="{Binding StatusText}" Style="{StaticResource CaptionTextStyle}" Margin="0,4,0,0" /></StackPanel>
                             </Grid>
                         </DataTemplate></ListBox.ItemTemplate>
                     </ListBox>
@@ -44,30 +44,51 @@
                     </Grid>
                 </Grid>
             </Border>
-            <ScrollViewer x:Name="RequirementsScroll" Grid.Column="1" Padding="28,24" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
-                <Grid MinHeight="{Binding ViewportHeight, RelativeSource={RelativeSource AncestorType=ScrollViewer}}">
-                    <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+            <ScrollViewer x:Name="RequirementsScroll" Grid.Column="1" Padding="40,32" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                <Grid MaxWidth="760" VerticalAlignment="Top">
+                    <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
                     <TextBlock x:Name="ScopeTitle" Text="填写大类的出题要求" Style="{StaticResource SectionLabelTextStyle}" Margin="0,0,0,20" />
                     <StackPanel Grid.Row="1" Margin="0,0,0,20"><TextBlock Text="大类名称" Style="{StaticResource FieldLabel}" /><TextBox x:Name="CategoryNameBox" TextChanged="CategoryNameBox_TextChanged" /></StackPanel>
                     <StackPanel Grid.Row="2" Margin="0,0,0,10">
                         <TextBlock Text="考查对象与内容" Style="{StaticResource FieldLabel}" />
-                        <TextBlock Text="列出全部考查对象，逐项说明需要回答的内容和详细程度。AI 根据这些要求安排题目数量。" Style="{StaticResource SubtitleTextStyle}" />
+                        <TextBlock x:Name="RequirementsHint" Text="列出全部考查对象，逐项说明需要回答的内容和详细程度。AI 根据这些要求安排题目数量。" Style="{StaticResource SubtitleTextStyle}" />
                     </StackPanel>
-                    <TextBox x:Name="PromptBox" Grid.Row="3" MinHeight="160" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" VerticalContentAlignment="Top" Padding="12" TextChanged="PromptBox_TextChanged" />
-                    <Expander x:Name="ScopeExample" Grid.Row="4" Header="查看植物病理学示例" Margin="0,16,0,0" Foreground="{DynamicResource ArcTextSecondary}" FontSize="13">
+                    <TextBox x:Name="PromptBox" Grid.Row="3" Height="160" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" VerticalContentAlignment="Top" Padding="16" TextChanged="PromptBox_TextChanged" />
+                    <StackPanel x:Name="MaterialControls" Grid.Row="4" Margin="0,28,0,0">
+                        <TextBlock Text="本类复习资料" Style="{StaticResource FieldLabel}" />
+                        <TextBlock Text="添加讲义、课件或笔记。AI 从资料提取核心要点，判分以这些内容为准；每问达到 70% 视为掌握并给该问满分。" Style="{StaticResource SubtitleTextStyle}" />
+                        <ItemsControl x:Name="MaterialList" Margin="0,8,0,0"><ItemsControl.ItemTemplate><DataTemplate>
+                            <DockPanel Margin="0,4"><Button DockPanel.Dock="Right" Content="移除" Tag="{Binding}" Click="RemoveMaterial_Click" Style="{StaticResource SubtleButtonStyle}" />
+                                <TextBlock Text="{Binding Name}" VerticalAlignment="Center" TextWrapping="Wrap" />
+                            </DockPanel>
+                        </DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
+                        <Button Content="添加资料…" Click="ImportMaterial_Click" HorizontalAlignment="Left" Margin="0,6,0,0" />
+                        <Expander Header="粘贴资料内容" Margin="0,10,0,0" Foreground="{DynamicResource ArcTextSecondary}"><StackPanel Margin="0,10,0,0">
+                            <TextBox x:Name="PastedMaterialBox" Height="100" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" VerticalContentAlignment="Top" />
+                            <Button Content="添加粘贴内容" Click="AddPastedMaterial_Click" HorizontalAlignment="Left" Margin="0,8,0,0" />
+                        </StackPanel></Expander>
+                        <CheckBox x:Name="NoMaterialCheckBox" Content="本次不提供资料" Margin="0,12,0,0" Checked="NoMaterial_Checked" Unchecked="NoMaterial_Unchecked" />
+                    </StackPanel>
+                    <StackPanel Grid.Row="5">
+                    <Expander x:Name="PreviousScopeExpander" Header="查看已有出题要求" Margin="0,16,0,0" Visibility="Collapsed" Foreground="{DynamicResource ArcTextSecondary}" FontSize="13">
+                        <TextBlock x:Name="PreviousRequirementsText" Margin="0,12,16,4" Style="{StaticResource SubtitleTextStyle}" />
+                    </Expander>
+                    <Expander x:Name="ScopeExample" Header="查看植物病理学示例" Margin="0,16,0,0" Foreground="{DynamicResource ArcTextSecondary}" FontSize="13">
                         <TextBlock Margin="0,12,0,4" Padding="0,0,16,0" Style="{StaticResource SubtitleTextStyle}"
                                    Text="列出本类需要考查的所有病原体名称，再分别说明要考查形态特征、寄主、传播途径、致病机制或防治措施中的哪些内容。例如：考查甲、乙、丙三种病原体；每种均需说明寄主和传播途径；甲还需说明致病机制，乙和丙需展开农业防治与药剂防治的具体措施。" />
                     </Expander>
+                    </StackPanel>
                 </Grid>
             </ScrollViewer>
         </Grid>
-        <Border Grid.Row="3" BorderBrush="{DynamicResource ArcBorder}" BorderThickness="0,1,0,0" Padding="28,16">
+        <Border Grid.Row="3" BorderBrush="{DynamicResource ArcBorder}" BorderThickness="0,1,0,0" Padding="40,20">
             <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                 <StackPanel VerticalAlignment="Center" Margin="0,0,20,0">
-                    <TextBlock x:Name="StatusText" Text="为每个大类填写要求后，生成首类的两道预览题。" Style="{StaticResource SubtitleTextStyle}" />
+                    <TextBlock x:Name="StatusText" Text="为每个大类填写要求并选择资料后，生成首类预览。" Style="{StaticResource SubtitleTextStyle}" />
                     <ProgressBar x:Name="GenerationProgress" Height="3" Margin="0,8,0,0" IsIndeterminate="True" Visibility="Collapsed" Foreground="{DynamicResource ArcAccent}" Background="{DynamicResource ArcAccentSubtle}" />
                 </StackPanel>
                 <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button x:Name="DiscardBatchButton" Content="取消本次出题" Click="DiscardBatch_Click" Margin="0,0,8,0" Visibility="Collapsed" />
                     <Button Content="关闭" Click="Close_Click" Margin="0,0,8,0" />
                     <Button x:Name="GenerateButton" Content="生成首类预览" Click="Generate_Click" Style="{StaticResource PrimaryButtonStyle}" />
                 </StackPanel>

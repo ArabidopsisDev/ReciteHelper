@@ -43,7 +43,7 @@ public sealed class ExamPaperService : IExamPaperService
 
         if (selected.Count < settings.QuestionCount)
         {
-            var selectedQuestions = selected.Select(candidate => candidate.Question).ToHashSet();
+            var selectedQuestions = selected.Select(candidate => candidate.Question).ToHashSet<Question>(ReferenceEqualityComparer.Instance);
             selected.AddRange(SelectCandidates(
                 candidates.Where(candidate => !selectedQuestions.Contains(candidate.Question)).ToList(),
                 settings.QuestionCount - selected.Count));
@@ -95,7 +95,7 @@ public sealed class ExamPaperService : IExamPaperService
 
         var selectedQuestions = positiveWeightCandidates
             .Select(candidate => candidate.Question)
-            .ToHashSet();
+            .ToHashSet<Question>(ReferenceEqualityComparer.Instance);
         var supplements = candidates
             .Where(candidate => !selectedQuestions.Contains(candidate.Question))
             .OrderBy(_ => Random.Shared.Next())
@@ -116,6 +116,11 @@ public sealed class ExamPaperService : IExamPaperService
         return new Question
         {
             Text = question.Text,
+            ReviewIdentity = question.ReviewIdentity,
+            RequiresAiGrading = question.RequiresAiGrading,
+            AnswerParts = question.AnswerParts.Select(p => new QuestionPart { Key = p.Key, Prompt = p.Prompt,
+                ReferenceAnswer = p.ReferenceAnswer, Weight = p.Weight }).ToList(),
+            SourceExcerpts = question.SourceExcerpts.ToList(),
             Type = question.Type,
             Options = question.Options
                 .Select(option => new ReciteHelper.Core.ValueObjects.QuestionOption

@@ -3,28 +3,39 @@
     <!-- Adapted from TKCode.Arc ArcDesignToken / ArcTokens (MIT).
          Copyright (c) 2026 TKCode.Arc contributors; (c) 2026 Elia Kuratli.
          Source revision and full licenses: ThirdPartyNotices/TKCode.Arc/. -->
-    <SolidColorBrush x:Key="ArcBackground" Color="#F5F6F7" />
+    <SolidColorBrush x:Key="ArcBackground" Color="#FFFFFF" />
     <SolidColorBrush x:Key="ArcSurface" Color="#FFFFFF" />
-    <SolidColorBrush x:Key="ArcSurfaceMuted" Color="#F5F6F7" />
-    <SolidColorBrush x:Key="ArcSurfaceHover" Color="#ECEEF0" />
-    <SolidColorBrush x:Key="ArcSurfacePressed" Color="#E2E5E8" />
-    <SolidColorBrush x:Key="ArcForeground" Color="#202327" />
-    <SolidColorBrush x:Key="ArcTextSecondary" Color="#59616A" />
-    <SolidColorBrush x:Key="ArcTextMuted" Color="#727A84" />
-    <SolidColorBrush x:Key="ArcBorder" Color="#DFE3E7" />
-    <SolidColorBrush x:Key="ArcBorderStrong" Color="#BCC3CB" />
-    <SolidColorBrush x:Key="ArcAccent" Color="#24527A" />
-    <SolidColorBrush x:Key="ArcAccentStrong" Color="#193D5D" />
-    <SolidColorBrush x:Key="ArcAccentSubtle" Color="#E8EFF5" />
+    <SolidColorBrush x:Key="ArcSurfaceMuted" Color="#F8F8F8" />
+    <SolidColorBrush x:Key="ArcSurfaceHover" Color="#F0F0F0" />
+    <SolidColorBrush x:Key="ArcSurfacePressed" Color="#E8E8E8" />
+    <SolidColorBrush x:Key="ArcForeground" Color="#0B0B0B" />
+    <SolidColorBrush x:Key="ArcTextSecondary" Color="#585858" />
+    <SolidColorBrush x:Key="ArcTextMuted" Color="#7D7D7D" />
+    <SolidColorBrush x:Key="ArcBorder" Color="#E9E9E9" />
+    <SolidColorBrush x:Key="ArcBorderStrong" Color="#C4C4C4" />
+    <SolidColorBrush x:Key="ArcAccent" Color="#353535" />
+    <SolidColorBrush x:Key="ArcAccentStrong" Color="#1F1F1F" />
+    <SolidColorBrush x:Key="ArcAccentSubtle" Color="#EAEAEA" />
     <SolidColorBrush x:Key="ArcAccentForeground" Color="#FFFFFF" />
-    <SolidColorBrush x:Key="ArcSuccess" Color="#2E6B3F" />
+    <SolidColorBrush x:Key="ArcSuccess" Color="#007824" />
     <SolidColorBrush x:Key="ArcSuccessSubtle" Color="#EAF3EC" />
-    <SolidColorBrush x:Key="ArcDanger" Color="#B3261E" />
+    <SolidColorBrush x:Key="ArcDanger" Color="#CD1526" />
     <SolidColorBrush x:Key="ArcDangerSubtle" Color="#FBECEA" />
-    <SolidColorBrush x:Key="ArcWarning" Color="#8A5A00" />
+    <SolidColorBrush x:Key="ArcWarning" Color="#AA6B00" />
     <SolidColorBrush x:Key="ArcWarningSubtle" Color="#FFF4DC" />
-    <FontFamily x:Key="ArcBodyFont">Segoe UI, Microsoft YaHei UI</FontFamily>
+    <FontFamily x:Key="ArcBodyFont">/ReciteHelper.Wpf;component/Fonts/#Noto Sans CJK SC</FontFamily>
+    <FontFamily x:Key="ArcReadingFont">/ReciteHelper.Wpf;component/Fonts/#Noto Serif CJK SC</FontFamily>
     <FontFamily x:Key="ArcIconFont">Segoe Fluent Icons, Segoe MDL2 Assets</FontFamily>
-    <CornerRadius x:Key="ArcRadiusControl">4</CornerRadius>
-    <Thickness x:Key="ArcControlPadding">12,7</Thickness>
+    <CornerRadius x:Key="ArcRadiusControl">18</CornerRadius>
+    <CornerRadius x:Key="ArcRadiusFocus">22</CornerRadius>
+    <CornerRadius x:Key="ArcRadiusNavigation">14</CornerRadius>
+    <CornerRadius x:Key="ArcRadiusPopup">18</CornerRadius>
+    <Thickness x:Key="ArcControlPadding">16,9</Thickness>
+    <Thickness x:Key="ArcPagePadding">40,32</Thickness>
+    <Geometry x:Key="ArcFolderIcon">M3,7 L9,7 11,10 21,10 21,20 3,20 Z M3,7 L3,5 9,5 11,7 21,7 21,10</Geometry>
+    <Geometry x:Key="ArcGridIcon">M4,4 L10,4 10,10 4,10 Z M14,4 L20,4 20,10 14,10 Z M4,14 L10,14 10,20 4,20 Z M14,14 L20,14 20,20 14,20 Z</Geometry>
+    <Geometry x:Key="ArcPlusIcon">M12,5 L12,19 M5,12 L19,12</Geometry>
+    <Geometry x:Key="ArcSettingsIcon">M4,7 L20,7 M4,17 L20,17 M8,4 L8,10 M16,14 L16,20</Geometry>
+    <Geometry x:Key="ArcArrowIcon">M5,12 L19,12 M13,6 L19,12 13,18</Geometry>
+    <Geometry x:Key="ArcCloudIcon">M7,18 C2,18 2,11 6,10 C6,3 17,3 18,10 C24,11 23,18 18,18 Z</Geometry>
 </ResourceDictionary>

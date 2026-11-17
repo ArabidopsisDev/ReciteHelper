@@ -19,7 +19,7 @@ public interface IReviewScheduler
     /// <summary>Creates the memory record from legacy tags if needed; returns true when migrated.</summary>
     bool EnsureMemory(Project project, Question question);
 
-    /// <summary>Predicted recall probability at <paramref name="now"/>; null for a never-reviewed question.</summary>
+    /// <summary>Predicted recall, or expected rubric coverage for a composite; null for a never-reviewed item.</summary>
     double? PredictRecall(Project project, Question question, DateTime now);
 
     /// <summary>Applies a graded review to the question's memory record and returns the outcome.</summary>

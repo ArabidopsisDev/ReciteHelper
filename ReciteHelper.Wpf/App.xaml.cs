@@ -53,6 +53,7 @@ public partial class App : System.Windows.Application
         services.AddSingleton<IQuizService, QuizService>();
         services.AddSingleton<IRuleReviewService, RuleReviewService>();
         services.AddSingleton<IAiAnswerGrader, AiAnswerGrader>();
+        services.AddSingleton<IFacetReviewService, FacetReviewService>();
         services.AddSingleton<IReviewGenerator, ReviewGenerator>();
         services.AddSingleton<IExamPaperService, ExamPaperService>();
         services.AddSingleton<IExamSettingsService, ExamSettingsService>();
@@ -71,8 +72,6 @@ public partial class App : System.Windows.Application
         services.AddSingleton<IStartupCompatibilityService, StartupCompatibilityService>();
         services.AddSingleton<IRecentProjectService, RecentProjectService>();
         services.AddSingleton<IFileMergeService, FileMergeService>();
-        services.AddSingleton<IGalGameService, GalGameService>();
-        services.AddSingleton<IGalGameCreationService, GalGameCreationService>();
         services.AddSingleton<IPromptProvider, PromptProvider>();
         services.AddSingleton<IPhonkService, PhonkService>();
         services.AddSingleton<IReviewScheduler, FsrsReviewScheduler>();

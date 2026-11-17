@@ -16,7 +16,6 @@ public partial class MainWindow : Window
     private readonly IProjectFileService _projectFileService;
     private readonly IProjectCreationService _projectCreationService;
     private readonly IQuestionBankTextService _questionBankTextService;
-    private readonly IGalGameCreationService _galGameCreationService;
     private readonly IStartupCompatibilityService _startupCompatibilityService;
     private readonly IQuizService _quizService;
     private readonly IRecentProjectService _recentProjectService;
@@ -28,7 +27,6 @@ public partial class MainWindow : Window
     private readonly IExamSetImportService _examSetImportService;
     private readonly IExamSetRepository _examSetRepository;
     private readonly IFileMergeService _fileMergeService;
-    private readonly IGalGameService _galGameService;
     private readonly IQuestionHelpService _questionHelpService;
     private readonly IConfigService _configService;
     private readonly IPiModelService _piModelService;
@@ -40,7 +38,6 @@ public partial class MainWindow : Window
         IProjectFileService projectFileService,
         IProjectCreationService projectCreationService,
         IQuestionBankTextService questionBankTextService,
-        IGalGameCreationService galGameCreationService,
         IStartupCompatibilityService startupCompatibilityService,
         IQuizService quizService,
         IRecentProjectService recentProjectService,
@@ -51,7 +48,6 @@ public partial class MainWindow : Window
         IExamSetImportService examSetImportService,
         IExamSetRepository examSetRepository,
         IFileMergeService fileMergeService,
-        IGalGameService galGameService,
         IQuestionHelpService questionHelpService,
         IReviewPersonalizationService reviewPersonalizationService,
         IConfigService configService,
@@ -63,7 +59,6 @@ public partial class MainWindow : Window
         _projectFileService = projectFileService;
         _projectCreationService = projectCreationService;
         _questionBankTextService = questionBankTextService;
-        _galGameCreationService = galGameCreationService;
         _startupCompatibilityService = startupCompatibilityService;
         _quizService = quizService;
         _recentProjectService = recentProjectService;
@@ -74,7 +69,6 @@ public partial class MainWindow : Window
         _examSetImportService = examSetImportService;
         _examSetRepository = examSetRepository;
         _fileMergeService = fileMergeService;
-        _galGameService = galGameService;
         _questionHelpService = questionHelpService;
         _configService = configService;
         _piModelService = piModelService;
@@ -85,29 +79,13 @@ public partial class MainWindow : Window
 
         InitializeComponent();
         LoadSlogan();
+        if (Random.Shared.Next(100) == 0) ShowAiHomeEasterEgg();
         Loaded += async (_, _) => await LoadRecentProjectsAsync();
     }
 
     private void LoadSlogan()
     {
-        List<string> slogan = ["你一定会坚持到底的", "常回家看看", "我有卡SPFA症",
-            "向上的路没有同伴", "咕咕，咕咕，咕咕咕！", "坚持融入日常、抓在经常",
-            "我真的是一个很坏的雪莉吗", "你好多宝宝，你开幼儿园算了", "对的对的对的，哦不对！",
-            "Vive la France", "\\o/ \\o/ \\o/ \\o/ \\o/", "二楼一定要盖在一楼上"];
-        SloganLabel.Content = slogan[Random.Shared.Next(0, slogan.Count)];
-
-        if (DateTime.Now.Hour > 14 && Random.Shared.Next(1, 10) > 8)
-            SloganLabel.Content = "哇塞，睡得跟猪头一样";
-        if (DateTime.Now.Hour > 14 && Random.Shared.Next(1, 10) > 8)
-            SloganLabel.Content = "每天睡得屁股都挪不动了吧";
-        if (DateTime.Now.Hour > 10 && Random.Shared.Next(1, 10) > 8)
-            SloganLabel.Content = "又不学习，你去spa";
-        if (DateTime.Now.Hour > 10 && Random.Shared.Next(1, 10) > 8)
-            SloganLabel.Content = "别躺在床上刷手机啃苹果了";
-        if (Random.Shared.Next(1, 10) > 8)
-            SloganLabel.Content = "我读到生词怎么办，跳过";
-        if (Random.Shared.Next(1, 10) > 8)
-            SloganLabel.Content = "每天都在屋子里面滑狗";
+        SloganLabel.Content = "Arabidopsis\n学习记录保存在项目中。";
     }
 
     private async void ModelSettings_Click(object sender, RoutedEventArgs e)
@@ -161,13 +139,11 @@ public partial class MainWindow : Window
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
 
-        var image = new Image
+        var image = new System.Windows.Shapes.Path
         {
-            Source = new System.Windows.Media.Imaging.BitmapImage(
-                new Uri("pack://application:,,,/ReciteHelper.Wpf;component/Images/project.png")),
-            Width = 24,
-            Height = 24,
-            Margin = new Thickness(0, 0, 12, 0)
+            Data = (System.Windows.Media.Geometry)FindResource("ArcFolderIcon"),
+            Style = (Style)FindResource("ArcLineIcon"),
+            Width = 24, Height = 24, Margin = new Thickness(0, 0, 20, 0)
         };
         Grid.SetColumn(image, 0);
 
@@ -177,7 +153,7 @@ public partial class MainWindow : Window
         var nameTextBlock = new TextBlock
         {
             Text = projectName,
-            FontWeight = FontWeights.SemiBold,
+            FontWeight = FontWeights.Medium,
             Foreground = (System.Windows.Media.Brush)FindResource("ArcForeground"),
             TextTrimming = TextTrimming.CharacterEllipsis
         };
@@ -253,17 +229,6 @@ public partial class MainWindow : Window
         {
             new FileMergeWindow(_fileMergeService).Show();
             result = true;
-        }
-        else if (type.TemplateType == ProjectTemplateType.GalGame)
-        {
-            var createWindow = new CreateGalGameWindow(
-                _projectFileService,
-                _galGameCreationService)
-            {
-                Owner = this
-            };
-
-            result = createWindow.ShowDialog();
         }
         else
         {
@@ -374,9 +339,9 @@ public partial class MainWindow : Window
                 _examSetImportService,
                 _examSetRepository,
                 _projectCreationService,
-                _galGameService,
                 _questionHelpService,
-                _reviewPersonalizationService);
+                _reviewPersonalizationService,
+                _ruleReviewService);
             quizWindow.Show();
 
             PopulateRecentProjectsUI();

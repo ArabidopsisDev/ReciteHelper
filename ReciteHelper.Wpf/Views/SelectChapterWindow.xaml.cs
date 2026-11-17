@@ -2,6 +2,7 @@ using ReciteHelper.Core.Interfaces.Services;
 using ReciteHelper.Core.Aggregates;
 using ReciteHelper.Core.Entities;
 using ReciteHelper.Core.DTOs;
+using ReciteHelper.Core.Scheduling;
 using ReciteHelper.Wpf.Models;
 using ReciteHelper.Wpf.ViewModels;
 using Microsoft.Win32;
@@ -24,9 +25,9 @@ public partial class SelectChapterWindow : Window, INotifyPropertyChanged
     private readonly IExamSetImportService _examSetImportService;
     private readonly IExamSetRepository _examSetRepository;
     private readonly IProjectCreationService _projectCreationService;
-    private readonly IGalGameService _galGameService;
     private readonly IQuestionHelpService _questionHelpService;
     private readonly IReviewPersonalizationService _reviewPersonalizationService;
+    private readonly IRuleReviewService? _ruleReviewService;
     private Project? _currentProject;
     private DispatcherTimer _clockTimer;
     private List<ChapterViewModel> _chapters;
@@ -42,9 +43,9 @@ public partial class SelectChapterWindow : Window, INotifyPropertyChanged
         IExamSetImportService examSetImportService,
         IExamSetRepository examSetRepository,
         IProjectCreationService projectCreationService,
-        IGalGameService galGameService,
         IQuestionHelpService questionHelpService,
-        IReviewPersonalizationService reviewPersonalizationService)
+        IReviewPersonalizationService reviewPersonalizationService,
+        IRuleReviewService? ruleReviewService = null)
     {
         _reviewPersonalizationService = reviewPersonalizationService;
         _projectFileService = projectFileService;
@@ -56,11 +57,12 @@ public partial class SelectChapterWindow : Window, INotifyPropertyChanged
         _examSetImportService = examSetImportService;
         _examSetRepository = examSetRepository;
         _projectCreationService = projectCreationService;
-        _galGameService = galGameService;
         _questionHelpService = questionHelpService;
+        _ruleReviewService = ruleReviewService;
 
         InitializeComponent();
         _currentProject = project;
+        ManageRuleQuestionsButton.Visibility = project.TemplateType == Core.Enums.ProjectTemplateType.RuleBasedReview ? Visibility.Visible : Visibility.Collapsed;
 
         InitializeData();
         InitializeClock();
@@ -77,7 +79,7 @@ public partial class SelectChapterWindow : Window, INotifyPropertyChanged
             {
                 var chapterVM = new ChapterViewModel(chapter)
                 {
-                    MasteryLevel = CalculateMasteryLevel(chapter)
+                    MasteryLevel = CalculateMasteryLevel(chapter, _currentProject.SchedulerParameters)
                 };
                 _chapters.Add(chapterVM);
             }
@@ -86,17 +88,18 @@ public partial class SelectChapterWindow : Window, INotifyPropertyChanged
         ChaptersItemsControl.ItemsSource = _chapters;
     }
 
-    internal static double CalculateMasteryLevel(Chapter chapter)
+    internal static double CalculateMasteryLevel(Chapter chapter, SchedulerParameters? parameters = null)
     {
         // Calculate the mastery level of the chapter.
         if (chapter.Questions == null || chapter.Questions.Count == 0)
             return 0;
 
-        int count = 0, sum = chapter.Questions.Count;
-        foreach (var question in chapter.Questions)
-            if (question.Status == true) count++;
-
-        return (double)count / sum * 100d;
+        var now = DateTime.Now;
+        return chapter.Questions.Average(question => question.ReviewFacets.Count > 0
+            ? FacetMemoryProjection.Mastery(question, now, parameters ?? SchedulerParameters.Default)
+            : question.LastAiAssessment is { } assessment && question.Memory is not null
+                ? assessment.ScoreRatio * FacetMemoryProjection.Recall(question.Memory, now, parameters ?? SchedulerParameters.Default)
+            : question.Status is true ? 1d : 0d) * 100d;
     }
 
     private void InitializeClock()
@@ -104,6 +107,7 @@ public partial class SelectChapterWindow : Window, INotifyPropertyChanged
         _clockTimer = new DispatcherTimer();
         _clockTimer.Interval = TimeSpan.FromSeconds(1);
         _clockTimer.Tick += ClockTimer_Tick;
+        CurrentTimeText.Text = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
         _clockTimer.Start();
     }
 
@@ -119,10 +123,11 @@ public partial class SelectChapterWindow : Window, INotifyPropertyChanged
         ProjectPathText.Text = _currentProject?.StoragePath ?? "路径不可用";
 
         // Update last access time
-        if (_currentProject?.LastAccessed != null)
+        if (_currentProject?.LastAccessed is { } lastAccessed && lastAccessed != default)
         {
-            LastAccessedText.Text = $"最后访问：{_currentProject.LastAccessed:yyyy-MM-dd HH:mm}";
+            LastAccessedText.Text = $"最后访问：{lastAccessed:yyyy-MM-dd HH:mm}";
         }
+        else LastAccessedText.Text = "尚无访问记录";
 
         // Update statistics
         var chapterCount = _chapters?.Count ?? 0;
@@ -155,14 +160,16 @@ public partial class SelectChapterWindow : Window, INotifyPropertyChanged
             _quizService,
             _projectFileService,
             _questionHelpService,
-            _reviewPersonalizationService)
+            _reviewPersonalizationService,
+            _ruleReviewService)
         {
             Title = $"{_currentProject.ProjectName} - {chapter.Name}",
             Owner = this
         };
 
         quizWindow.ShowDialog();
-        RefreshMasteryLevels();
+        InitializeData();
+        UpdateDisplay();
     }
 
     private void SimulateButton_Click(object sender, RoutedEventArgs e)
@@ -185,7 +192,7 @@ public partial class SelectChapterWindow : Window, INotifyPropertyChanged
     {
         foreach (var chapterVM in _chapters)
         {
-            chapterVM.MasteryLevel = CalculateMasteryLevel(chapterVM.Chapter);
+            chapterVM.MasteryLevel = CalculateMasteryLevel(chapterVM.Chapter, _currentProject?.SchedulerParameters);
         }
 
         ChaptersItemsControl.Items.Refresh();
@@ -344,30 +351,9 @@ public partial class SelectChapterWindow : Window, INotifyPropertyChanged
         ExportButton.IsEnabled = !isImporting;
         SimulateButton.IsEnabled = !isImporting;
         SmartReviewButton.IsEnabled = !isImporting;
+        ManageRuleQuestionsButton.IsEnabled = !isImporting;
         ExportButton.Content = isImporting ? "正在导入..." : "功能菜单";
         IsEnabled = !isImporting;
-    }
-
-    private async void GameMenuItem_Click(object sender, RoutedEventArgs e)
-    {
-        if (!_galGameService.Exists(_currentProject!))
-        {
-            MessageBox.Show("游戏文件尚未创建，请先创建", "打开失败", MessageBoxButton.OK, MessageBoxImage.Warning);
-            return;
-        }
-
-        try
-        {
-            _ = await _galGameService.LoadStoryLinesAsync(_currentProject!);
-        }
-        catch (Exception)
-        {
-            MessageBox.Show("游戏文件已损坏，请重新创建", "打开失败", MessageBoxButton.OK, MessageBoxImage.Warning); ;
-            return;
-        }
-
-        var gameWindow = new GalWindow(_currentProject!, _galGameService);
-        gameWindow.Show();
     }
 
     private async void ExportMenuItem_Click(object sender, RoutedEventArgs e)
@@ -409,7 +395,14 @@ public partial class SelectChapterWindow : Window, INotifyPropertyChanged
 
     private void ReviewMenuItem_Click(object sender, RoutedEventArgs e)
     {
+        if (_currentProject is null) return;
         var questionList = _reviewGenerator.GenerateReview(_currentProject, 30);
+        if (questionList.Count == 0)
+        {
+            MessageBox.Show("当前没有到期的复习题。cFSRS 会将刚答错的内容间隔 10 分钟再安排重练；已掌握的切面按记忆状态安排复习。",
+                "复习安排", MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
 
         var quizWindow = new QuizWindow(
             _currentProject,
@@ -417,10 +410,20 @@ public partial class SelectChapterWindow : Window, INotifyPropertyChanged
             _quizService,
             _projectFileService,
             _questionHelpService,
-            _reviewPersonalizationService)
+            _reviewPersonalizationService,
+            _ruleReviewService)
         { Owner = System.Windows.Application.Current.MainWindow };
         quizWindow.Show();
         Close();
+    }
+
+    private void ManageRuleQuestions_Click(object sender, RoutedEventArgs e)
+    {
+        if (_currentProject?.TemplateType != Core.Enums.ProjectTemplateType.RuleBasedReview || _ruleReviewService is null) return;
+        new CreateRuleReviewWindow(_ruleReviewService, _projectFileService, _ => Task.CompletedTask, _currentProject)
+            { Owner = this }.ShowDialog();
+        InitializeData();
+        UpdateDisplay();
     }
 
     public Project CurrentProject

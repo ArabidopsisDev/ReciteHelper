@@ -9,10 +9,10 @@ namespace ReciteHelper.Wpf.Views;
 
 public partial class ProgressWindow : Window, INotifyPropertyChanged
 {
-    private static readonly Brush ActiveBrush = new SolidColorBrush(Color.FromRgb(0, 122, 204));
-    private static readonly Brush InactiveBrush = new SolidColorBrush(Color.FromRgb(214, 222, 232));
+    private static readonly Brush ActiveBrush = new SolidColorBrush(Color.FromRgb(11, 11, 11));
+    private static readonly Brush InactiveBrush = new SolidColorBrush(Color.FromRgb(233, 233, 233));
     private static readonly Brush ActiveTextBrush = Brushes.White;
-    private static readonly Brush InactiveTextBrush = new SolidColorBrush(Color.FromRgb(100, 116, 139));
+    private static readonly Brush InactiveTextBrush = new SolidColorBrush(Color.FromRgb(125, 125, 125));
 
     private ProjectCreationStage _currentStage = ProjectCreationStage.ReadingText;
     private ExamSetImportStage _currentExamStage = ExamSetImportStage.ReadingSource;

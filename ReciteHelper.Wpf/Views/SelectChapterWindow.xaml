@@ -1,60 +1,63 @@
 <Window x:Class="ReciteHelper.Wpf.Views.SelectChapterWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="章节选择 - ReciteHelper" Width="1060" Height="700" MinWidth="880" MinHeight="560"
+        Title="章节选择 - ReciteHelper" Width="1160" Height="760" MinWidth="920" MinHeight="600"
         WindowStartupLocation="CenterOwner" Style="{StaticResource AppWindowStyle}">
-    <Grid><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
-        <Border Padding="28,24" BorderBrush="{DynamicResource ArcBorder}" BorderThickness="0,0,0,1">
-            <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-                <StackPanel Margin="0,0,24,0"><TextBlock x:Name="ProjectNameText" Style="{StaticResource TitleTextStyle}" TextTrimming="CharacterEllipsis" /><TextBlock x:Name="ProjectPathText" Style="{StaticResource CaptionTextStyle}" Margin="0,6,0,0" TextTrimming="CharacterEllipsis" /></StackPanel>
-                <Button Grid.Column="1" Click="CloseButton_Click" Content="返回项目列表" VerticalAlignment="Center" />
+    <Grid>
+        <Grid.ColumnDefinitions><ColumnDefinition Width="244" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+        <Border Background="{DynamicResource ArcSurfaceMuted}" Padding="16,24,16,20">
+            <Grid>
+                <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                <StackPanel>
+                    <Button Click="CloseButton_Click" Content="‹  所有项目" HorizontalContentAlignment="Left" Style="{StaticResource SidebarButtonStyle}" Margin="0,0,0,24" />
+                    <TextBlock Text="学习" Style="{StaticResource SidebarLabelStyle}" />
+                    <Border Background="{DynamicResource ArcSurface}" CornerRadius="{DynamicResource ArcRadiusNavigation}" Padding="16,13" Margin="0,0,0,8">
+                        <StackPanel Orientation="Horizontal"><Path Data="{StaticResource ArcGridIcon}" Style="{StaticResource ArcLineIcon}" /><TextBlock Text="章节与聚类" FontSize="15" FontWeight="Medium" /></StackPanel>
+                    </Border>
+                    <Button x:Name="SimulateButton" Click="SimulateButton_Click" Content="模拟考试" Style="{StaticResource SidebarButtonStyle}" />
+                    <Button x:Name="KnowledgeButton" Click="KnowledgeButton_Click" Content="学习知识点" Style="{StaticResource SidebarButtonStyle}" />
+                    <TextBlock Text="项目管理" Style="{StaticResource SidebarLabelStyle}" Margin="16,28,0,8" />
+                    <Button x:Name="ManageRuleQuestionsButton" Click="ManageRuleQuestions_Click" Content="管理大类与出题" Style="{StaticResource SidebarButtonStyle}" Visibility="Collapsed" />
+                    <Button x:Name="ExportButton" Click="ExportButton_Click" Content="导入与导出" Style="{StaticResource SidebarButtonStyle}">
+                        <Button.ContextMenu><ContextMenu x:Name="FunctionMenu">
+                            <MenuItem Click="AddQuestionSourceMenuItem_Click" Header="增加题目来源" />
+                            <MenuItem Click="ImportExamMenuItem_Click" Header="导入试卷（PDF/TXT/HTML/MHTML）" />
+                            <MenuItem Click="ExportMenuItem_Click" Header="导出" />
+                            <MenuItem Click="ReviewMenuItem_Click" Header="智能复习" />
+                        </ContextMenu></Button.ContextMenu>
+                    </Button>
+                </StackPanel>
+                <StackPanel Grid.Row="2" Margin="16,0"><TextBlock Text="本地项目" Style="{StaticResource CaptionTextStyle}" /><TextBlock x:Name="LastAccessedText" Style="{StaticResource CaptionTextStyle}" Margin="0,8,0,0" /><TextBlock x:Name="CurrentTimeText" Style="{StaticResource CaptionTextStyle}" Margin="0,4,0,0" /></StackPanel>
             </Grid>
         </Border>
-        <Border Grid.Row="1" Padding="28,16" BorderBrush="{DynamicResource ArcBorder}" BorderThickness="0,0,0,1">
-            <WrapPanel>
-                <Button x:Name="SmartReviewButton" Content="智能复习" Click="ReviewMenuItem_Click" Style="{StaticResource PrimaryButtonStyle}" Margin="0,0,8,0" ToolTip="从项目所有聚类中安排复习题目" />
-                <Button x:Name="SimulateButton" Click="SimulateButton_Click" Content="模拟考试" Margin="0,0,8,0" />
-                <Button x:Name="KnowledgeButton" Click="KnowledgeButton_Click" Content="学习知识点" Margin="0,0,8,0" />
-                <Button x:Name="ExportButton" Click="ExportButton_Click" Content="功能菜单">
-                    <Button.ContextMenu><ContextMenu x:Name="FunctionMenu">
-                        <MenuItem Click="AddQuestionSourceMenuItem_Click" Header="增加题目来源" />
-                        <MenuItem Click="ImportExamMenuItem_Click" Header="导入试卷（PDF/TXT/HTML/MHTML）" />
-                        <MenuItem Click="ExportMenuItem_Click" Header="导出" />
-                        <MenuItem Click="GameMenuItem_Click" Header="运行游戏" />
-                        <MenuItem Click="ReviewMenuItem_Click" Header="智能复习" />
-                    </ContextMenu></Button.ContextMenu>
-                </Button>
-            </WrapPanel>
-        </Border>
-        <Grid Grid.Row="2" Margin="28,24"><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions>
-            <Grid Margin="0,0,0,20"><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-                <TextBlock Text="章节与聚类" Style="{StaticResource SectionLabelTextStyle}" /><TextBlock x:Name="ChapterStatsText" Grid.Column="1" Style="{StaticResource CaptionTextStyle}" VerticalAlignment="Center" />
+        <Grid Grid.Column="1" Margin="40,40,40,24" MaxWidth="880">
+            <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions>
+            <StackPanel Margin="0,0,0,32"><TextBlock x:Name="ProjectNameText" Style="{StaticResource TitleTextStyle}" TextTrimming="CharacterEllipsis" /><TextBlock x:Name="ProjectPathText" Style="{StaticResource CaptionTextStyle}" Margin="0,10,0,0" TextTrimming="CharacterEllipsis" /></StackPanel>
+            <Grid Grid.Row="1" Margin="0,0,0,28">
+                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                <StackPanel VerticalAlignment="Center"><TextBlock Text="章节与聚类" Style="{StaticResource SectionLabelTextStyle}" /><TextBlock x:Name="ChapterStatsText" Style="{StaticResource CaptionTextStyle}" Margin="0,6,0,0" /></StackPanel>
+                <Button x:Name="SmartReviewButton" Grid.Column="1" Content="开始智能复习" Click="ReviewMenuItem_Click" Style="{StaticResource PrimaryButtonStyle}" VerticalAlignment="Center" ToolTip="从项目所有聚类中安排复习题目" />
             </Grid>
-            <Border Grid.Row="1" Background="{DynamicResource ArcSurfaceMuted}" BorderBrush="{DynamicResource ArcBorder}" BorderThickness="0,1" Padding="16,10">
-                <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="100" /><ColumnDefinition Width="180" /><ColumnDefinition Width="32" /></Grid.ColumnDefinitions>
+            <Border Grid.Row="2" BorderBrush="{DynamicResource ArcBorder}" BorderThickness="0,0,0,1" Padding="16,12">
+                <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="72" /><ColumnDefinition Width="140" /><ColumnDefinition Width="24" /></Grid.ColumnDefinitions>
                     <TextBlock Text="名称" Style="{StaticResource CaptionTextStyle}" /><TextBlock Grid.Column="1" Text="题目" Style="{StaticResource CaptionTextStyle}" /><TextBlock Grid.Column="2" Text="掌握程度" Style="{StaticResource CaptionTextStyle}" />
                 </Grid>
             </Border>
-            <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <ScrollViewer Grid.Row="3" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                 <ItemsControl x:Name="ChaptersItemsControl"><ItemsControl.ItemTemplate><DataTemplate>
-                    <Border BorderBrush="{DynamicResource ArcBorder}" BorderThickness="0,0,0,1">
-                        <Button Click="ChapterButton_Click" Tag="{Binding}" Style="{StaticResource ListRowButtonStyle}" Padding="16,18">
-                            <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="100" /><ColumnDefinition Width="180" /><ColumnDefinition Width="32" /></Grid.ColumnDefinitions>
-                                <TextBlock Text="{Binding Chapter.Name}" FontWeight="SemiBold" VerticalAlignment="Center" TextWrapping="Wrap" Margin="0,0,16,0" />
-                                <TextBlock Grid.Column="1" Text="{Binding QuestionCount, StringFormat={}{0} 道}" VerticalAlignment="Center" Foreground="{DynamicResource ArcTextSecondary}" />
-                                <Grid Grid.Column="2" Margin="0,0,20,0"><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
-                                    <TextBlock Text="{Binding MasteryLevel, StringFormat={}{0:F0}%}" Foreground="{DynamicResource ArcTextSecondary}" FontSize="12" Margin="0,0,0,6" />
-                                    <ProgressBar Grid.Row="1" Height="3" Minimum="0" Maximum="100" Value="{Binding MasteryLevel}" Foreground="{DynamicResource ArcAccent}" Background="{DynamicResource ArcBorder}" BorderThickness="0" />
-                                </Grid>
-                                <TextBlock Grid.Column="3" Text="&#xE76C;" Style="{StaticResource IconGlyphStyle}" FontSize="14" HorizontalAlignment="Right" />
+                    <Button Click="ChapterButton_Click" Tag="{Binding}" Style="{StaticResource ListRowButtonStyle}" Padding="16,22" Margin="0,4">
+                        <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="72" /><ColumnDefinition Width="140" /><ColumnDefinition Width="24" /></Grid.ColumnDefinitions>
+                            <TextBlock Text="{Binding Chapter.Name}" FontWeight="Medium" VerticalAlignment="Center" TextWrapping="Wrap" Margin="0,0,16,0" />
+                            <TextBlock Grid.Column="1" Text="{Binding QuestionCount, StringFormat={}{0} 道}" FontSize="14" VerticalAlignment="Center" Foreground="{DynamicResource ArcTextSecondary}" />
+                            <Grid Grid.Column="2" Margin="0,0,24,0" VerticalAlignment="Center"><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                                <TextBlock Text="{Binding MasteryLevel, StringFormat={}{0:F0}%}" Foreground="{DynamicResource ArcTextSecondary}" FontSize="12" Margin="0,0,0,8" />
+                                <ProgressBar Grid.Row="1" Style="{StaticResource ArcSlimProgress}" Minimum="0" Maximum="100" Value="{Binding MasteryLevel}" />
                             </Grid>
-                        </Button>
-                    </Border>
+                            <Path Grid.Column="3" Data="M8,5 L15,12 8,19" Stroke="{DynamicResource ArcTextMuted}" StrokeThickness="1.5" Width="8" Height="14" Stretch="Uniform" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                        </Grid>
+                    </Button>
                 </DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
             </ScrollViewer>
-            <StackPanel x:Name="EmptyStatePanel" Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Center" Visibility="Collapsed"><TextBlock Text="暂无章节" Style="{StaticResource SectionLabelTextStyle}" /><TextBlock Text="通过功能菜单增加题目来源或导入试卷。" Style="{StaticResource SubtitleTextStyle}" Margin="0,8,0,0" /></StackPanel>
+            <StackPanel x:Name="EmptyStatePanel" Grid.Row="3" VerticalAlignment="Center" HorizontalAlignment="Center" Visibility="Collapsed"><TextBlock Text="暂无章节" Style="{StaticResource SectionLabelTextStyle}" /><TextBlock Text="通过左侧项目管理添加题目来源。" Style="{StaticResource SubtitleTextStyle}" Margin="0,8,0,0" /></StackPanel>
         </Grid>
-        <Border Grid.Row="3" Padding="28,12" BorderBrush="{DynamicResource ArcBorder}" BorderThickness="0,1,0,0">
-            <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions><TextBlock x:Name="LastAccessedText" Style="{StaticResource CaptionTextStyle}" /><TextBlock x:Name="CurrentTimeText" Grid.Column="1" Style="{StaticResource CaptionTextStyle}" /></Grid>
-        </Border>
     </Grid>
 </Window>

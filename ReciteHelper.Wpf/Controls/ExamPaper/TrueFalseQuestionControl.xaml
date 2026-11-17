@@ -4,7 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <StackPanel Margin="0,3,0,10">
         <TextBlock
-            FontFamily="Times New Roman,SimSun"
+            FontFamily="{DynamicResource ArcReadingFont}"
             FontSize="16"
             LineHeight="24"
             TextWrapping="Wrap">
@@ -18,7 +18,7 @@
                 Margin="0,0,28,0"
                 Checked="Option_Checked"
                 Content="正确"
-                FontFamily="Times New Roman,SimSun"
+                FontFamily="{DynamicResource ArcReadingFont}"
                 FontSize="16"
                 GroupName="PaperTrueFalse"
                 Tag="正确" />
@@ -26,7 +26,7 @@
                 x:Name="FalseRadioButton"
                 Checked="Option_Checked"
                 Content="错误"
-                FontFamily="Times New Roman,SimSun"
+                FontFamily="{DynamicResource ArcReadingFont}"
                 FontSize="16"
                 GroupName="PaperTrueFalse"
                 Tag="错误" />

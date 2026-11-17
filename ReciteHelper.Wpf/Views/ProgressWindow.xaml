@@ -4,8 +4,8 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     Title="处理进度"
     Width="720"
-    Height="460"
-    Background="#F6F8FB"
+    Height="560"
+    Style="{StaticResource AppWindowStyle}"
     ResizeMode="NoResize"
     WindowStartupLocation="CenterOwner">
 
@@ -21,19 +21,19 @@
             <Setter Property="HorizontalAlignment" Value="Center" />
             <Setter Property="VerticalAlignment" Value="Center" />
             <Setter Property="FontSize" Value="15" />
-            <Setter Property="FontWeight" Value="Bold" />
+            <Setter Property="FontWeight" Value="Medium" />
         </Style>
 
         <Style x:Key="StepLabelStyle" TargetType="TextBlock">
             <Setter Property="Margin" Value="0,10,0,0" />
             <Setter Property="HorizontalAlignment" Value="Center" />
             <Setter Property="FontSize" Value="13" />
-            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="FontWeight" Value="Medium" />
             <Setter Property="Foreground" Value="#475569" />
         </Style>
     </Window.Resources>
 
-    <Grid Margin="28">
+    <Grid Margin="40,32">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
@@ -44,15 +44,15 @@
         <StackPanel Grid.Row="0">
             <TextBlock
                 x:Name="WindowHeadingText"
-                FontSize="22"
-                FontWeight="Bold"
-                Foreground="#172033"
+                FontSize="28"
+                FontWeight="Medium"
+                Foreground="{DynamicResource ArcForeground}"
                 Text="正在创建复习项目" />
             <TextBlock
                 x:Name="WindowSubheadingText"
                 Margin="0,6,0,0"
                 FontSize="13"
-                Foreground="#64748B"
+                Foreground="{DynamicResource ArcTextSecondary}"
                 Text="请保持窗口打开，处理完成后会自动关闭。" />
         </StackPanel>
 
@@ -136,7 +136,7 @@
             Grid.Row="2"
             Padding="24"
             Background="White"
-            BorderBrush="#E2E8F0"
+            BorderBrush="{DynamicResource ArcBorder}"
             BorderThickness="1"
             CornerRadius="8">
             <Grid>
@@ -150,15 +150,15 @@
                 <TextBlock
                     Grid.Row="0"
                     FontSize="20"
-                    FontWeight="Bold"
-                    Foreground="#172033"
+                    FontWeight="Medium"
+                    Foreground="{DynamicResource ArcForeground}"
                     Text="{Binding CurrentTitle}" />
 
                 <TextBlock
                     Grid.Row="1"
                     Margin="0,12,0,0"
                     FontSize="14"
-                    Foreground="#475569"
+                    Foreground="{DynamicResource ArcTextSecondary}"
                     LineHeight="23"
                     Text="{Binding CurrentDescription}"
                     TextWrapping="Wrap" />
@@ -177,14 +177,14 @@
                         <TextBlock
                             Grid.Column="0"
                             FontSize="13"
-                            FontWeight="SemiBold"
+                            FontWeight="Medium"
                             Foreground="#334155"
                             Text="{Binding DetailLabel}" />
                         <TextBlock
                             Grid.Column="1"
                             FontSize="13"
-                            FontWeight="Bold"
-                            Foreground="#007ACC"
+                            FontWeight="Medium"
+                            Foreground="{DynamicResource ArcForeground}"
                             Text="{Binding ProgressText}" />
                     </Grid>
 
@@ -194,7 +194,7 @@
                         Margin="0,10,0,0"
                         Background="#E8EEF5"
                         BorderThickness="0"
-                        Foreground="#007ACC"
+                        Foreground="{DynamicResource ArcForeground}"
                         IsIndeterminate="{Binding IsProgressIndeterminate, Mode=OneWay}"
                         Maximum="{Binding ProgressTotal, Mode=OneWay}"
                         Value="{Binding ProgressCurrent, Mode=OneWay}" />
@@ -208,7 +208,7 @@
             Margin="0,16,0,0"
             HorizontalAlignment="Center"
             FontSize="12"
-            Foreground="#64748B"
+            Foreground="{DynamicResource ArcTextSecondary}"
             Text="这个阶段可能持续一段时间，请带薪等待..." />
     </Grid>
 </Window>

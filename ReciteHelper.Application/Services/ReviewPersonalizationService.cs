@@ -59,7 +59,7 @@ public sealed class ReviewPersonalizationService : IReviewPersonalizationService
     public static void RebuildMemoryRecords(Project project)
     {
         var parameters = project.SchedulerParameters ?? SchedulerParameters.Default;
-        foreach (var question in project.Chapters?.SelectMany(c => c.Questions ?? []) ?? [])
+        foreach (var question in ReviewQuestionCatalog.All(project))
         {
             var replayed = LegacyReviewMigrator.Replay(question.ReviewTag, parameters);
             if (replayed is not null) question.Memory = replayed;

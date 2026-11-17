@@ -18,7 +18,7 @@ Features marked as "Preview" may still change substantially.
 
 ### Use a Model Account (OAuth)
 
-Choose “使用已有模型账号授权（OAuth）” in the first-run window, select a provider, and sign in. Browser authorization automatically returns to the authorization window without copying codes or pasting credentials. Device-code providers detect approval automatically; some still require a one-time verification code on their own website. Select a chat model and save. The main screen's “模型服务” button lets you switch models, reauthorize, and sign out. Building and running OAuth does not require Node.js.
+Choose “管理账号与模型…” in the model service window, select a provider, and sign in. Browser authorization automatically returns to the authorization window without copying codes or pasting credentials. Device-code providers detect approval automatically; some still require a one-time verification code on their own website. Select a chat model and save. The main screen's “模型服务设置” button lets you switch models, reauthorize, and sign out. Building and running OAuth does not require Node.js.
 
 The supported providers match pi-ai 1.1.0: Anthropic, OpenAI, OpenAI Codex, GitHub Copilot, Kimi Code, Meta, OpenRouter, Radius, and xAI. OAuth selects the text service; the knowledge base separately needs a Qwen key, an existing OpenRouter key, or hosted embedding access. Chapters and questions can still be generated without embeddings.
 
@@ -67,7 +67,7 @@ Never commit API keys to Git or share them with other people.
 
 ## Classic Review Projects
 
-The classic review project is the primary ReciteHelper project type and provides the data used by smart review, mock exams, and game projects.
+The classic review project is the primary ReciteHelper project type and provides the data used by smart review and mock exams.
 
 On the main screen, select "Create New Project," then choose "Classic Review Project."
 
@@ -160,6 +160,8 @@ The model ships with default parameters fitted on large public review datasets, 
 
 ---
 
+Rule-based projects can review individual weak parts of an answer. Each facet keeps its own FSRS state and contributes to the original question according to its rubric weight. See [facet review](facet-review.md).
+
 ## Mock Exams
 
 Select "Mock Exam" in the chapter selection window to open the exam settings page.
@@ -187,20 +189,6 @@ Select "View Answers" to review each response, the correct answer, and any avail
 Open the function menu in the chapter selection window and select Export. ReciteHelper creates `rh_output.zip` inside the project directory. The archive includes the project file, its manifest, the knowledge-base file when available, and the `exams` directory, making it suitable for backup or sharing.
 
 Answer statuses are cleared only in the exported copy. The active local project is not changed. A recipient can open the archive with the Import function on the main screen.
-
----
-
-## Game Projects (Preview)
-
-A game project uses a classic review project as its data source. Select an existing `.rhproj` file, and ReciteHelper will ask the AI to generate the chapters, story, and script used by the visual novel.
-
-![Create a game project](Resources/10-create-galgame.png)
-
-After generation, open the original classic review project and select "Run Game" from the function menu in the chapter selection window.
-
-![Run the game](Resources/11-play-galgame.png)
-
-This feature remains in preview. Generation time and output quality depend on the source material and model responses.
 
 ---
 
@@ -248,7 +236,6 @@ A: Yes. Question types use backward-compatible deserialization. Older projects w
 - Added custom exam settings.
 - Added a replay strategy for long PDF documents.
 - Added multi-file merge projects.
-- Integrated AquaAvgFramework for game project generation (Preview).
 
 ### v2 (2025-11-25)
 

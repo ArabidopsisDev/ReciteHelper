@@ -1,0 +1,273 @@
+[
+  {
+    "Name": "用户提供的核心答案",
+    "Answer": "发病部产生圆形或近圆形的橘红色夏孢子堆，多发生于叶片正面，后期在叶片背面形成黑褐色冬孢子堆。",
+    "ExpectedPass": true,
+    "Passed": true,
+    "MatchesExpectation": true,
+    "Milliseconds": 2364,
+    "Assessment": {
+      "UserAnswer": "发病部产生圆形或近圆形的橘红色夏孢子堆，多发生于叶片正面，后期在叶片背面形成黑褐色冬孢子堆。",
+      "IsCorrect": true,
+      "ScoreRatio": 1,
+      "RawScoreRatio": 1,
+      "Explanation": "答案完整覆盖了小麦叶锈病的核心病症要点：橘红色圆形/近圆形夏孢子堆、多发生于叶片正面、后期叶片背面形成黑褐色冬孢子堆。与权威判分范围一致，未遗漏核心内容。",
+      "Annotations": [
+        {
+          "SegmentId": 0,
+          "Text": "发病部产生圆形或近圆形的橘红色夏孢子堆，",
+          "Status": "correct",
+          "Comment": "准确描述了夏孢子堆的形态和颜色，符合核心要点。"
+        },
+        {
+          "SegmentId": 1,
+          "Text": "多发生于叶片正面，",
+          "Status": "correct",
+          "Comment": "准确说明夏孢子堆多发生于叶片正面，符合核心要点。"
+        },
+        {
+          "SegmentId": 2,
+          "Text": "后期在叶片背面形成黑褐色冬孢子堆。",
+          "Status": "correct",
+          "Comment": "准确描述了后期在叶片背面形成黑褐色冬孢子堆，符合核心要点。"
+        }
+      ],
+      "MissingPoints": [],
+      "Facets": []
+    }
+  },
+  {
+    "Name": "同义简述",
+    "Answer": "叶正面多见橙红色、圆形或近圆形的夏孢子堆，后期叶背出现黑褐色冬孢子堆。",
+    "ExpectedPass": true,
+    "Passed": true,
+    "MatchesExpectation": true,
+    "Milliseconds": 1819,
+    "Assessment": {
+      "UserAnswer": "叶正面多见橙红色、圆形或近圆形的夏孢子堆，后期叶背出现黑褐色冬孢子堆。",
+      "IsCorrect": true,
+      "ScoreRatio": 1,
+      "RawScoreRatio": 1,
+      "Explanation": "答案完整覆盖了小麦叶锈病的核心病症要点：叶片正面出现圆形或近圆形橘红色（橙红色）夏孢子堆，后期叶背形成黑褐色冬孢子堆。颜色、形状、发生部位及后期冬孢子堆均正确，符合本科课程要求。",
+      "Annotations": [
+        {
+          "SegmentId": 0,
+          "Text": "叶正面多见橙红色、圆形或近圆形的夏孢子堆，",
+          "Status": "correct",
+          "Comment": "准确描述了夏孢子堆的颜色（橙红色，与橘红色同义）、形状（圆形或近圆形）及主要发生部位（叶正面），核心要点完整。"
+        },
+        {
+          "SegmentId": 1,
+          "Text": "后期叶背出现黑褐色冬孢子堆。",
+          "Status": "correct",
+          "Comment": "准确描述了后期在叶背形成黑褐色冬孢子堆，符合参考答案的核心内容。"
+        }
+      ],
+      "MissingPoints": [],
+      "Facets": []
+    }
+  },
+  {
+    "Name": "只写一个特征",
+    "Answer": "叶片有橘红色的斑。",
+    "ExpectedPass": false,
+    "Passed": false,
+    "MatchesExpectation": true,
+    "Milliseconds": 1830,
+    "Assessment": {
+      "UserAnswer": "叶片有橘红色的斑。",
+      "IsCorrect": false,
+      "ScoreRatio": 0.4,
+      "RawScoreRatio": 0.4,
+      "Explanation": "答案仅提到叶片有橘红色斑，抓住了夏孢子堆颜色这一部分要点，但未说明其为圆形或近圆形的夏孢子堆、多发生于叶片正面，也完全遗漏了后期在叶片背面形成黑褐色冬孢子堆这一关键病症。核心要点覆盖不足70%。",
+      "Annotations": [
+        {
+          "SegmentId": 0,
+          "Text": "叶片有橘红色的斑。",
+          "Status": "partial",
+          "Comment": "提到了橘红色斑，方向正确，但表述过于笼统。应补充为发病部产生圆形或近圆形的橘红色夏孢子堆，多发生于叶片正面；并补充后期在叶片背面形成黑褐色冬孢子堆。"
+        }
+      ],
+      "MissingPoints": [
+        "圆形或近圆形的橘红色夏孢子堆",
+        "多发生于叶片正面",
+        "后期在叶片背面形成黑褐色冬孢子堆"
+      ],
+      "Facets": []
+    }
+  },
+  {
+    "Name": "颠倒颜色和时期",
+    "Answer": "先在叶正面形成黑褐色冬孢子堆，后期叶背出现橘红色夏孢子堆。",
+    "ExpectedPass": false,
+    "Passed": false,
+    "MatchesExpectation": true,
+    "Milliseconds": 2193,
+    "Assessment": {
+      "UserAnswer": "先在叶正面形成黑褐色冬孢子堆，后期叶背出现橘红色夏孢子堆。",
+      "IsCorrect": false,
+      "ScoreRatio": 0.3,
+      "RawScoreRatio": 0.3,
+      "Explanation": "答案把夏孢子堆和冬孢子堆的颜色、出现时期及叶面位置完全颠倒：正确应为先出现橘红色夏孢子堆（多在叶正面），后期出现黑褐色冬孢子堆（多在叶背面）。核心辨别特征错误，仅保留了“孢子堆”这一名词，故得分较低。",
+      "Annotations": [
+        {
+          "SegmentId": 0,
+          "Text": "先在叶正面形成黑褐色冬孢子堆，",
+          "Status": "incorrect",
+          "Comment": "时期、颜色和位置均颠倒。应先为橘红色夏孢子堆，且多发生于叶片正面，而非先出现黑褐色冬孢子堆。"
+        },
+        {
+          "SegmentId": 1,
+          "Text": "后期叶背出现橘红色夏孢子堆。",
+          "Status": "incorrect",
+          "Comment": "后期应为黑褐色冬孢子堆，多位于叶片背面；此处写成橘红色夏孢子堆，核心特征错误。"
+        }
+      ],
+      "MissingPoints": [
+        "发病部产生圆形或近圆形的橘红色夏孢子堆",
+        "夏孢子堆多发生于叶片正面",
+        "后期在叶片背面形成黑褐色冬孢子堆"
+      ],
+      "Facets": []
+    }
+  },
+  {
+    "Name": "空答案",
+    "Answer": "",
+    "ExpectedPass": false,
+    "Passed": false,
+    "MatchesExpectation": true,
+    "Milliseconds": 1503,
+    "Assessment": {
+      "UserAnswer": "",
+      "IsCorrect": false,
+      "ScoreRatio": 0,
+      "RawScoreRatio": 0,
+      "Explanation": "用户未作答，未覆盖小麦叶锈病病症的任何核心要点。",
+      "Annotations": [],
+      "MissingPoints": [
+        "发病部产生圆形或近圆形的橘红色夏孢子堆",
+        "夏孢子堆多发生于叶片正面",
+        "后期在叶片背面形成黑褐色冬孢子堆"
+      ],
+      "Facets": []
+    }
+  },
+  {
+    "Name": "未提供资料的核心答案",
+    "Answer": "发病部产生圆形或近圆形的橘红色夏孢子堆，多发生于叶片正面，后期在叶片背面形成黑褐色冬孢子堆。",
+    "ExpectedPass": true,
+    "Passed": true,
+    "MatchesExpectation": true,
+    "Milliseconds": 1678,
+    "Assessment": {
+      "UserAnswer": "发病部产生圆形或近圆形的橘红色夏孢子堆，多发生于叶片正面，后期在叶片背面形成黑褐色冬孢子堆。",
+      "IsCorrect": true,
+      "ScoreRatio": 1,
+      "RawScoreRatio": 1,
+      "Explanation": "答案完整覆盖了小麦叶锈病的核心病症要点：橘红色圆形/近圆形夏孢子堆、多发生于叶片正面、后期叶片背面形成黑褐色冬孢子堆。未写孢子堆尺寸和破裂方式属于可选补充内容，不扣分。",
+      "Annotations": [
+        {
+          "SegmentId": 0,
+          "Text": "发病部产生圆形或近圆形的橘红色夏孢子堆，",
+          "Status": "correct",
+          "Comment": "准确描述了夏孢子堆的颜色和形状，为核心要点。"
+        },
+        {
+          "SegmentId": 1,
+          "Text": "多发生于叶片正面，",
+          "Status": "correct",
+          "Comment": "准确说明夏孢子堆多发生于叶片正面，为核心要点。"
+        },
+        {
+          "SegmentId": 2,
+          "Text": "后期在叶片背面形成黑褐色冬孢子堆。",
+          "Status": "correct",
+          "Comment": "准确描述了后期在叶片背面形成黑褐色冬孢子堆，为核心要点。"
+        }
+      ],
+      "MissingPoints": [],
+      "Facets": []
+    }
+  },
+  {
+    "Name": "两问只答第一问",
+    "Answer": "【第1问】\n后放进去的先取出来，也就是后进先出。\n\n【第2问】\n",
+    "ExpectedPass": false,
+    "Passed": false,
+    "MatchesExpectation": true,
+    "Milliseconds": 2409,
+    "Assessment": {
+      "UserAnswer": "【第1问】\n后放进去的先取出来，也就是后进先出。\n\n【第2问】\n",
+      "IsCorrect": false,
+      "ScoreRatio": 0.5,
+      "RawScoreRatio": 0.5,
+      "Explanation": "栈的存取规则回答正确（后进先出）；队列部分未作答，遗漏了“先进先出”这一核心要点。",
+      "Annotations": [
+        {
+          "SegmentId": 0,
+          "Text": "【第1问】\n",
+          "Status": "correct",
+          "Comment": "分问标签，无知识内容，不扣分。"
+        },
+        {
+          "SegmentId": 1,
+          "Text": "后放进去的先取出来，",
+          "Status": "correct",
+          "Comment": "正确说明后放入的先取出，符合栈的后进先出规则。"
+        },
+        {
+          "SegmentId": 2,
+          "Text": "也就是后进先出。",
+          "Status": "correct",
+          "Comment": "明确点出“后进先出”，栈的规则回答完整。"
+        },
+        {
+          "SegmentId": 3,
+          "Text": "\n",
+          "Status": "correct",
+          "Comment": "换行结构，不扣分。"
+        },
+        {
+          "SegmentId": 4,
+          "Text": "\n",
+          "Status": "correct",
+          "Comment": "换行结构，不扣分。"
+        },
+        {
+          "SegmentId": 5,
+          "Text": "【第2问】\n",
+          "Status": "incorrect",
+          "Comment": "第2问未作答，应补充队列的存取规则：先进先出。"
+        }
+      ],
+      "MissingPoints": [
+        "队列的存取规则：先进先出。"
+      ],
+      "Facets": [
+        {
+          "Key": "stack",
+          "Name": "栈的存取规则",
+          "Weight": 0.5,
+          "WeightReason": "栈与队列各占一半分值",
+          "ScoreRatio": 1,
+          "RawScoreRatio": 1,
+          "IsCorrect": true,
+          "Question": "栈的存取规则是什么？",
+          "ReferenceAnswer": "后进先出。"
+        },
+        {
+          "Key": "queue",
+          "Name": "队列的存取规则",
+          "Weight": 0.5,
+          "WeightReason": "栈与队列各占一半分值",
+          "ScoreRatio": 0,
+          "RawScoreRatio": 0,
+          "IsCorrect": false,
+          "Question": "队列的存取规则是什么？",
+          "ReferenceAnswer": "先进先出。"
+        }
+      ]
+    }
+  }
+]

@@ -26,7 +26,19 @@ public partial class ActivationWindow : Window
         _piModelService = piModelService;
         _configPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Config.xml");
         InitializeComponent();
+        SettingsNavigation.SelectedIndex = 0;
+        SettingsNavigation.SelectionChanged += SettingsNavigation_SelectionChanged;
         Loaded += async (_, _) => await RefreshSelectionAsync();
+    }
+
+    private void SettingsNavigation_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+    {
+        var item = (System.Windows.Controls.ListBoxItem)SettingsNavigation.SelectedItem;
+        var section = (FrameworkElement)FindName((string)item.Tag);
+        if (section is System.Windows.Controls.Expander expander) expander.IsExpanded = true;
+        SettingsScroll.UpdateLayout();
+        var offset = section.TransformToAncestor((Visual)SettingsScroll.Content).Transform(new Point()).Y;
+        SettingsScroll.ScrollToVerticalOffset(offset);
     }
 
     private async void SaveDirectKeysButton_Click(object sender, RoutedEventArgs e)
@@ -156,12 +168,16 @@ public partial class ActivationWindow : Window
             var config = await _configService.LoadAsync();
             var choices = new List<ModelChoice>();
             if (ModelAccess.IsConfigured(config, ModelAccessMode.DeepSeekAndQwen)) choices.Add(new(ModelAccessMode.DeepSeekAndQwen, "DeepSeek（配置文件 / 环境变量）"));
-            if (ModelAccess.IsConfigured(config, ModelAccessMode.PiOAuth)) choices.Add(new(ModelAccessMode.PiOAuth, $"OAuth · {config.PiOAuthProvider} / {config.PiOAuthModel}"));
-            if (ModelAccess.IsConfigured(config, ModelAccessMode.OpenRouter)) choices.Add(new(ModelAccessMode.OpenRouter, $"OpenRouter · {config.OpenRouterChatModel}"));
+            if (ModelAccess.IsConfigured(config, ModelAccessMode.PiOAuth)) choices.Add(new(ModelAccessMode.PiOAuth, $"OAuth：{config.PiOAuthProvider} / {config.PiOAuthModel}"));
+            if (ModelAccess.IsConfigured(config, ModelAccessMode.OpenRouter)) choices.Add(new(ModelAccessMode.OpenRouter, $"OpenRouter：{config.OpenRouterChatModel}"));
             if (ModelAccess.IsConfigured(config, ModelAccessMode.Hosted)) choices.Add(new(ModelAccessMode.Hosted, "ReciteHelper 托管服务"));
             ActiveModelBox.ItemsSource = choices;
             ActiveModelBox.SelectedValue = ModelAccess.Resolve(config);
             UseSelectedModelButton.IsEnabled = choices.Count > 0;
+            ActiveModelBox.IsEnabled = choices.Count > 0;
+            ModelSelectionHintText.Text = choices.Count > 0
+                ? "列表显示已接入的服务，包括从环境变量读取的配置。切换服务会保留其他服务的配置。"
+                : "尚未接入模型。请在下方授权模型账号，或填写服务的 API Key。";
             DeepSeekSection.IsExpanded = choices.Count == 0;
         }
         catch (Exception ex) { ShowError($"读取模型配置失败：{ex.Message}"); }

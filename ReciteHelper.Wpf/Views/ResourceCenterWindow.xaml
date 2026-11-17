@@ -1,352 +1,46 @@
-<Window
-    x:Class="ReciteHelper.Wpf.Views.ResourceCenterWindow"
-    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:models="clr-namespace:ReciteHelper.Wpf.Models"
-    Title="资源中心"
-    Width="1060"
-    Height="720"
-    MinWidth="920"
-    MinHeight="640"
-    Background="#F6F8FB"
-    WindowStartupLocation="CenterOwner">
-    <Window.Resources>
-        <Style x:Key="ModernTextBox" TargetType="TextBox">
-            <Setter Property="Height" Value="34" />
-            <Setter Property="Padding" Value="10,6" />
-            <Setter Property="BorderBrush" Value="#D8DEE9" />
-            <Setter Property="BorderThickness" Value="1" />
-            <Setter Property="Background" Value="White" />
-            <Setter Property="VerticalContentAlignment" Value="Center" />
-        </Style>
-
-        <Style x:Key="PrimaryButton" TargetType="Button">
-            <Setter Property="Height" Value="36" />
-            <Setter Property="MinWidth" Value="92" />
-            <Setter Property="Padding" Value="14,0" />
-            <Setter Property="Background" Value="#2563EB" />
-            <Setter Property="Foreground" Value="White" />
-            <Setter Property="BorderThickness" Value="0" />
-            <Setter Property="FontWeight" Value="SemiBold" />
-            <Setter Property="Cursor" Value="Hand" />
-        </Style>
-
-        <Style x:Key="SecondaryButton" TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
-            <Setter Property="Background" Value="#E8EEF8" />
-            <Setter Property="Foreground" Value="#1E3A8A" />
-        </Style>
-    </Window.Resources>
-
-    <Grid Margin="24">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
-            <RowDefinition Height="Auto" />
-        </Grid.RowDefinitions>
-
-        <Grid Grid.Row="0">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="Auto" />
-            </Grid.ColumnDefinitions>
-            <StackPanel>
-                <TextBlock
-                    FontSize="28"
-                    FontWeight="Bold"
-                    Foreground="#0F172A"
-                    Text="资源中心" />
-                <TextBlock
-                    Margin="0,6,0,0"
-                    FontSize="13"
-                    Foreground="#64748B"
-                    Text="共享和检索 ReciteHelper 项目包，快速获取课程复习资源。" />
-            </StackPanel>
-            <Border
-                Grid.Column="1"
-                Padding="12,8"
-                VerticalAlignment="Top"
-                Background="#EEF6FF"
-                CornerRadius="6">
-                <TextBlock
-                    x:Name="ServerAddressText"
-                    Foreground="#1D4ED8"
-                    FontSize="12" />
-            </Border>
+<Window x:Class="ReciteHelper.Wpf.Views.ResourceCenterWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="资源中心" Width="1120" Height="820" MinWidth="960" MinHeight="700"
+        WindowStartupLocation="CenterOwner" Style="{StaticResource AppWindowStyle}">
+    <Grid Margin="40,32,40,24">
+        <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+        <StackPanel Margin="0,0,0,32"><TextBlock Text="资源中心" Style="{StaticResource TitleTextStyle}" /><TextBlock Text="查找课程复习资源，或分享自己的 ReciteHelper 项目包。" Style="{StaticResource SubtitleTextStyle}" Margin="0,8,0,0" /></StackPanel>
+        <Grid Grid.Row="1" Margin="0,0,0,24"><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="16" /><ColumnDefinition Width="*" /><ColumnDefinition Width="16" /><ColumnDefinition Width="*" /><ColumnDefinition Width="16" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+            <StackPanel><TextBlock Text="上传者" Style="{StaticResource FieldLabel}" /><TextBox x:Name="UploaderSearchTextBox" TextChanged="SearchTextBox_TextChanged" /></StackPanel>
+            <StackPanel Grid.Column="2"><TextBlock Text="学校" Style="{StaticResource FieldLabel}" /><TextBox x:Name="SchoolSearchTextBox" TextChanged="SearchTextBox_TextChanged" /></StackPanel>
+            <StackPanel Grid.Column="4"><TextBlock Text="科目名称" Style="{StaticResource FieldLabel}" /><TextBox x:Name="SubjectSearchTextBox" TextChanged="SearchTextBox_TextChanged" /></StackPanel>
+            <Button Grid.Column="6" Content="搜索" Click="SearchButton_Click" Style="{StaticResource PrimaryButtonStyle}" MinWidth="88" VerticalAlignment="Bottom" />
         </Grid>
-
-        <Grid Grid.Row="1" Margin="0,22,0,16">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="2*" />
-                <ColumnDefinition Width="16" />
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
-
-            <Border
-                Padding="18"
-                Background="White"
-                BorderBrush="#E2E8F0"
-                BorderThickness="1"
-                CornerRadius="8">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="12" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-                    <TextBlock
-                        FontSize="16"
-                        FontWeight="SemiBold"
-                        Foreground="#0F172A"
-                        Text="检索资源" />
-                    <Grid Grid.Row="2">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="10" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="10" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="12" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <StackPanel Grid.Column="0">
-                            <TextBlock Margin="0,0,0,5" FontSize="12" Foreground="#64748B" Text="上传者" />
-                            <TextBox
-                                x:Name="UploaderSearchTextBox"
-                                Style="{StaticResource ModernTextBox}"
-                                TextChanged="SearchTextBox_TextChanged" />
-                        </StackPanel>
-                        <StackPanel Grid.Column="2">
-                            <TextBlock Margin="0,0,0,5" FontSize="12" Foreground="#64748B" Text="学校" />
-                            <TextBox
-                                x:Name="SchoolSearchTextBox"
-                                Style="{StaticResource ModernTextBox}"
-                                TextChanged="SearchTextBox_TextChanged" />
-                        </StackPanel>
-                        <StackPanel Grid.Column="4">
-                            <TextBlock Margin="0,0,0,5" FontSize="12" Foreground="#64748B" Text="科目名称" />
-                            <TextBox
-                                x:Name="SubjectSearchTextBox"
-                                Style="{StaticResource ModernTextBox}"
-                                TextChanged="SearchTextBox_TextChanged" />
-                        </StackPanel>
-                        <Button
-                            Grid.Column="6"
-                            VerticalAlignment="Bottom"
-                            Click="SearchButton_Click"
-                            Content="搜索"
-                            Style="{StaticResource PrimaryButton}" />
-                    </Grid>
+        <Expander Grid.Row="2" Header="共享你的项目" Margin="0,0,0,28">
+            <StackPanel Margin="0,20,0,0">
+                <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="16" /><ColumnDefinition Width="*" /><ColumnDefinition Width="16" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                    <StackPanel><TextBlock Text="上传者" Style="{StaticResource FieldLabel}" /><TextBox x:Name="UploaderTextBox" /></StackPanel>
+                    <StackPanel Grid.Column="2"><TextBlock Text="学校" Style="{StaticResource FieldLabel}" /><TextBox x:Name="SchoolTextBox" /></StackPanel>
+                    <StackPanel Grid.Column="4"><TextBlock Text="科目名称" Style="{StaticResource FieldLabel}" /><TextBox x:Name="SubjectTextBox" /></StackPanel>
                 </Grid>
-            </Border>
-
-            <Border
-                Grid.Column="2"
-                Padding="18"
-                Background="White"
-                BorderBrush="#E2E8F0"
-                BorderThickness="1"
-                CornerRadius="8">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="12" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="10" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-                    <TextBlock
-                        FontSize="16"
-                        FontWeight="SemiBold"
-                        Foreground="#0F172A"
-                        Text="上传项目包" />
-                    <Grid Grid.Row="2">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="8" />
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="8" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <StackPanel Grid.Column="0">
-                            <TextBlock Margin="0,0,0,5" FontSize="12" Foreground="#64748B" Text="上传者" />
-                            <TextBox
-                                x:Name="UploaderTextBox"
-                                Style="{StaticResource ModernTextBox}" />
-                        </StackPanel>
-                        <StackPanel Grid.Column="2">
-                            <TextBlock Margin="0,0,0,5" FontSize="12" Foreground="#64748B" Text="学校" />
-                            <TextBox
-                                x:Name="SchoolTextBox"
-                                Style="{StaticResource ModernTextBox}" />
-                        </StackPanel>
-                        <StackPanel Grid.Column="4">
-                            <TextBlock Margin="0,0,0,5" FontSize="12" Foreground="#64748B" Text="科目名称" />
-                            <TextBox
-                                x:Name="SubjectTextBox"
-                                Style="{StaticResource ModernTextBox}" />
-                        </StackPanel>
-                    </Grid>
-                    <Grid Grid.Row="4">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="12" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <TextBlock
-                            x:Name="SelectedUploadFileText"
-                            VerticalAlignment="Center"
-                            Foreground="#64748B"
-                            Text="尚未选择 .rhp 文件"
-                            TextTrimming="CharacterEllipsis" />
-                        <StackPanel Grid.Column="2" Orientation="Horizontal">
-                            <Button
-                                Click="SelectUploadFileButton_Click"
-                                Content="选择"
-                                Style="{StaticResource SecondaryButton}" />
-                            <Button
-                                Margin="8,0,0,0"
-                                Click="UploadButton_Click"
-                                Content="上传"
-                                Style="{StaticResource PrimaryButton}" />
-                        </StackPanel>
-                    </Grid>
+                <Grid Margin="0,16,0,8"><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                    <TextBlock x:Name="SelectedUploadFileText" Text="尚未选择 .rhp 文件" Style="{StaticResource SubtitleTextStyle}" VerticalAlignment="Center" Margin="0,0,16,0" />
+                    <StackPanel Grid.Column="1" Orientation="Horizontal"><Button Content="选择项目包" Click="SelectUploadFileButton_Click" /><Button Content="上传" Click="UploadButton_Click" Margin="8,0,0,0" /></StackPanel>
                 </Grid>
-            </Border>
-        </Grid>
-
-        <Border
-            Grid.Row="2"
-            Padding="16"
-            Background="White"
-            BorderBrush="#E2E8F0"
-            BorderThickness="1"
-            CornerRadius="8">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" />
-                </Grid.RowDefinitions>
-                <Grid>
-                    <TextBlock
-                        x:Name="ResultSummaryText"
-                        FontSize="14"
-                        FontWeight="SemiBold"
-                        Foreground="#334155"
-                        Text="正在加载资源..." />
-                    <TextBlock
-                        x:Name="StatusText"
-                        HorizontalAlignment="Right"
-                        Foreground="#64748B" />
-                </Grid>
-                <ScrollViewer Grid.Row="1" Margin="0,14,0,0" VerticalScrollBarVisibility="Auto">
-                    <ItemsControl x:Name="ResourceItemsControl">
-                        <ItemsControl.ItemsPanel>
-                            <ItemsPanelTemplate>
-                                <WrapPanel />
-                            </ItemsPanelTemplate>
-                        </ItemsControl.ItemsPanel>
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate DataType="{x:Type models:ResourceCenterItem}">
-                                <Border
-                                    Width="310"
-                                    MinHeight="150"
-                                    Margin="0,0,14,14"
-                                    Padding="14"
-                                    Background="#FBFDFF"
-                                    BorderBrush="#E2E8F0"
-                                    BorderThickness="1"
-                                    CornerRadius="8">
-                                    <Grid>
-                                        <Grid.RowDefinitions>
-                                            <RowDefinition Height="Auto" />
-                                            <RowDefinition Height="8" />
-                                            <RowDefinition Height="Auto" />
-                                            <RowDefinition Height="*" />
-                                            <RowDefinition Height="Auto" />
-                                        </Grid.RowDefinitions>
-                                        <Grid>
-                                            <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="Auto" />
-                                                <ColumnDefinition Width="10" />
-                                                <ColumnDefinition Width="*" />
-                                            </Grid.ColumnDefinitions>
-                                            <Image
-                                                Width="36"
-                                                Height="36"
-                                                RenderOptions.BitmapScalingMode="HighQuality"
-                                                Source="pack://application:,,,/ReciteHelper.Wpf;component/Images/zip.png" />
-                                            <StackPanel Grid.Column="2">
-                                                <TextBlock
-                                                    FontSize="15"
-                                                    FontWeight="SemiBold"
-                                                    Foreground="#0F172A"
-                                                    Text="{Binding Subject}"
-                                                    TextTrimming="CharacterEllipsis" />
-                                                <TextBlock
-                                                    Margin="0,3,0,0"
-                                                    FontSize="12"
-                                                    Foreground="#64748B"
-                                                    Text="{Binding FileName}"
-                                                    TextTrimming="CharacterEllipsis" />
-                                            </StackPanel>
-                                        </Grid>
-                                        <UniformGrid Grid.Row="2" Columns="3">
-                                            <StackPanel>
-                                                <TextBlock FontSize="11" Foreground="#94A3B8" Text="上传者" />
-                                                <TextBlock Foreground="#334155" Text="{Binding Uploader}" TextTrimming="CharacterEllipsis" />
-                                            </StackPanel>
-                                            <StackPanel>
-                                                <TextBlock FontSize="11" Foreground="#94A3B8" Text="学校" />
-                                                <TextBlock Foreground="#334155" Text="{Binding School}" TextTrimming="CharacterEllipsis" />
-                                            </StackPanel>
-                                            <StackPanel>
-                                                <TextBlock FontSize="11" Foreground="#94A3B8" Text="大小" />
-                                                <TextBlock Foreground="#334155" Text="{Binding SizeText}" />
-                                            </StackPanel>
-                                        </UniformGrid>
-                                        <TextBlock
-                                            Grid.Row="4"
-                                            Margin="0,12,0,0"
-                                            Foreground="#64748B"
-                                            FontSize="12"
-                                            Text="{Binding UploadedAtText}" />
-                                        <Button
-                                            Grid.Row="4"
-                                            HorizontalAlignment="Right"
-                                            Click="DownloadButton_Click"
-                                            Content="下载并导入"
-                                            Style="{StaticResource SecondaryButton}"
-                                            Tag="{Binding}" />
-                                    </Grid>
-                                </Border>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </ScrollViewer>
-            </Grid>
-        </Border>
-
-        <Grid Grid.Row="3" Margin="0,16,0,0">
-            <StackPanel HorizontalAlignment="Center" Orientation="Horizontal">
-                <Button
-                    x:Name="PreviousPageButton"
-                    Click="PreviousPageButton_Click"
-                    Content="上一页"
-                    Style="{StaticResource SecondaryButton}" />
-                <TextBlock
-                    x:Name="PageText"
-                    Margin="18,0"
-                    VerticalAlignment="Center"
-                    FontWeight="SemiBold"
-                    Foreground="#334155"
-                    Text="第 1 / 1 页" />
-                <Button
-                    x:Name="NextPageButton"
-                    Click="NextPageButton_Click"
-                    Content="下一页"
-                    Style="{StaticResource SecondaryButton}" />
             </StackPanel>
+        </Expander>
+        <Grid Grid.Row="3" Margin="0,0,0,12"><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions><TextBlock x:Name="ResultSummaryText" Text="正在加载资源…" Style="{StaticResource SectionLabelTextStyle}" /><TextBlock x:Name="StatusText" Grid.Column="1" Style="{StaticResource CaptionTextStyle}" VerticalAlignment="Center" Margin="16,0,0,0" /></Grid>
+        <ScrollViewer Grid.Row="4" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <ItemsControl x:Name="ResourceItemsControl"><ItemsControl.ItemTemplate><DataTemplate>
+                <Border BorderBrush="{DynamicResource ArcBorder}" BorderThickness="0,1,0,0" Padding="0,20">
+                    <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="120" /><ColumnDefinition Width="140" /><ColumnDefinition Width="80" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                        <StackPanel Margin="0,0,24,0"><TextBlock Text="{Binding Subject}" FontSize="16" FontWeight="Medium" TextTrimming="CharacterEllipsis" /><TextBlock Text="{Binding FileName}" Style="{StaticResource CaptionTextStyle}" TextTrimming="CharacterEllipsis" Margin="0,6,0,0" /><TextBlock Text="{Binding UploadedAtText}" Style="{StaticResource CaptionTextStyle}" Margin="0,4,0,0" /></StackPanel>
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,16,0"><TextBlock Text="上传者" Style="{StaticResource CaptionTextStyle}" /><TextBlock Text="{Binding Uploader}" FontSize="14" TextTrimming="CharacterEllipsis" Margin="0,4,0,0" /></StackPanel>
+                        <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="0,0,16,0"><TextBlock Text="学校" Style="{StaticResource CaptionTextStyle}" /><TextBlock Text="{Binding School}" FontSize="14" TextTrimming="CharacterEllipsis" Margin="0,4,0,0" /></StackPanel>
+                        <TextBlock Grid.Column="3" Text="{Binding SizeText}" Style="{StaticResource CaptionTextStyle}" VerticalAlignment="Center" />
+                        <Button Grid.Column="4" Content="下载并导入" Click="DownloadButton_Click" Tag="{Binding}" VerticalAlignment="Center" />
+                    </Grid>
+                </Border>
+            </DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
+        </ScrollViewer>
+        <Grid Grid.Row="5" Margin="0,24,0,0"><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center"><Button x:Name="PreviousPageButton" Click="PreviousPageButton_Click" Content="上一页" /><TextBlock x:Name="PageText" Text="第 1 / 1 页" Margin="20,0" FontSize="14" VerticalAlignment="Center" /><Button x:Name="NextPageButton" Click="NextPageButton_Click" Content="下一页" /></StackPanel>
+            <TextBlock x:Name="ServerAddressText" Grid.Row="1" Style="{StaticResource CaptionTextStyle}" Margin="0,16,0,0" />
         </Grid>
     </Grid>
 </Window>

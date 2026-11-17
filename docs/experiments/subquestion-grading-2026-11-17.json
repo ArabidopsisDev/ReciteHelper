@@ -1,0 +1,163 @@
+{
+  "elapsedMs": 4632,
+  "expected": [
+    "AC",
+    "PT",
+    "WA",
+    "FL"
+  ],
+  "actual": [
+    "AC",
+    "PT",
+    "WA",
+    "FL"
+  ],
+  "assessment": {
+    "UserAnswer": "【第1问】\n后进先出，入栈出栈都在栈顶。\n\n【第2问】\n先进先出，从队尾入队。\n\n【第3问】\n不会。\n\n【第4问】\n单链表的结点必须连续存放，所以可以按下标直接访问任意结点，无需沿指针遍历。",
+    "IsCorrect": false,
+    "ScoreRatio": 0.4175,
+    "RawScoreRatio": 0.4175,
+    "HasFallacy": true,
+    "FallacyReason": "第 4 问：用户称“单链表的结点必须连续存放”，与单链表结点通过指针链接、不要求连续存储的事实相反；又称“可以按下标直接访问任意结点，无需沿指针遍历”，混淆了单链表与数组的访问方式，单链表访问指定位置需从头沿链接遍历。",
+    "Explanation": "第 1 问：答案准确说明了栈的后进先出访问次序，以及入栈和出栈均在栈顶，核心要点完整。\n第 2 问：本问要求说明队列的访问次序、入队位置和出队位置。用户答出“先进先出”和“从队尾入队”，覆盖了访问次序和入队位置两个要点；但完全遗漏了“从队头出队”这一要点，核心要点覆盖约2/3，未达到70%掌握门槛，故判为未掌握。\n第 3 问：用户回答“不会”，未提供任何关于数组存储方式或访问特点的内容，核心要点完全缺失，不能得分。\n第 4 问：本问考查单链表的存储方式和访问特点。用户答案在存储方式上错误地认为必须连续存放，在访问方式上错误地认为可下标直接访问、无需遍历，两处均为关键概念颠倒，未掌握本问核心知识。",
+    "Annotations": [
+      {
+        "SegmentId": null,
+        "Text": "【第1问】\n",
+        "Status": "correct",
+        "Comment": ""
+      },
+      {
+        "SegmentId": 0,
+        "Text": "后进先出，",
+        "Status": "correct",
+        "Comment": "正确指出栈后进先出的访问次序。"
+      },
+      {
+        "SegmentId": 1,
+        "Text": "入栈出栈都在栈顶。",
+        "Status": "correct",
+        "Comment": "正确指出入栈和出栈均在栈顶。"
+      },
+      {
+        "SegmentId": null,
+        "Text": "\n\n【第2问】\n",
+        "Status": "correct",
+        "Comment": ""
+      },
+      {
+        "SegmentId": 0,
+        "Text": "先进先出，",
+        "Status": "correct",
+        "Comment": "“先进先出”正确说明了队列的访问次序。"
+      },
+      {
+        "SegmentId": 1,
+        "Text": "从队尾入队。",
+        "Status": "partial",
+        "Comment": "“从队尾入队”正确说明了入队位置，但本问还要求说明出队位置，此处未提及“从队头出队”，应补充完整。"
+      },
+      {
+        "SegmentId": null,
+        "Text": "\n\n【第3问】\n",
+        "Status": "correct",
+        "Comment": ""
+      },
+      {
+        "SegmentId": 0,
+        "Text": "不会。",
+        "Status": "incorrect",
+        "Comment": "回答“不会”表明未作答，遗漏了数组连续存储和可按下标直接访问元素两个核心要点。"
+      },
+      {
+        "SegmentId": null,
+        "Text": "\n\n【第4问】\n",
+        "Status": "correct",
+        "Comment": ""
+      },
+      {
+        "SegmentId": 0,
+        "Text": "单链表的结点必须连续存放，",
+        "Status": "incorrect",
+        "Comment": "错误。单链表结点通过指针链接，不要求连续存储；此处将单链表与数组的连续存储特点混淆。"
+      },
+      {
+        "SegmentId": 1,
+        "Text": "所以可以按下标直接访问任意结点，",
+        "Status": "incorrect",
+        "Comment": "错误。单链表不能按下标直接访问任意结点，按下标直接访问是数组的特点。"
+      },
+      {
+        "SegmentId": 2,
+        "Text": "无需沿指针遍历。",
+        "Status": "incorrect",
+        "Comment": "错误。单链表访问指定位置通常需从头沿链接遍历，此处结论与正确关系相反。"
+      }
+    ],
+    "MissingPoints": [
+      "第 2 问：出队位置：从队头出队",
+      "第 3 问：数组连续存储",
+      "第 3 问：可按下标直接访问元素",
+      "第 4 问：单链表结点通过指针链接，不要求连续存储",
+      "第 4 问：访问指定位置通常需从头沿链接遍历"
+    ],
+    "Facets": [
+      {
+        "Key": "part1",
+        "Name": "第 1 问",
+        "Weight": 0.25,
+        "WeightReason": "沿用原题各小问的分值占比",
+        "ScoreRatio": 1,
+        "RawScoreRatio": 1,
+        "HasFallacy": false,
+        "FallacyReason": "",
+        "Explanation": "答案准确说明了栈的后进先出访问次序，以及入栈和出栈均在栈顶，核心要点完整。",
+        "IsCorrect": true,
+        "Question": "说明栈的访问次序和入栈、出栈位置。",
+        "ReferenceAnswer": "栈后进先出，入栈和出栈均在栈顶。"
+      },
+      {
+        "Key": "part2",
+        "Name": "第 2 问",
+        "Weight": 0.25,
+        "WeightReason": "沿用原题各小问的分值占比",
+        "ScoreRatio": 0.67,
+        "RawScoreRatio": 0.67,
+        "HasFallacy": false,
+        "FallacyReason": "",
+        "Explanation": "本问要求说明队列的访问次序、入队位置和出队位置。用户答出“先进先出”和“从队尾入队”，覆盖了访问次序和入队位置两个要点；但完全遗漏了“从队头出队”这一要点，核心要点覆盖约2/3，未达到70%掌握门槛，故判为未掌握。",
+        "IsCorrect": false,
+        "Question": "说明队列的访问次序、入队位置和出队位置。",
+        "ReferenceAnswer": "队列先进先出，在队尾入队、队头出队。"
+      },
+      {
+        "Key": "part3",
+        "Name": "第 3 问",
+        "Weight": 0.25,
+        "WeightReason": "沿用原题各小问的分值占比",
+        "ScoreRatio": 0,
+        "RawScoreRatio": 0,
+        "HasFallacy": false,
+        "FallacyReason": "",
+        "Explanation": "用户回答“不会”，未提供任何关于数组存储方式或访问特点的内容，核心要点完全缺失，不能得分。",
+        "IsCorrect": false,
+        "Question": "说明数组的存储方式及访问特点。",
+        "ReferenceAnswer": "数组连续存储，可按下标直接访问元素。"
+      },
+      {
+        "Key": "part4",
+        "Name": "第 4 问",
+        "Weight": 0.25,
+        "WeightReason": "沿用原题各小问的分值占比",
+        "ScoreRatio": 0,
+        "RawScoreRatio": 0,
+        "HasFallacy": true,
+        "FallacyReason": "用户称“单链表的结点必须连续存放”，与单链表结点通过指针链接、不要求连续存储的事实相反；又称“可以按下标直接访问任意结点，无需沿指针遍历”，混淆了单链表与数组的访问方式，单链表访问指定位置需从头沿链接遍历。",
+        "Explanation": "本问考查单链表的存储方式和访问特点。用户答案在存储方式上错误地认为必须连续存放，在访问方式上错误地认为可下标直接访问、无需遍历，两处均为关键概念颠倒，未掌握本问核心知识。",
+        "IsCorrect": false,
+        "Question": "说明单链表的存储方式和访问特点。",
+        "ReferenceAnswer": "单链表结点通过指针链接，不要求连续存储，访问指定位置通常需从头沿链接遍历。"
+      }
+    ]
+  }
+}
