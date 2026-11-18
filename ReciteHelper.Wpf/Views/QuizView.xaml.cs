@@ -5,6 +5,7 @@ using ReciteHelper.Core.Enums;
 using ReciteHelper.Core.ValueObjects;
 using ReciteHelper.Core.DTOs;
 using ReciteHelper.Core.Services;
+using ReciteHelper.Core.Scheduling;
 using ReciteHelper.Wpf.Models;
 using ReciteHelper.Wpf.Utilities;
 using ReciteHelper.Wpf.ViewModels;
@@ -22,22 +23,21 @@ using System.Windows.Media.Imaging;
 
 namespace ReciteHelper.Wpf.Views;
 
-public partial class QuizWindow : Window, INotifyPropertyChanged
+public partial class QuizView : UserControl, INotifyPropertyChanged
 {
     private bool _grading;
-    private bool _savingOnClose;
-    private bool _savedOnClose;
+    private bool _recordsNeedSave;
+    private bool _personalizationPending;
     private readonly IQuizService _quizService;
     private readonly IProjectFileService _projectFileService;
     private readonly IQuestionHelpService _questionHelpService;
     private readonly IReviewPersonalizationService _reviewPersonalizationService;
     private readonly IRuleReviewService? _ruleReviewService;
-    private ObservableCollection<QuestionItem> _questions;
-    private LatestBuffer<bool> _latest;
+    private readonly ObservableCollection<QuestionItem> _questions = [];
+    private readonly LatestBuffer<bool> _latest;
     private int _currentQuestionIndex = 0;
     private int _totalQuestions = 0;
-    private string _chapterName = "";
-    private Project _project = new();
+    private readonly Project _project;
     private DateTime _startTime = DateTime.Now;
     private string? _selectedChoiceId;
     private string? _selectedTrueFalseAnswer;
@@ -59,9 +59,17 @@ public partial class QuizWindow : Window, INotifyPropertyChanged
         public int Length => End - Start;
     }
 
-    public QuizWindow(
+    internal Project Project => _project;
+    internal Chapter? Chapter { get; }
+    internal bool HasCloseWork => _recordsNeedSave || _personalizationPending;
+    internal event EventHandler? CloseRequested;
+    internal event EventHandler? RecordsChanged;
+    public string ChoiceGroupName { get; } = Guid.NewGuid().ToString();
+
+    internal QuizView(
         Project project,
-        string chapterName,
+        Chapter? chapter,
+        List<Question> questions,
         IQuizService quizService,
         IProjectFileService projectFileService,
         IQuestionHelpService questionHelpService,
@@ -73,45 +81,19 @@ public partial class QuizWindow : Window, INotifyPropertyChanged
         _projectFileService = projectFileService;
         _questionHelpService = questionHelpService;
         _ruleReviewService = ruleReviewService;
+        _project = project;
+        Chapter = chapter;
 
         InitializeComponent();
         DataContext = this;
 
-        _project = project;
         ManageRuleQuestionsButton.Visibility = project.TemplateType == ProjectTemplateType.RuleBasedReview ? Visibility.Visible : Visibility.Collapsed;
-        _chapterName= chapterName;
         _latest = LatestBuffer<bool>.Create<bool>(Config.Configure.PhonkOptions.WrongCount);
 
-        InitializeQuestions(project.Chapters!.Find(x => x.Name == chapterName)!.Questions!);
-        LocateCurrent();
-        UpdateDisplay();
-    }
-
-
-    public QuizWindow(
-        Project project,
-        List<Question> recitePlan,
-        IQuizService quizService,
-        IProjectFileService projectFileService,
-        IQuestionHelpService questionHelpService,
-        IReviewPersonalizationService reviewPersonalizationService,
-        IRuleReviewService? ruleReviewService = null)
-    {
-        _reviewPersonalizationService = reviewPersonalizationService;
-        _quizService = quizService;
-        _projectFileService = projectFileService;
-        _questionHelpService = questionHelpService;
-        _ruleReviewService = ruleReviewService;
-
-        InitializeComponent();
-        DataContext = this;
-
-        _project = project;
-        ManageRuleQuestionsButton.Visibility = project.TemplateType == ProjectTemplateType.RuleBasedReview ? Visibility.Visible : Visibility.Collapsed;
-        _chapterName= "复习计划";
-        _latest = LatestBuffer<bool>.Create<bool>(Config.Configure.PhonkOptions.WrongCount);
-
-        InitializeQuestions(recitePlan);
+        foreach (var question in questions)
+            AddQuestion(question);
+        _totalQuestions = _questions.Count;
+        AnswerCardItemsControl.ItemsSource = _questions;
         LocateCurrent();
         UpdateDisplay();
     }
@@ -120,7 +102,9 @@ public partial class QuizWindow : Window, INotifyPropertyChanged
     {
         if (_grading || _project.TemplateType != ProjectTemplateType.RuleBasedReview || _ruleReviewService is null) return;
         new CreateRuleReviewWindow(_ruleReviewService, _projectFileService, _ => Task.CompletedTask, _project)
-            { Owner = this }.ShowDialog();
+            { Owner = Window.GetWindow(this) }.ShowDialog();
+        RefreshRecords();
+        RecordsChanged?.Invoke(this, EventArgs.Empty);
     }
 
     private void SwitchToQuestion(int questionNumber)
@@ -146,45 +130,83 @@ public partial class QuizWindow : Window, INotifyPropertyChanged
         }
     }
 
-    private void InitializeQuestions(List<Question> questions)
+    private static AnswerStatus RecordedStatus(Question question) => question.Status switch
     {
-        _questions = new ObservableCollection<QuestionItem>();
+        true => AnswerStatus.Correct,
+        false => AnswerStatus.Wrong,
+        null => AnswerStatus.NotAnswered
+    };
 
-        for (int i = 0; i < questions.Count; i++)
+    private void AddQuestion(Question question)
+    {
+        var status = Chapter is null ? AnswerStatus.NotAnswered : RecordedStatus(question);
+        var assessment = status == AnswerStatus.NotAnswered ? null : question.LastAiAssessment;
+        _questions.Add(new QuestionItem
         {
-            _questions.Add(new QuestionItem
-            {
-                Number = i + 1,
-                Question = questions[i],
-                UserAnswer = questions[i].Status is null ? null : questions[i].LastAiAssessment?.UserAnswer,
-                Status = questions[i].Status switch
-                {
-                    true => AnswerStatus.Correct,
-                    false => AnswerStatus.Wrong,
-                    null => AnswerStatus.NotAnswered
-                },
-                StatusStyle = (Style)FindResource("AnswerCardButtonStyle")
-            });
+            Number = _questions.Count + 1,
+            Question = question,
+            UserAnswer = assessment?.UserAnswer,
+            Status = status,
+            Assessment = assessment
+        });
+    }
+
+    internal void RefreshRecords()
+    {
+        var current = _questions.ElementAtOrDefault(_currentQuestionIndex);
+        var currentChanged = false;
+        if (Chapter is { } chapter)
+        {
+            var questions = new HashSet<Question>(_questions.Select(item => item.Question!), ReferenceEqualityComparer.Instance);
+            foreach (var question in chapter.Questions ?? [])
+                if (questions.Add(question)) AddQuestion(question);
+        }
+        else
+        {
+            // A full answer in another tab can replace the facets in this plan.
+            var available = new HashSet<Question>(ReviewQuestionCatalog.All(_project), ReferenceEqualityComparer.Instance);
+            foreach (var item in _questions.Where(item =>
+                         !available.Contains(item.Question!) ||
+                         !ReviewQuestionCatalog.HasAnswerRecord(item.Question!) ||
+                         item.Status == AnswerStatus.NotAnswered && item.Question!.ReviewFacets.Count > 0).ToArray())
+                _questions.Remove(item);
+        }
+
+        foreach (var item in _questions)
+        {
+            var status = RecordedStatus(item.Question!);
+            if (Chapter is null && status != AnswerStatus.NotAnswered) continue;
+            var assessment = status == AnswerStatus.NotAnswered ? null : item.Question!.LastAiAssessment;
+            if (status == item.Status && ReferenceEquals(assessment, item.Assessment)) continue;
+            item.Status = status;
+            item.Assessment = assessment;
+            item.UserAnswer = assessment?.UserAnswer;
+            currentChanged |= ReferenceEquals(item, current);
         }
 
         _totalQuestions = _questions.Count;
-        AnswerCardItemsControl.ItemsSource = _questions;
-        UpdateAnswerCardStyles();
+        for (int i = 0; i < _questions.Count; i++)
+            _questions[i].Number = i + 1;
+        var index = current is null ? -1 : _questions.IndexOf(current);
+        _currentQuestionIndex = index < 0 ? 0 : index;
+        if (index < 0 || currentChanged)
+            UpdateDisplay();
+        else
+            UpdateNavigation();
     }
 
     private void UpdateDisplay()
     {
-        if (_questions == null || _questions.Count == 0) return;
-
         ResetHelpPanel();
+        var hasQuestions = _questions.Count != 0;
+        PracticeLayout.Visibility = hasQuestions ? Visibility.Visible : Visibility.Collapsed;
+        PracticeEmptyText.Visibility = hasQuestions ? Visibility.Collapsed : Visibility.Visible;
+        if (!hasQuestions) return;
 
         var currentQuestion = _questions[_currentQuestionIndex];
 
-        // Update question display
-        CurrentQuestionText.Text = (_currentQuestionIndex + 1).ToString();
-        TotalQuestionsText.Text = _totalQuestions.ToString();
         QuestionTextBlock.Text = currentQuestion.Question!.Text;
-        var facetSource = ReciteHelper.Core.Scheduling.ReviewQuestionCatalog.FindFacet(_project, currentQuestion.Question);
+        var facetSource = ReviewQuestionCatalog.FindFacet(_project, currentQuestion.Question);
         FacetContextText.Visibility = facetSource is null ? Visibility.Collapsed : Visibility.Visible;
         if (facetSource is { } source)
         {
@@ -197,10 +219,6 @@ public partial class QuizWindow : Window, INotifyPropertyChanged
         SubmitButton.IsEnabled = currentQuestion.Status == AnswerStatus.NotAnswered;
         AskDeepSeekButton.IsEnabled = currentQuestion.Status != AnswerStatus.NotAnswered;
 
-        // Update button state
-        PrevButton.IsEnabled = _currentQuestionIndex > 0;
-        NextButton.IsEnabled = _currentQuestionIndex < _totalQuestions - 1;
-
         // Hide the results area (if it's a new question)
         if (currentQuestion.Status == AnswerStatus.NotAnswered)
         {
@@ -211,6 +229,15 @@ public partial class QuizWindow : Window, INotifyPropertyChanged
             ShowResult(currentQuestion);
         }
 
+        UpdateNavigation();
+    }
+
+    private void UpdateNavigation()
+    {
+        CurrentQuestionText.Text = (_currentQuestionIndex + 1).ToString();
+        TotalQuestionsText.Text = _totalQuestions.ToString();
+        PrevButton.IsEnabled = _currentQuestionIndex > 0;
+        NextButton.IsEnabled = SkipButton.IsEnabled = _currentQuestionIndex < _totalQuestions - 1;
         UpdateAnswerCardStyles();
     }
 
@@ -292,6 +319,7 @@ public partial class QuizWindow : Window, INotifyPropertyChanged
 
     private void UpdateAnswerCardStyles()
     {
+        StatsTextBlock.Text = $"已作答 {_questions.Count(item => item.Status != AnswerStatus.NotAnswered)} / {_totalQuestions}";
         foreach (var question in _questions)
         {
             // Reset to basic style
@@ -321,21 +349,23 @@ public partial class QuizWindow : Window, INotifyPropertyChanged
 
     private void ClearButton_Click(object sender, RoutedEventArgs e)
     {
-        if (MessageBox.Show("是否清空当前题目的答题与复习记录？清空后，掌握度将重新计算。", "清空记录",
+        if (MessageBox.Show("是否清空本标签页所有题目的答题与复习记录？清空后，掌握度将重新计算。", "清空记录",
             MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
             return;
 
         ClearRecords();
-        Close();
+        CloseRequested?.Invoke(this, EventArgs.Empty);
     }
 
     private void ClearRecords()
     {
         ReciteHelper.Application.Services.ReviewHistory.Clear(_project, _questions.Select(item => item.Question!));
+        _recordsNeedSave = true;
         foreach (var item in _questions)
         {
             item.UserAnswer = null;
             item.Status = AnswerStatus.NotAnswered;
+            item.Assessment = null;
         }
         _currentQuestionIndex = 0;
         UpdateDisplay();
@@ -369,7 +399,7 @@ public partial class QuizWindow : Window, INotifyPropertyChanged
             ? string.Join("；", Question.SplitBlankAnswers(question.UserAnswer).Select((answer, index) => $"{index + 1}. {answer}"))
             : question.UserAnswer ?? "";
         CorrectAnswerText.Text = question.Question.GetCorrectAnswerText();
-        if (question.Question.LastAiAssessment is { } assessment && assessment.UserAnswer == question.UserAnswer)
+        if (question.Assessment is { } assessment && assessment.UserAnswer == question.UserAnswer)
         {
             PartResults.Assessment = EssayAnswerLayout.NeedsFacetRegrouping(question.Question) ? null : assessment;
             InlineAnswerFeedback.Assessment = assessment;
@@ -383,8 +413,9 @@ public partial class QuizWindow : Window, INotifyPropertyChanged
             ChoiceOptionsItemsControl.Visibility = Visibility.Collapsed;
             FillBlankAnswersItemsControl.Visibility = Visibility.Collapsed;
             TrueFalseOptionsPanel.Visibility = Visibility.Collapsed;
+            var metric = assessment.AnswerNature.HasFlag(AnswerNature.Expressive) ? "判分" : "核心要点覆盖";
             AnswerPromptText.Text = $"您的答案：得分 {assessment.ScoreRatio:P0}" +
-                (assessment.RawScoreRatio is { } raw && Math.Abs(raw - assessment.ScoreRatio) > 0.001 ? $"（核心要点覆盖 {raw:P0}，每问 70% 达标，FL 除外）" : "（每问 70% 达标，FL 除外）");
+                (assessment.RawScoreRatio is { } raw && Math.Abs(raw - assessment.ScoreRatio) > 0.001 ? $"（{metric} {raw:P0}）" : string.Empty);
             AiReferenceText.Text = question.Question.GetCorrectAnswerText();
             if (question.Question.SourceExcerpts.Count > 0)
                 AiReferenceText.Text += "\n\n资料原文：\n" + string.Join("\n\n", question.Question.SourceExcerpts);
@@ -407,7 +438,7 @@ public partial class QuizWindow : Window, INotifyPropertyChanged
         _helpCancellation?.Dispose();
         _helpCancellation = new CancellationTokenSource();
 
-        HelpSidebarColumn.Width = new GridLength(360);
+        HelpSidebarColumn.Width = new GridLength(288);
         HelpSidebar.Visibility = Visibility.Visible;
         KnowledgeMatchesItemsControl.ItemsSource = null;
         KnowledgeLoadingText.Text = "正在查询知识库...";
@@ -502,7 +533,7 @@ public partial class QuizWindow : Window, INotifyPropertyChanged
         _helpCancellation = new CancellationTokenSource();
         var cancellationToken = _helpCancellation.Token;
 
-        HelpSidebarColumn.Width = new GridLength(360);
+        HelpSidebarColumn.Width = new GridLength(288);
         HelpSidebar.Visibility = Visibility.Visible;
         KnowledgeMatchesItemsControl.ItemsSource = null;
         KnowledgeLoadingText.Text = "正在查询本地知识库...";
@@ -787,6 +818,10 @@ public partial class QuizWindow : Window, INotifyPropertyChanged
                 _startTime);
 
             currentQuestion.Status = answerResult.IsCorrect ? AnswerStatus.Correct : AnswerStatus.Wrong;
+            currentQuestion.Assessment = answerResult.AiAssessment;
+            currentQuestion.Question!.Status = answerResult.IsCorrect;
+            _recordsNeedSave = true;
+            _personalizationPending = true;
 
             // Show result
             ShowResult(currentQuestion);
@@ -797,10 +832,11 @@ public partial class QuizWindow : Window, INotifyPropertyChanged
             TrueFalseOptionsPanel.IsEnabled = false;
             UpdateAnswerCardStyles();
 
-            currentQuestion.Question!.Status = answerResult.IsCorrect;
             QDisplayLabel.Content = MemoryHintFormatter.Format(answerResult);
 
             await _projectFileService.SaveProjectAsync(_project);
+            _recordsNeedSave = false;
+            RecordsChanged?.Invoke(this, EventArgs.Empty);
 
             // Play phonk effect
             _latest.Add(answerResult.IsCorrect);
@@ -911,11 +947,6 @@ public partial class QuizWindow : Window, INotifyPropertyChanged
         }
     }
 
-    private void AnswerTextBox_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
-    {
-        // Trash
-    }
-
     private void MultipartAnswers_AnswerChanged(object? sender, EventArgs e)
     {
         if (_questions.Count > 0 && _questions[_currentQuestionIndex].Status == AnswerStatus.NotAnswered)
@@ -941,53 +972,43 @@ public partial class QuizWindow : Window, INotifyPropertyChanged
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 
-    private async void Window_Closing(object sender, CancelEventArgs e)
-    {
-        if (_savedOnClose) return;
-        e.Cancel = true;
-        if (_grading || _savingOnClose) return;
+    internal void Release() => ResetHelpPanel();
 
-        _savingOnClose = true;
-        IsEnabled = false;
+    internal async Task<bool> SaveOnCloseAsync()
+    {
         try
         {
-            // Closing is deferred until the project is saved, so the chapter page
-            // refreshes after persistence and repeated close requests cannot overlap.
-            foreach (var item in _questions)
+            if (_recordsNeedSave)
             {
-                item.Question!.Status = item.Status switch
-                {
-                    AnswerStatus.Correct => true,
-                    AnswerStatus.Wrong => false,
-                    _ => null
-                };
+                await _projectFileService.SaveProjectAsync(_project);
+                _recordsNeedSave = false;
+                RecordsChanged?.Invoke(this, EventArgs.Empty);
             }
 
-            await _projectFileService.SaveProjectAsync(_project);
-            try
+            if (_personalizationPending)
             {
-                var fit = await _reviewPersonalizationService.TryPersonalizeAsync(_project);
-                if (fit is not null)
-                    await _projectFileService.SaveProjectAsync(_project);
+                _personalizationPending = false;
+                try
+                {
+                    var fit = await _reviewPersonalizationService.TryPersonalizeAsync(_project);
+                    if (fit is not null)
+                    {
+                        await _projectFileService.SaveProjectAsync(_project);
+                        RecordsChanged?.Invoke(this, EventArgs.Empty);
+                    }
+                }
+                catch (Exception)
+                {
+                    // Personalization is optional once the answer records are saved.
+                }
             }
-            catch (Exception)
-            {
-                // A failed optional fit must not prevent closing after a successful save.
-            }
-            _savedOnClose = true;
-            // Queue the final close to avoid re-entering a Closing event when a save
-            // completes synchronously.
-            _ = Dispatcher.BeginInvoke(new Action(Close));
+            return true;
         }
         catch (Exception ex)
         {
             MessageBox.Show($"记录未能保存，请重试。\n{ex.Message}", "保存失败",
                 MessageBoxButton.OK, MessageBoxImage.Warning);
-        }
-        finally
-        {
-            _savingOnClose = false;
-            IsEnabled = true;
+            return false;
         }
     }
 }

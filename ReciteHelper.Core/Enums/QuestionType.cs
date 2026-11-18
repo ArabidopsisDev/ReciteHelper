@@ -7,9 +7,11 @@ namespace ReciteHelper.Core.Enums;
 public enum QuestionType
 {
     Essay = 0,
-    ShortAnswer = Essay,
     SingleChoice = 1,
     FillBlank = 2,
     TrueFalse = 3,
-    TermDefinition = 4
+    TermDefinition = 4,
+    ShortAnswer = 5,
+    Discussion = 6,
+    Comprehensive = 7
 }

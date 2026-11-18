@@ -5,18 +5,22 @@ using ReciteHelper.Infrastructure.Services;
 using System.Diagnostics;
 using System.IO;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Media;
 
 namespace ReciteHelper.Wpf.Views;
 
-public partial class ActivationWindow : Window
+public partial class ModelSettingsView : UserControl
 {
     private readonly HostedModelService _hostedModelService;
     private readonly IConfigService _configService;
     private readonly IPiModelService _piModelService;
     private readonly string _configPath;
 
-    public ActivationWindow(
+    internal event EventHandler? SettingsSaved;
+    internal event EventHandler? CloseRequested;
+
+    public ModelSettingsView(
         HostedModelService hostedModelService,
         IConfigService configService,
         IPiModelService piModelService)
@@ -28,17 +32,21 @@ public partial class ActivationWindow : Window
         InitializeComponent();
         SettingsNavigation.SelectedIndex = 0;
         SettingsNavigation.SelectionChanged += SettingsNavigation_SelectionChanged;
-        Loaded += async (_, _) => await RefreshSelectionAsync();
+        Loaded += LoadSettings;
     }
 
-    private void SettingsNavigation_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+    private async void LoadSettings(object sender, RoutedEventArgs e)
     {
-        var item = (System.Windows.Controls.ListBoxItem)SettingsNavigation.SelectedItem;
-        var section = (FrameworkElement)FindName((string)item.Tag);
-        if (section is System.Windows.Controls.Expander expander) expander.IsExpanded = true;
-        SettingsScroll.UpdateLayout();
-        var offset = section.TransformToAncestor((Visual)SettingsScroll.Content).Transform(new Point()).Y;
-        SettingsScroll.ScrollToVerticalOffset(offset);
+        Loaded -= LoadSettings;
+        await RefreshSelectionAsync();
+    }
+
+    private void SettingsNavigation_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (SettingsNavigation.SelectedItem is not ListBoxItem { Tag: string sectionName }) return;
+        foreach (FrameworkElement section in SettingsPages.Children)
+            section.Visibility = section.Name == sectionName ? Visibility.Visible : Visibility.Collapsed;
+        SettingsScroll.ScrollToTop();
     }
 
     private async void SaveDirectKeysButton_Click(object sender, RoutedEventArgs e)
@@ -51,6 +59,7 @@ public partial class ActivationWindow : Window
             return;
         }
 
+        IsEnabled = false;
         try
         {
             var config = await LoadConfigAsync();
@@ -64,6 +73,7 @@ public partial class ActivationWindow : Window
         {
             ShowError($"保存配置失败：{ex.Message}");
         }
+        finally { IsEnabled = true; }
     }
 
     private async void SaveOpenRouterButton_Click(object sender, RoutedEventArgs e)
@@ -75,6 +85,7 @@ public partial class ActivationWindow : Window
             return;
         }
 
+        IsEnabled = false;
         try
         {
             var config = await LoadConfigAsync();
@@ -92,6 +103,7 @@ public partial class ActivationWindow : Window
         {
             ShowError($"保存配置失败：{ex.Message}");
         }
+        finally { IsEnabled = true; }
     }
 
     private async void ActivateButton_Click(object sender, RoutedEventArgs e)
@@ -103,7 +115,7 @@ public partial class ActivationWindow : Window
             return;
         }
 
-        ActivateButton.IsEnabled = false;
+        IsEnabled = false;
         ShowStatus("正在验证激活码...", Brushes.DimGray);
 
         try
@@ -128,7 +140,7 @@ public partial class ActivationWindow : Window
         }
         finally
         {
-            ActivateButton.IsEnabled = true;
+            IsEnabled = true;
         }
     }
 
@@ -152,13 +164,13 @@ public partial class ActivationWindow : Window
 
     private void PiOAuthButton_Click(object sender, RoutedEventArgs e)
     {
-        var window = new PiOAuthWindow(_piModelService, _configService) { Owner = this };
+        var window = new PiOAuthWindow(_piModelService, _configService) { Owner = Window.GetWindow(this) };
         if (window.ShowDialog() == true) Complete("模型账号配置已保存。");
     }
 
     private void ExitButton_Click(object sender, RoutedEventArgs e)
     {
-        DialogResult = false;
+        CloseRequested?.Invoke(this, EventArgs.Empty);
     }
 
     private async Task RefreshSelectionAsync()
@@ -176,9 +188,8 @@ public partial class ActivationWindow : Window
             UseSelectedModelButton.IsEnabled = choices.Count > 0;
             ActiveModelBox.IsEnabled = choices.Count > 0;
             ModelSelectionHintText.Text = choices.Count > 0
-                ? "列表显示已接入的服务，包括从环境变量读取的配置。切换服务会保留其他服务的配置。"
-                : "尚未接入模型。请在下方授权模型账号，或填写服务的 API Key。";
-            DeepSeekSection.IsExpanded = choices.Count == 0;
+                ? "选择用于出题、批改和解析的模型服务。"
+                : "尚未接入模型。请从左侧选择账号授权或配置模型服务。";
         }
         catch (Exception ex) { ShowError($"读取模型配置失败：{ex.Message}"); }
     }
@@ -186,6 +197,7 @@ public partial class ActivationWindow : Window
     private async void UseSelectedModel_Click(object sender, RoutedEventArgs e)
     {
         if (ActiveModelBox.SelectedItem is not ModelChoice choice) return;
+        IsEnabled = false;
         try
         {
             var config = await _configService.LoadAsync();
@@ -195,6 +207,7 @@ public partial class ActivationWindow : Window
             Complete($"已选择 {choice.Name}。");
         }
         catch (Exception ex) { ShowError($"切换模型失败：{ex.Message}"); }
+        finally { IsEnabled = true; }
     }
 
     private sealed record ModelChoice(ModelAccessMode Mode, string Name);
@@ -240,7 +253,8 @@ public partial class ActivationWindow : Window
     private void Complete(string message)
     {
         ShowStatus(message, Brushes.ForestGreen);
-        DialogResult = true;
+        SettingsSaved?.Invoke(this, EventArgs.Empty);
+        if (IsVisible) _ = RefreshSelectionAsync();
     }
 
     private void ShowError(string message)

@@ -28,15 +28,12 @@ public class ReviewGenerator : IReviewGenerator
         if (count <= 0) throw new ArgumentException("数量必须大于0", nameof(count));
 
         var ranked = Rank(project, DateTime.Now);
-        if (ranked.Count <= count)
-            return ResetStatus(ranked.Select(r => r.Question).ToList());
-
-        var due = ranked.Where(r => r.IsWeakFacet || r.Recall is { } p && p < _scheduler.DesiredRetention);
-        var fresh = ranked.Where(r => !r.IsWeakFacet && r.Recall is null).OrderBy(_ => _random.Next());
-        var rest = ranked.Where(r => !r.IsWeakFacet && r.Recall is { } p && p >= _scheduler.DesiredRetention);
-
-        var result = due.Concat(fresh).Concat(rest).Take(count).Select(r => r.Question).ToList();
-        return ResetStatus(result);
+        if (ranked.Count > count)
+        {
+            return ranked.OrderBy(row => !row.IsWeakFacet && row.Recall >= _scheduler.DesiredRetention)
+                .Take(count).Select(row => row.Question).ToList();
+        }
+        return ranked.Select(row => row.Question).ToList();
     }
 
     public List<Question> GenerateParameterizationReview(Project project, ReviewOptions options)
@@ -44,34 +41,13 @@ public class ReviewGenerator : IReviewGenerator
         ArgumentNullException.ThrowIfNull(project);
         ArgumentNullException.ThrowIfNull(options);
 
-        var ranked = Rank(project, DateTime.Now);
-        var reviewed = ranked.Where(r => r.IsWeakFacet || r.Recall is not null).ToList();
-        var fresh = ranked.Where(r => !r.IsWeakFacet && r.Recall is null).OrderBy(_ => _random.Next()).ToList();
-
-        var newCount = (int)(options.TotalCount * options.NewQuestionRatio);
-        var reviewCount = Math.Max(0, options.TotalCount - newCount);
-
-        IEnumerable<Ranked> reviewPart = options.PrioritizeWeakPoints
-            ? reviewed // already ordered by weak status and expected coverage deficit
-            : reviewed.OrderBy(_ => _random.Next());
-
-        var result = reviewPart.Take(reviewCount)
-            .Concat(fresh.Take(newCount))
-            .Select(r => r.Question)
-            .ToList();
-
-        // Top up from whatever is left when one of the pools is short.
-        if (result.Count < options.TotalCount)
-        {
-            var chosen = new HashSet<Question>(result, ReferenceEqualityComparer.Instance);
-            var remaining = ranked.Select(r => r.Question).Where(q => !chosen.Contains(q));
-            result.AddRange(remaining.Take(options.TotalCount - result.Count));
-        }
-
-        return ResetStatus(result);
+        IEnumerable<Ranked> ranked = Rank(project, DateTime.Now);
+        if (!options.PrioritizeWeakPoints)
+            ranked = ranked.OrderBy(_ => _random.Next());
+        return ranked.Take(options.TotalCount).Select(row => row.Question).ToList();
     }
 
-    /// <summary>Eligible items ranked by weak status and missing coverage; fresh items last.</summary>
+    /// <summary>Previously assessed items ranked by weak status and missing coverage.</summary>
     public List<Ranked> Rank(Project project, DateTime now)
     {
         var ranked = new List<Ranked>();
@@ -79,6 +55,7 @@ public class ReviewGenerator : IReviewGenerator
         {
             if (question.ReviewFacets.Count == 0)
             {
+                if (!ReviewQuestionCatalog.HasAnswerRecord(question)) continue;
                 var recall = _scheduler.PredictRecall(project, question, now);
                 var weak = question.LastAiAssessment is { IsCorrect: false } &&
                     (question.RequiresAiGrading || project.TemplateType == Core.Enums.ProjectTemplateType.RuleBasedReview);
@@ -92,6 +69,7 @@ public class ReviewGenerator : IReviewGenerator
             // A decomposed parent is never reintroduced, including during top-up.
             foreach (var facet in question.ReviewFacets)
             {
+                if (!ReviewQuestionCatalog.HasAnswerRecord(facet.Question)) continue;
                 var recall = _scheduler.PredictRecall(project, facet.Question, now);
                 if (CfsrsPolicy.IsAvailable(facet, now, recall, _scheduler.DesiredRetention))
                     ranked.Add(new Ranked(facet.Question, recall, facet.NeedsReview,
@@ -119,9 +97,4 @@ public class ReviewGenerator : IReviewGenerator
 
     public readonly record struct Ranked(Question Question, double? Recall, bool IsWeakFacet = false, double CoverageDeficit = 0, Guid? ParentIdentity = null);
 
-    private static List<Question> ResetStatus(List<Question> questions)
-    {
-        questions.ForEach(question => question.Status = null);
-        return questions;
-    }
 }

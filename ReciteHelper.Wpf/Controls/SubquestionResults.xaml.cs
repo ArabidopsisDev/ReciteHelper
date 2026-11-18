@@ -1,4 +1,5 @@
 using ReciteHelper.Core.DTOs;
+using ReciteHelper.Core.Enums;
 using ReciteHelper.Core.Scheduling;
 using System.Windows;
 using System.Windows.Controls;
@@ -30,13 +31,21 @@ public partial class SubquestionResults : UserControl
             var (label, color) = status switch
             {
                 "AC" => ("Accepted（已掌握）", "#389E0D"),
-                "PT" => ("Part（部分正确）", "#C67B00"),
+                "PC" => ("Partial Credit（部分正确）", "#C67B00"),
                 "FL" => ("Fallacy（关键概念混淆）", "#7B3FB3"),
                 _ => ("Wrong Answer（未达标）", "#D43832")
             };
             var reason = facet.HasFallacy ? $"关键混淆：{facet.FallacyReason}" : facet.Explanation;
             var title = $"第 {index + 1} 问：{status} / {label}";
-            var detail = $"核心要点覆盖 {raw:P0}，占原题 {facet.Weight:P0}\n{facet.Question}\n{reason}".TrimEnd();
+            var nature = facet.AnswerNature switch
+            {
+                AnswerNature.Conceptual => "概念性\n",
+                AnswerNature.Expressive => "表达性\n",
+                AnswerNature.Conceptual | AnswerNature.Expressive => "概念性、表达性\n",
+                _ => string.Empty
+            };
+            var metric = facet.AnswerNature.HasFlag(AnswerNature.Expressive) ? "判分" : "核心要点覆盖";
+            var detail = $"{nature}{metric} {raw:P0}，占原题 {facet.Weight:P0}\n{facet.Question}\n{reason}".TrimEnd();
             return new PointRow($"#{index + 1}", status, raw.ToString("P0"), new SolidColorBrush((Color)ColorConverter.ConvertFromString(color)),
                 title, detail, title + "\n" + detail);
         }).ToList();

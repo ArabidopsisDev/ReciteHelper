@@ -4,6 +4,7 @@ using ReciteHelper.Application.Services;
 using ReciteHelper.Core.Aggregates;
 using ReciteHelper.Core.DTOs;
 using ReciteHelper.Core.Entities;
+using ReciteHelper.Core.Enums;
 using ReciteHelper.Core.Interfaces.Services;
 using ReciteHelper.Core.Scheduling;
 using ReciteHelper.Core.Services;
@@ -15,10 +16,10 @@ public sealed class SubquestionGradingTests
 {
     [Theory]
     [InlineData(1, false, "AC")]
-    [InlineData(0.7, false, "AC")]
-    [InlineData(0.699, false, "PT")]
-    [InlineData(0.45, false, "PT")]
-    [InlineData(0.449, false, "WA")]
+    [InlineData(0.6, false, "AC")]
+    [InlineData(0.599, false, "PC")]
+    [InlineData(0.4, false, "PC")]
+    [InlineData(0.399, false, "WA")]
     [InlineData(0, false, "WA")]
     [InlineData(0.9, true, "FL")]
     [InlineData(0.1, true, "FL")]
@@ -30,18 +31,27 @@ public sealed class SubquestionGradingTests
     {
         var chat = new PartChat();
         var question = QuestionWithParts(4);
+        question.Type = QuestionType.Comprehensive;
+        question.AnswerParts[0].AnswerNature = AnswerNature.Conceptual;
+        question.AnswerParts[1].AnswerNature = AnswerNature.Expressive;
+        question.AnswerParts[2].AnswerNature = AnswerNature.Conceptual | AnswerNature.Expressive;
         var answer = EssayAnswerLayout.Join(["回答一", "回答二", "回答三", "回答四"]);
         var assessment = await new AiAnswerGrader(chat).GradeAsync(question, answer);
         Assert.Equal(4, chat.Inputs.Count);
         Assert.Equal(2, chat.MaxActive);
         Assert.Equal(new[] { "回答一", "回答二", "回答三", "回答四" }.OrderBy(x => x), chat.Inputs.OrderBy(x => x));
-        Assert.Equal(new[] { "AC", "PT", "WA", "FL" }, assessment.Facets.Select(f =>
+        Assert.Equal(new[] { "AC", "PC", "WA", "FL" }, assessment.Facets.Select(f =>
             AiGradingPolicy.GetVerdict(f.RawScoreRatio!.Value, f.HasFallacy)));
         Assert.Equal(question.AnswerParts.Select(p => p.Key), assessment.Facets.Select(f => f.Key));
+        Assert.Equal("Conceptual", chat.Natures["回答一"]);
+        Assert.Equal("Expressive", chat.Natures["回答二"]);
+        Assert.Equal("Conceptual, Expressive", chat.Natures["回答三"]);
+        Assert.Equal(AnswerNature.Expressive, assessment.Facets[3].AnswerNature);
+        Assert.Equal(AnswerNature.Conceptual | AnswerNature.Expressive, assessment.AnswerNature);
         Assert.All(assessment.Facets, facet => Assert.Equal(0.25, facet.Weight));
         Assert.Equal(answer, string.Concat(assessment.Annotations.Select(a => a.Text)));
-        Assert.Equal(0.62475, assessment.RawScoreRatio!.Value, 8);
-        Assert.Equal(0.64975, assessment.ScoreRatio, 8);
+        Assert.Equal(0.57475, assessment.RawScoreRatio!.Value, 8);
+        Assert.Equal(0.59975, assessment.ScoreRatio, 8);
         Assert.False(assessment.IsCorrect);
         Assert.True(assessment.HasFallacy);
         Assert.False(assessment.Facets[3].IsCorrect);
@@ -51,6 +61,8 @@ public sealed class SubquestionGradingTests
         var loaded = JsonSerializer.Deserialize<AiAnswerAssessment>(JsonSerializer.Serialize(assessment))!;
         Assert.True(loaded.Facets[3].HasFallacy);
         Assert.Equal(assessment.Facets[3].FallacyReason, loaded.Facets[3].FallacyReason);
+        Assert.Equal(assessment.Facets[2].AnswerNature, loaded.Facets[2].AnswerNature);
+        Assert.Equal(QuestionType.Comprehensive, JsonSerializer.Deserialize<Question>(JsonSerializer.Serialize(question))!.Type);
     }
 
     [Fact]
@@ -131,20 +143,23 @@ public sealed class SubquestionGradingTests
         private int _active;
         public int MaxActive { get; private set; }
         public ConcurrentBag<string> Inputs { get; } = [];
+        public ConcurrentDictionary<string, string> Natures { get; } = new();
         public async Task<string> RunAsync(string key, string prompt, string? instructions = null)
         {
             using var input = JsonDocument.Parse(prompt);
             var answer = input.RootElement.GetProperty("userAnswer").GetString()!;
+            Natures[answer] = input.RootElement.GetProperty("answerNature").GetString()!;
             Inputs.Add(answer);
             var active = Interlocked.Increment(ref _active);
             MaxActive = Math.Max(MaxActive, active);
             try
             {
                 await Task.Delay(25);
-                var score = answer switch { "回答一" => 0.7, "回答二" => 0.45, "回答三" => 0.449, _ => 0.9 };
+                var score = answer switch { "回答一" => 0.6, "回答二" => 0.4, "回答三" => 0.399, _ => 0.9 };
                 return JsonSerializer.Serialize(new AiAnswerAssessment
                 {
                     ScoreRatio = score, HasFallacy = answer == "回答四", FallacyReason = answer == "回答四" ? "将寄主和病原物的关系颠倒。" : "",
+                    AnswerNature = AnswerNature.Expressive,
                     Explanation = "按本问课程要点判分。",
                     Annotations = [new() { SegmentId = 0, Status = answer == "回答四" ? "incorrect" : "partial", Comment = "本问批注。" }]
                 });

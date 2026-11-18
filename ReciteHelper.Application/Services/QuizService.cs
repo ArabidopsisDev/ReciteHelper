@@ -1,4 +1,5 @@
 using ReciteHelper.Core.Aggregates;
+using ReciteHelper.Core.Configuration;
 using ReciteHelper.Core.DTOs;
 using ReciteHelper.Core.Entities;
 using ReciteHelper.Core.Interfaces.Configuration;
@@ -31,14 +32,15 @@ public class QuizService : IQuizService
         ArgumentNullException.ThrowIfNull(question);
         userAnswer ??= string.Empty;
         var submittedAt = DateTime.Now;
+        var config = await _configService.LoadAsync();
 
-        var assessment = project.TemplateType == Core.Enums.ProjectTemplateType.RuleBasedReview || question.RequiresAiGrading
+        var assessment = question.RequiresAiGrading || question.IsWritten &&
+            (project.TemplateType == Core.Enums.ProjectTemplateType.RuleBasedReview || ModelAccess.HasTextGeneration(config))
             ? await _aiGrader.GradeAsync(question, userAnswer) : null;
         var (isCorrect, similarity) = assessment is not null
             ? (assessment.IsCorrect, assessment.ScoreRatio)
             : await EvaluateAnswerAsync(question, userAnswer);
 
-        var config = await _configService.LoadAsync();
         var now = submittedAt;
         var responseSeconds = Math.Max(0d, (now - startTime).TotalSeconds);
         var rate = userAnswer.Length / Math.Max(0.1d, responseSeconds);
@@ -72,7 +74,12 @@ public class QuizService : IQuizService
         };
         reviewTag.SetId(question.ReviewTag.Count + 1);
         question.ReviewTag.Add(reviewTag);
-        if (assessment is not null) question.LastAiAssessment = assessment;
+        if (assessment is not null)
+        {
+            question.LastAiAssessment = assessment;
+            if (question.AnswerNature == Core.Enums.AnswerNature.None)
+                question.AnswerNature = assessment.AnswerNature;
+        }
 
         return new AnswerResult
         {

@@ -4,11 +4,11 @@ namespace ReciteHelper.Core.Scheduling;
 
 public static class AiGradingPolicy
 {
-    public const double MasteryThreshold = 0.7;
-    public const double PartialThreshold = 0.45;
+    public const double MasteryThreshold = 0.6;
+    public const double PartialThreshold = 0.4;
 
     public static string GetVerdict(double coverage, bool hasFallacy = false)
-        => hasFallacy ? "FL" : coverage >= MasteryThreshold ? "AC" : coverage >= PartialThreshold ? "PT" : "WA";
+        => hasFallacy ? "FL" : coverage >= MasteryThreshold ? "AC" : coverage >= PartialThreshold ? "PC" : "WA";
 
     // A critical misconception cannot pass; retain its actual coverage separately.
     private static double Credit(double coverage, bool hasFallacy)
@@ -36,7 +36,7 @@ public static class AiGradingPolicy
             var total = assessment.Facets.Sum(f => f.Weight);
             assessment.HasFallacy = assessment.Facets.Any(f => f.HasFallacy);
             assessment.ScoreRatio = assessment.Facets.Sum(f => f.Weight * f.ScoreRatio) / total;
-            assessment.IsCorrect = assessment.Facets.All(f => f.IsCorrect);
+            assessment.IsCorrect = !assessment.HasFallacy && assessment.RawScoreRatio >= MasteryThreshold;
         }
         else
         {

@@ -14,14 +14,21 @@ public sealed class QuestionTypeJsonConverter : JsonConverter<QuestionType>
         if (reader.TokenType != JsonTokenType.String)
             return QuestionType.Essay;
 
-        var value = reader.GetString();
+        return Parse(reader.GetString());
+    }
+
+    public static QuestionType Parse(string? value)
+    {
         if (string.IsNullOrWhiteSpace(value))
             return QuestionType.Essay;
 
         var normalized = value.Trim().Replace("-", "_").Replace(" ", "_").ToLowerInvariant();
         return normalized switch
         {
-            "shortanswer" or "short_answer" or "essay" or "解答题" or "简答题" or "论述题" => QuestionType.Essay,
+            "shortanswer" or "short_answer" or "简答题" => QuestionType.ShortAnswer,
+            "discussion" or "论述题" => QuestionType.Discussion,
+            "comprehensive" or "综合题" => QuestionType.Comprehensive,
+            "essay" or "解答题" => QuestionType.Essay,
             "singlechoice" or "single_choice" or "choice" or "选择题" or "单项选择题" => QuestionType.SingleChoice,
             "fillblank" or "fill_blank" or "blank" or "填空题" => QuestionType.FillBlank,
             "truefalse" or "true_false" or "judgment" or "判断题" => QuestionType.TrueFalse,
@@ -39,6 +46,9 @@ public sealed class QuestionTypeJsonConverter : JsonConverter<QuestionType>
             QuestionType.FillBlank => nameof(QuestionType.FillBlank),
             QuestionType.TrueFalse => nameof(QuestionType.TrueFalse),
             QuestionType.TermDefinition => nameof(QuestionType.TermDefinition),
+            QuestionType.ShortAnswer => nameof(QuestionType.ShortAnswer),
+            QuestionType.Discussion => nameof(QuestionType.Discussion),
+            QuestionType.Comprehensive => nameof(QuestionType.Comprehensive),
             _ => nameof(QuestionType.Essay)
         });
     }

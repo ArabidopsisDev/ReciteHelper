@@ -1,32 +1,24 @@
-<Window
-    x:Class="ReciteHelper.Wpf.Views.KnowledgePointWindow"
+<UserControl
+    x:Class="ReciteHelper.Wpf.Views.KnowledgePointView"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:ReciteHelper.Wpf"
     xmlns:markdig="clr-namespace:Markdig.Wpf;assembly=Markdig.Wpf"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-    Title="知识点学习 - ReciteHelper"
-    Width="1120"
-    Height="780"
-    MinWidth="960"
-    MinHeight="640"
-    Style="{StaticResource AppWindowStyle}"
-    Loaded="Window_Loaded"
-    WindowStartupLocation="CenterOwner"
     mc:Ignorable="d">
 
-    <Window.Resources>
+    <UserControl.Resources>
         <Style x:Key="ChapterHeaderStyle" TargetType="Border"><Setter Property="Background" Value="Transparent" /><Setter Property="BorderThickness" Value="0" /></Style>
         <Style x:Key="ChapterToggleButtonStyle" TargetType="Button" BasedOn="{StaticResource ListRowButtonStyle}"><Setter Property="Padding" Value="16,16" /></Style>
         <Style x:Key="KnowledgeItemStyle" TargetType="Border"><Setter Property="Background" Value="Transparent" /></Style>
         <Style x:Key="KnowledgeButtonStyle" TargetType="Button" BasedOn="{StaticResource ListRowButtonStyle}"><Setter Property="Padding" Value="24,14,16,14" /></Style>
         <Style x:Key="MasteredCheckBoxStyle" TargetType="CheckBox" BasedOn="{StaticResource {x:Type CheckBox}}"><Setter Property="VerticalAlignment" Value="Center" /></Style>
-    </Window.Resources>
+    </UserControl.Resources>
 
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="320" />
+            <ColumnDefinition Width="264" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
@@ -261,4 +253,4 @@
             </Grid>
         </Border>
     </Grid>
-</Window>
+</UserControl>

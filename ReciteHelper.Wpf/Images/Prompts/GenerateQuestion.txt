@@ -1,12 +1,14 @@
 Please generate review questions based on the text content.
 
-Generate a balanced mixture of these four types only: SingleChoice, FillBlank, TermDefinition, and Essay.
+Generate a balanced mixture of choice, fill-in-the-blank, and written questions. Each question has one type. Choose written types from TermDefinition, ShortAnswer, Essay, Discussion, and Comprehensive according to the task.
 Never generate TrueFalse questions. TrueFalse questions are reserved for imported examination papers.
 
 General rules:
 - Every text field must be a real question or task prompt. Never copy a declarative knowledge sentence directly as a question.
 - Knowledge points that are only statements belong in know, not bank.
 - Fill every answer field with a reliable answer based only on the source material.
+- Include source_excerpts for every question. Quote the passage that supports the answer verbatim from the current source block. Use enough surrounding words to locate it uniquely and list the evidence in the order it appears.
+- Return chapters and questions in the order in which their evidence first appears in the source. The app uses the excerpts to restore that order after parallel generation.
 - Keep review_tag as an empty array.
 - Generate enough questions for the current block. For a normal block, produce about 6-12 useful questions when the source material supports it.
 - Question quantity and chapter quantity are different: do not reduce the number of questions just because there are only a few broad chapters.
@@ -32,11 +34,16 @@ TermDefinition:
 - Put the complete definition in correct_answer.
 - Keep correct_answers, options, and correct_option_ids empty.
 
-Essay:
-- Use type = "Essay" for all short-answer, explanation, analysis, comparison, calculation, and discussion questions.
+Other written questions:
+- Use type = "ShortAnswer" for 简答题, "Essay" for 解答题, "Discussion" for 论述题, and "Comprehensive" for 综合题.
 - Start the stem with a clear task word such as 简述、说明、分析、比较、阐述、为什么、如何、哪些.
-- Put the expected answer in correct_answer.
+- Put a concise course-level reference answer in correct_answer. For open-ended tasks, give one sufficient example.
 - Keep correct_answers, options, and correct_option_ids empty.
+
+Grading nature for written questions:
+- Set answer_nature to "Conceptual" for essential facts and concepts, "Expressive" for analysis, applications and open-ended responses, or "Conceptual, Expressive" for a question that asks for both.
+- For a question with multiple natural parts, include answer_parts. Give each part a key, prompt, reference_answer, weight, and its own answer_nature. The weights sum to 1.
+- Each part represents an independently answerable task. Keep supporting details inside that part's reference answer.
 
 Divide the content into broad chapters. Return only valid JSON for List<Chapter>, without Markdown fences.
 
@@ -66,6 +73,7 @@ JSON shape:
         ],
         "correct_option_ids": ["B"],
         "correct_answer": "B",
+        "source_excerpts": ["Paris is the capital of France."],
         "correct_answers": [],
         "review_tag": []
       },
@@ -76,6 +84,7 @@ JSON shape:
         "options": [],
         "correct_option_ids": [],
         "correct_answer": "Paris",
+        "source_excerpts": ["Paris is the capital of France."],
         "correct_answers": ["Paris"],
         "review_tag": []
       },
@@ -83,19 +92,23 @@ JSON shape:
         "status": null,
         "text": "名词解释：生态位",
         "type": "TermDefinition",
+        "answer_nature": "Conceptual",
         "options": [],
         "correct_option_ids": [],
         "correct_answer": "Definition from source material",
+        "source_excerpts": ["A verbatim excerpt from the source for this definition."],
         "correct_answers": [],
         "review_tag": []
       },
       {
         "status": null,
         "text": "简述该过程的主要阶段。",
-        "type": "Essay",
+        "type": "ShortAnswer",
+        "answer_nature": "Conceptual",
         "options": [],
         "correct_option_ids": [],
         "correct_answer": "Expected answer from source material",
+        "source_excerpts": ["A verbatim excerpt from the source for this answer."],
         "correct_answers": [],
         "review_tag": []
       }

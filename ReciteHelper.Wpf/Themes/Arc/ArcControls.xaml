@@ -12,13 +12,13 @@
     </Style>
     <Style x:Key="ArcInputBase" TargetType="Control">
         <Setter Property="FontFamily" Value="{DynamicResource ArcBodyFont}" />
-        <Setter Property="FontSize" Value="16" />
+        <Setter Property="FontSize" Value="{StaticResource ArcFontBody}" />
         <Setter Property="Foreground" Value="{DynamicResource ArcForeground}" />
         <Setter Property="Background" Value="{DynamicResource ArcSurface}" />
         <Setter Property="BorderBrush" Value="{DynamicResource ArcBorder}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="Padding" Value="{DynamicResource ArcControlPadding}" />
-        <Setter Property="MinHeight" Value="44" />
+        <Setter Property="MinHeight" Value="{StaticResource ArcControlMedium}" />
         <Setter Property="VerticalContentAlignment" Value="Center" />
         <Setter Property="FocusVisualStyle" Value="{StaticResource ArcFocusVisual}" />
         <Style.Triggers>
@@ -104,14 +104,17 @@
         </ControlTemplate></Setter.Value></Setter>
     </Style>
     <Style x:Key="NavigationItemStyle" TargetType="ListBoxItem">
-        <Setter Property="Padding" Value="16,14" /><Setter Property="Margin" Value="10,3" />
+        <Setter Property="Padding" Value="12,8" /><Setter Property="Margin" Value="4,2" />
+        <Setter Property="MinHeight" Value="{StaticResource ArcControlSmall}" />
+        <Setter Property="FontSize" Value="{StaticResource ArcFontControl}" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
         <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-        <Setter Property="Foreground" Value="{DynamicResource ArcForeground}" />
+        <Setter Property="Foreground" Value="{DynamicResource ArcTextSecondary}" />
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="FocusVisualStyle" Value="{StaticResource ArcFocusVisual}" />
         <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="ListBoxItem">
             <Border x:Name="Row" Padding="{TemplateBinding Padding}" Background="{TemplateBinding Background}" CornerRadius="{DynamicResource ArcRadiusNavigation}">
-                <ContentPresenter />
+                <ContentPresenter VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
             </Border>
             <ControlTemplate.Triggers>
                 <Trigger Property="IsMouseOver" Value="True"><Setter TargetName="Row" Property="Background" Value="{DynamicResource ArcSurfaceHover}" /></Trigger>
@@ -134,7 +137,7 @@
         </ControlTemplate></Setter.Value></Setter>
     </Style>
     <Style TargetType="Expander">
-        <Setter Property="HorizontalContentAlignment" Value="Stretch" /><Setter Property="FontSize" Value="16" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" /><Setter Property="FontSize" Value="{StaticResource ArcFontControl}" />
         <Setter Property="Template"><Setter.Value><ControlTemplate TargetType="Expander">
             <StackPanel>
                 <ToggleButton IsChecked="{Binding IsExpanded, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}" Content="{TemplateBinding Header}" FontWeight="Medium" Foreground="{TemplateBinding Foreground}" HorizontalContentAlignment="Stretch" Cursor="Hand" FocusVisualStyle="{StaticResource ArcFocusVisual}">

@@ -6,7 +6,6 @@ using ReciteHelper.Core.Scheduling;
 using ReciteHelper.Wpf.Models;
 using ReciteHelper.Wpf.ViewModels;
 using Microsoft.Win32;
-using System.ComponentModel;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
@@ -14,59 +13,51 @@ using System.Windows.Threading;
 
 namespace ReciteHelper.Wpf.Views;
 
-public partial class SelectChapterWindow : Window, INotifyPropertyChanged
+public partial class ProjectView : UserControl
 {
     private readonly IProjectFileService _projectFileService;
-    private readonly IQuizService _quizService;
-    private readonly IReviewGenerator _reviewGenerator;
     private readonly IExamAnswerService _examAnswerService;
     private readonly IExamPaperService _examPaperService;
     private readonly IExamSettingsService _examSettingsService;
     private readonly IExamSetImportService _examSetImportService;
     private readonly IExamSetRepository _examSetRepository;
     private readonly IProjectCreationService _projectCreationService;
-    private readonly IQuestionHelpService _questionHelpService;
-    private readonly IReviewPersonalizationService _reviewPersonalizationService;
     private readonly IRuleReviewService? _ruleReviewService;
-    private Project? _currentProject;
-    private DispatcherTimer _clockTimer;
-    private List<ChapterViewModel> _chapters;
+    private readonly Project _currentProject;
+    private List<ChapterViewModel> _chapters = [];
 
-    public SelectChapterWindow(
+    internal Project Project => _currentProject;
+    internal event EventHandler? HomeRequested;
+    internal event EventHandler? KnowledgeRequested;
+    internal event EventHandler? KnowledgeSourcesChanged;
+    internal event EventHandler<Chapter>? ChapterPracticeRequested;
+    internal event EventHandler? SmartPracticeRequested;
+
+    public ProjectView(
         Project project,
         IProjectFileService projectFileService,
-        IQuizService quizService,
-        IReviewGenerator reviewGenerator,
         IExamAnswerService examAnswerService,
         IExamPaperService examPaperService,
         IExamSettingsService examSettingsService,
         IExamSetImportService examSetImportService,
         IExamSetRepository examSetRepository,
         IProjectCreationService projectCreationService,
-        IQuestionHelpService questionHelpService,
-        IReviewPersonalizationService reviewPersonalizationService,
         IRuleReviewService? ruleReviewService = null)
     {
-        _reviewPersonalizationService = reviewPersonalizationService;
         _projectFileService = projectFileService;
-        _quizService = quizService;
-        _reviewGenerator = reviewGenerator;
         _examAnswerService = examAnswerService;
         _examPaperService = examPaperService;
         _examSettingsService = examSettingsService;
         _examSetImportService = examSetImportService;
         _examSetRepository = examSetRepository;
         _projectCreationService = projectCreationService;
-        _questionHelpService = questionHelpService;
         _ruleReviewService = ruleReviewService;
 
         InitializeComponent();
         _currentProject = project;
         ManageRuleQuestionsButton.Visibility = project.TemplateType == Core.Enums.ProjectTemplateType.RuleBasedReview ? Visibility.Visible : Visibility.Collapsed;
 
-        InitializeData();
-        InitializeClock();
-        UpdateDisplay();
+        RefreshChapters();
     }
 
     private void InitializeData()
@@ -102,18 +93,10 @@ public partial class SelectChapterWindow : Window, INotifyPropertyChanged
             : question.Status is true ? 1d : 0d) * 100d;
     }
 
-    private void InitializeClock()
+    internal void RefreshChapters()
     {
-        _clockTimer = new DispatcherTimer();
-        _clockTimer.Interval = TimeSpan.FromSeconds(1);
-        _clockTimer.Tick += ClockTimer_Tick;
-        CurrentTimeText.Text = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
-        _clockTimer.Start();
-    }
-
-    private void ClockTimer_Tick(object? sender, EventArgs e)
-    {
-        CurrentTimeText.Text = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+        InitializeData();
+        UpdateDisplay();
     }
 
     private void UpdateDisplay()
@@ -154,27 +137,11 @@ public partial class SelectChapterWindow : Window, INotifyPropertyChanged
             return;
         }
 
-        var quizWindow = new QuizWindow(
-            _currentProject,
-            chapter.Name!,
-            _quizService,
-            _projectFileService,
-            _questionHelpService,
-            _reviewPersonalizationService,
-            _ruleReviewService)
-        {
-            Title = $"{_currentProject.ProjectName} - {chapter.Name}",
-            Owner = this
-        };
-
-        quizWindow.ShowDialog();
-        InitializeData();
-        UpdateDisplay();
+        ChapterPracticeRequested?.Invoke(this, chapter);
     }
 
     private void SimulateButton_Click(object sender, RoutedEventArgs e)
     {
-        var random = Random.Shared;
         var examWindow = new ExamSettingWindow(
             _currentProject,
             _examAnswerService,
@@ -182,34 +149,20 @@ public partial class SelectChapterWindow : Window, INotifyPropertyChanged
             _examSettingsService,
             _examSetRepository,
             _projectCreationService,
-            _projectFileService);
+            _projectFileService)
+        { Owner = Window.GetWindow(this) };
 
         examWindow.Show();
-        Close();
-    }
-
-    private void RefreshMasteryLevels()
-    {
-        foreach (var chapterVM in _chapters)
-        {
-            chapterVM.MasteryLevel = CalculateMasteryLevel(chapterVM.Chapter, _currentProject?.SchedulerParameters);
-        }
-
-        ChaptersItemsControl.Items.Refresh();
     }
 
     private void KnowledgeButton_Click(object sender, RoutedEventArgs e)
     {
-        if (_currentProject != null)
-        {
-            var knowledgeWindow = new KnowledgePointWindow(_currentProject, _projectFileService);
-            knowledgeWindow.ShowDialog();
-        }
+        KnowledgeRequested?.Invoke(this, EventArgs.Empty);
     }
 
     private void CloseButton_Click(object sender, RoutedEventArgs e)
     {
-        Close();
+        HomeRequested?.Invoke(this, EventArgs.Empty);
     }
 
     private void ExportButton_Click(object sender, RoutedEventArgs e)
@@ -236,12 +189,12 @@ public partial class SelectChapterWindow : Window, INotifyPropertyChanged
             Multiselect = false,
             CheckFileExists = true
         };
-        if (dialog.ShowDialog(this) is not true)
+        if (dialog.ShowDialog(Window.GetWindow(this)) is not true)
             return;
 
         var progressWindow = new ProgressWindow(ProgressWindowMode.ExamSetImport)
         {
-            Owner = this
+            Owner = Window.GetWindow(this)
         };
         SetExamImportState(true);
         try
@@ -297,12 +250,12 @@ public partial class SelectChapterWindow : Window, INotifyPropertyChanged
             Multiselect = true,
             CheckFileExists = true
         };
-        if (dialog.ShowDialog(this) is not true)
+        if (dialog.ShowDialog(Window.GetWindow(this)) is not true)
             return;
 
         var progressWindow = new ProgressWindow(ProgressWindowMode.ProjectContentImport)
         {
-            Owner = this
+            Owner = Window.GetWindow(this)
         };
         SetExamImportState(true);
         try
@@ -321,10 +274,8 @@ public partial class SelectChapterWindow : Window, INotifyPropertyChanged
             if (progressWindow.IsVisible)
                 progressWindow.Close();
 
-            InitializeData();
-            UpdateDisplay();
-            ChaptersItemsControl.ItemsSource = _chapters;
-            ChaptersItemsControl.Items.Refresh();
+            RefreshChapters();
+            KnowledgeSourcesChanged?.Invoke(this, EventArgs.Empty);
             MessageBox.Show("新的题目来源已经导入项目，知识库也已更新。", "导入完成", MessageBoxButton.OK, MessageBoxImage.Information);
         }
         catch (Exception ex)
@@ -352,7 +303,7 @@ public partial class SelectChapterWindow : Window, INotifyPropertyChanged
         SimulateButton.IsEnabled = !isImporting;
         SmartReviewButton.IsEnabled = !isImporting;
         ManageRuleQuestionsButton.IsEnabled = !isImporting;
-        ExportButton.Content = isImporting ? "正在导入..." : "功能菜单";
+        ExportButton.Content = isImporting ? "正在导入…" : "导入与导出";
         IsEnabled = !isImporting;
     }
 
@@ -371,7 +322,7 @@ public partial class SelectChapterWindow : Window, INotifyPropertyChanged
             OverwritePrompt = true
         };
 
-        if (saveFileDialog.ShowDialog() != true)
+        if (saveFileDialog.ShowDialog(Window.GetWindow(this)) != true)
             return;
 
         try
@@ -395,52 +346,14 @@ public partial class SelectChapterWindow : Window, INotifyPropertyChanged
 
     private void ReviewMenuItem_Click(object sender, RoutedEventArgs e)
     {
-        if (_currentProject is null) return;
-        var questionList = _reviewGenerator.GenerateReview(_currentProject, 30);
-        if (questionList.Count == 0)
-        {
-            MessageBox.Show("当前没有到期的复习题。cFSRS 会将刚答错的内容间隔 10 分钟再安排重练；已掌握的切面按记忆状态安排复习。",
-                "复习安排", MessageBoxButton.OK, MessageBoxImage.Information);
-            return;
-        }
-
-        var quizWindow = new QuizWindow(
-            _currentProject,
-            questionList,
-            _quizService,
-            _projectFileService,
-            _questionHelpService,
-            _reviewPersonalizationService,
-            _ruleReviewService)
-        { Owner = System.Windows.Application.Current.MainWindow };
-        quizWindow.Show();
-        Close();
+        SmartPracticeRequested?.Invoke(this, EventArgs.Empty);
     }
 
     private void ManageRuleQuestions_Click(object sender, RoutedEventArgs e)
     {
         if (_currentProject?.TemplateType != Core.Enums.ProjectTemplateType.RuleBasedReview || _ruleReviewService is null) return;
         new CreateRuleReviewWindow(_ruleReviewService, _projectFileService, _ => Task.CompletedTask, _currentProject)
-            { Owner = this }.ShowDialog();
-        InitializeData();
-        UpdateDisplay();
-    }
-
-    public Project CurrentProject
-    {
-        get => _currentProject;
-        set
-        {
-            _currentProject = value;
-            OnPropertyChanged(nameof(CurrentProject));
-            InitializeData();
-            UpdateDisplay();
-        }
-    }
-
-    public event PropertyChangedEventHandler PropertyChanged;
-    protected virtual void OnPropertyChanged(string propertyName = null)
-    {
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            { Owner = Window.GetWindow(this) }.ShowDialog();
+        RefreshChapters();
     }
 }

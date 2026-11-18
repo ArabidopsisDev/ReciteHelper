@@ -1,5 +1,7 @@
 # TKCode.Arc 研究与 WPF 适配记录
 
+2026-11-17 补充对照了 [Linear 的界面改版](https://linear.app/now/behind-the-latest-design-refresh)、[Things 的桌面示例](https://culturedcode.com/things/)和 [Reeder Classic 的阅读界面](https://reederapp.com/classic/)。从 Linear 的侧栏调整借鉴更小的图标和弱化的非选中项，从 Things 的任务列表借鉴连续排布，从 Reeder 的阅读面板借鉴工具区与正文的层级。ReciteHelper 仍使用 Arc 的控件状态和 36、44 两档高度。页面字号、阅读底色和圆角按照中文复习场景单独校准。下文记录的是 2026-11-16 的适配，当前尺寸见 [界面设计规范](ui-guidelines.md)。
+
 研究与修订日期：2026-11-16。工作目录：`D:\Projects\ReciteHelper`。
 
 ## 来源与结论

@@ -9,8 +9,8 @@
         <Setter Property="BorderBrush" Value="{DynamicResource ArcBorder}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="Padding" Value="{DynamicResource ArcControlPadding}" />
-        <Setter Property="MinHeight" Value="44" />
-        <Setter Property="FontSize" Value="14" />
+        <Setter Property="MinHeight" Value="{DynamicResource ArcControlMedium}" />
+        <Setter Property="FontSize" Value="{DynamicResource ArcFontControl}" />
         <Setter Property="FontFamily" Value="{DynamicResource ArcBodyFont}" />
         <Setter Property="FontWeight" Value="Normal" />
         <Setter Property="Cursor" Value="Hand" />
@@ -44,12 +44,29 @@
     <Style x:Key="ListRowButtonStyle" TargetType="Button" BasedOn="{StaticResource SubtleButtonStyle}">
         <Setter Property="Padding" Value="16,12" /><Setter Property="HorizontalContentAlignment" Value="Stretch" /><Setter Property="Foreground" Value="{DynamicResource ArcForeground}" />
     </Style>
+    <Style x:Key="WorkspaceRowStyle" TargetType="Button" BasedOn="{StaticResource ListRowButtonStyle}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Button">
+                    <Border BorderBrush="{DynamicResource ArcBorderSubtle}" BorderThickness="0,0,0,1">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="{DynamicResource ArcRadiusNavigation}" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalAlignment="Center" />
+                        </Border>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsEnabled" Value="False"><Setter Property="Opacity" Value="0.45" /></Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
     <Style x:Key="SidebarButtonStyle" TargetType="Button" BasedOn="{StaticResource ListRowButtonStyle}">
-        <Setter Property="Padding" Value="16,11" /><Setter Property="Margin" Value="0,2" />
-        <Setter Property="FontSize" Value="15" /><Setter Property="Foreground" Value="{DynamicResource ArcTextSecondary}" />
+        <Setter Property="Padding" Value="12,7" /><Setter Property="Margin" Value="0,2" />
+        <Setter Property="MinHeight" Value="{DynamicResource ArcControlSmall}" />
+        <Setter Property="Foreground" Value="{DynamicResource ArcTextSecondary}" />
     </Style>
     <Style x:Key="SmallButtonStyle" TargetType="Button" BasedOn="{StaticResource BaseButtonStyle}">
-        <Setter Property="MinHeight" Value="36" /><Setter Property="Padding" Value="12,6" />
+        <Setter Property="MinHeight" Value="{DynamicResource ArcControlSmall}" /><Setter Property="Padding" Value="12,6" />
     </Style>
     <Style x:Key="IconButtonStyle" TargetType="Button" BasedOn="{StaticResource SubtleButtonStyle}">
         <Setter Property="Width" Value="36" /><Setter Property="Height" Value="36" /><Setter Property="Padding" Value="0" />

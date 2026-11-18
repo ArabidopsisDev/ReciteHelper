@@ -43,7 +43,7 @@ public sealed class ReviewHistoryTests
             Assert.Single(reopened.Chapters[0].ReviewMaterials);
             var scheduler = new FsrsReviewScheduler();
             Assert.Null(scheduler.PredictRecall(reopened, question, DateTime.Now));
-            Assert.Same(question, Assert.Single(new ReviewGenerator(scheduler).Rank(reopened, DateTime.Now)).Question);
+            Assert.Empty(new ReviewGenerator(scheduler).GenerateReview(reopened, 20));
         }
         finally
         {

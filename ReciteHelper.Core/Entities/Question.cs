@@ -25,6 +25,10 @@ public class Question : Entity
     [JsonPropertyName("type")]
     public QuestionType Type { get; set; } = QuestionType.Essay;
 
+    [JsonPropertyName("answer_nature")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public AnswerNature AnswerNature { get; set; }
+
     [JsonPropertyName("options")]
     public List<QuestionOption> Options
     {
@@ -122,10 +126,13 @@ public class Question : Entity
     public bool IsTrueFalse => Type == QuestionType.TrueFalse;
 
     [JsonIgnore]
-    public bool IsEssay => Type == QuestionType.Essay;
+    public bool IsEssay => Type is QuestionType.Essay or QuestionType.ShortAnswer or QuestionType.Discussion or QuestionType.Comprehensive;
 
     [JsonIgnore]
     public bool IsTermDefinition => Type == QuestionType.TermDefinition;
+
+    [JsonIgnore]
+    public bool IsWritten => IsEssay || IsTermDefinition;
 
     [JsonIgnore]
     public int BlankCount => IsFillBlank
@@ -149,6 +156,9 @@ public class Question : Entity
         QuestionType.FillBlank => "填空题",
         QuestionType.TrueFalse => "判断题",
         QuestionType.TermDefinition => "名词解释",
+        QuestionType.ShortAnswer => "简答题",
+        QuestionType.Discussion => "论述题",
+        QuestionType.Comprehensive => "综合题",
         _ => "解答题"
     };
 

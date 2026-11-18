@@ -1,3 +1,4 @@
+using ReciteHelper.Core.DTOs;
 using ReciteHelper.Core.Entities;
 using ReciteHelper.Core.Enums;
 using ReciteHelper.Wpf.Models;
@@ -9,10 +10,20 @@ namespace ReciteHelper.Wpf.ViewModels;
 
 public class QuestionItem : INotifyPropertyChanged
 {
-    public int Number { get; set; }
+    public int Number
+    {
+        get => field;
+        set
+        {
+            if (field == value) return;
+            field = value;
+            OnPropertyChanged();
+        }
+    }
     public Question? Question { get; set; }
     public AnswerStatus Status { get; set; }
     public string? UserAnswer { get; set; }
+    public AiAnswerAssessment? Assessment { get; set; }
     public List<ReviewTag> ReviewTag { get; set; } = [];
 
     public Style? StatusStyle

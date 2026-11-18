@@ -13,9 +13,10 @@ public static class EssayAnswerLayout
         IReadOnlyList<QuestionPart> saved = question.AnswerParts.Count > 0 ? question.AnswerParts
             : question.ReviewFacets.Count > 1
                 ? question.ReviewFacets.Select(f => new QuestionPart { Key = f.Key, Prompt = f.Question.Text ?? f.Name,
-                    ReferenceAnswer = f.Question.CorrectAnswer ?? string.Empty, Weight = f.Weight }).ToList()
+                    ReferenceAnswer = f.Question.CorrectAnswer ?? string.Empty, Weight = f.Weight,
+                    AnswerNature = f.Question.AnswerNature }).ToList()
                 : question.AnswerParts;
-        if (!question.IsEssay) return saved;
+        if (!question.IsWritten) return saved;
 
         // Earlier project files have only a stem. Recognise explicit numbered questions and common course headings.
         var text = question.Text ?? string.Empty;
@@ -109,6 +110,7 @@ public static class EssayAnswerLayout
         var point = whole.Facets.ElementAtOrDefault(index);
         return new() { UserAnswer = answer, ScoreRatio = point?.ScoreRatio ?? whole.ScoreRatio,
             RawScoreRatio = point?.RawScoreRatio ?? whole.RawScoreRatio, IsCorrect = point?.IsCorrect ?? whole.IsCorrect,
+            AnswerNature = point?.AnswerNature ?? whole.AnswerNature,
             HasFallacy = point?.HasFallacy ?? whole.HasFallacy, FallacyReason = point?.FallacyReason ?? whole.FallacyReason,
             Explanation = point?.Explanation ?? whole.Explanation, Annotations = marks,
             MissingPoints = point is { IsCorrect: false } ? [point.ReferenceAnswer] : [] };

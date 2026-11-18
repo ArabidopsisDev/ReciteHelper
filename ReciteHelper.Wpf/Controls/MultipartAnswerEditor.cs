@@ -30,21 +30,24 @@ public sealed class MultipartAnswerEditor : UserControl
         for (var i = 0; i < parts.Count; i++)
         {
             var title = new TextBlock { Text = $"（{i + 1}）{parts[i].Prompt}", TextWrapping = TextWrapping.Wrap,
-                Margin = new Thickness(0, i == 0 ? 0 : 24, 0, 12), FontSize = paper ? 15 : 14 };
+                Margin = new Thickness(0, i == 0 ? 0 : 20, 0, 8), FontSize = paper ? 15 : 17, LineHeight = 28 };
             _panel.Children.Add(title);
             var input = new TextBox { Text = answers[i], AcceptsReturn = true, TextWrapping = TextWrapping.Wrap,
                 VerticalScrollBarVisibility = ScrollBarVisibility.Auto, VerticalContentAlignment = VerticalAlignment.Top,
-                Height = paper ? 80 : 130, Padding = new Thickness(paper ? 8 : 16), FontSize = 16,
+                Height = paper ? 80 : 116, Padding = new Thickness(paper ? 8 : 12), FontSize = paper ? 16 : 18,
                 FontFamily = AppFonts.Serif, FontWeight = FontWeights.Normal,
                 IsReadOnly = !editable, IsTabStop = editable };
             if (paper) input.Style = null;
             input.TextChanged += (_, _) => AnswerChanged?.Invoke(this, EventArgs.Empty);
             _inputs.Add(input);
             _panel.Children.Add(input);
-            var feedback = new Border { Padding = new Thickness(paper ? 8 : 16), BorderThickness = new Thickness(1),
-                CornerRadius = new CornerRadius(0), MinHeight = 70, Visibility = Visibility.Collapsed };
-            feedback.SetResourceReference(Border.BorderBrushProperty, "ArcBorder");
-            if (!paper) feedback.SetResourceReference(Border.CornerRadiusProperty, "ArcRadiusControl");
+            var feedback = new Border
+            {
+                Padding = paper ? new Thickness(8) : new Thickness(14, 4, 0, 4),
+                BorderThickness = paper ? new Thickness(1) : new Thickness(2, 0, 0, 0),
+                Visibility = Visibility.Collapsed
+            };
+            feedback.SetResourceReference(Border.BorderBrushProperty, paper ? "ArcBorder" : "ArcBorderStrong");
             _feedback.Add(feedback);
             _panel.Children.Add(feedback);
         }
@@ -56,7 +59,7 @@ public sealed class MultipartAnswerEditor : UserControl
         {
             _inputs[i].Visibility = Visibility.Collapsed;
             _feedback[i].Child = new AiAnnotatedAnswer { Assessment = EssayAnswerLayout.ForPart(assessment, i, _inputs.Count),
-                FontSize = 16, LineHeight = 27, TextWrapping = TextWrapping.Wrap };
+                FontSize = _inputs[i].FontSize };
             _feedback[i].Visibility = Visibility.Visible;
         }
     }

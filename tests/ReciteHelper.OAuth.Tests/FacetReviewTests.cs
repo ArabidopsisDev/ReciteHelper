@@ -57,13 +57,14 @@ public sealed class FacetReviewTests
         var parentMemory = JsonSerializer.Serialize(parent.Memory);
         var parentAttempts = parent.ReviewTag.Count;
         var parentLastAssessment = parent.LastAiAssessment;
+        var parentStatus = parent.Status;
         var result = await quiz.ProcessAnswerAsync(project, cycle.Question, "完整循环", DateTime.Now);
         Assert.Equal(weight, result.FacetUpdate!.MasteryAfter - result.FacetUpdate.MasteryBefore, 8);
         Assert.Equal(sibling, JsonSerializer.Serialize(symptom.Question));
         Assert.Equal(parentMemory, JsonSerializer.Serialize(parent.Memory));
         Assert.Equal(parentAttempts, parent.ReviewTag.Count);
         Assert.Same(parentLastAssessment, parent.LastAiAssessment);
-        Assert.False(parent.Status); // Last full attempt remains a failed attempt.
+        Assert.Equal(parentStatus, parent.Status);
         Assert.False(cycle.NeedsReview);
         Assert.Equal(result.FacetUpdate.MasteryAfter,
             FacetMemoryProjection.Mastery(parent, DateTime.Now, SchedulerParameters.Default), 8);
@@ -197,8 +198,11 @@ public sealed class FacetReviewTests
     {
         var assessment = Partial();
         assessment.Annotations = [new() { Text = "原文", Status = "partial" }];
-        await Assert.ThrowsAsync<InvalidDataException>(() => new AiAnswerGrader(new Chat(JsonSerializer.Serialize(assessment)))
-            .GradeAsync(new Question { ReviewFacetId = Guid.NewGuid() }, "原文"));
+        var result = await new AiAnswerGrader(new Chat(JsonSerializer.Serialize(assessment)))
+            .GradeAsync(new Question { ReviewFacetId = Guid.NewGuid() }, "原文");
+        Assert.Empty(result.Facets);
+        Assert.Equal(assessment.ScoreRatio, result.RawScoreRatio);
+        Assert.Equal("原文", Assert.Single(result.Annotations).Text);
     }
 
     [Fact]
@@ -272,8 +276,8 @@ public sealed class FacetReviewTests
     {
         var (project, parent) = CreateProject();
         var now = DateTime.Now;
-        parent.ReviewTag = [new() { Time = now.AddDays(-10), Grade = 3, IsCorrect = true },
-            new() { Time = now.AddDays(-5), Grade = 3, IsCorrect = true },
+        parent.ReviewTag = [new() { Time = now.AddDays(-10), Grade = 3, IsCorrect = true, Similarity = 1 },
+            new() { Time = now.AddDays(-5), Grade = 3, IsCorrect = true, Similarity = 1 },
             new() { Time = now.AddDays(-2), Grade = 1, IsCorrect = false }];
         new FacetReviewService(new FsrsReviewScheduler()).RecordAssessment(project, parent, Partial(), now);
         var symptom = parent.ReviewFacets.Single(f => f.Key == "symptoms").Question;
@@ -323,19 +327,23 @@ public sealed class FacetReviewTests
     }
 
     [Fact]
-    public async Task AiExamGradingCreatesTheSameReviewSlices()
+    public async Task AiExamGradingPreservesTheOriginalAnswerAndEveryReviewRecord()
     {
         var (project, parent) = CreateProject();
-        var service = new ExamAnswerService(new Grader(_ => Partial()), new FacetReviewService(new FsrsReviewScheduler()));
-        await service.GradeForReviewAsync(project, parent, "考试原文", DateTime.Now);
-        Assert.Equal(2, parent.ReviewFacets.Count);
-        Assert.True(parent.ReviewFacets.Single(f => f.Key == "cycle").NeedsReview);
-        Assert.Equal(1, parent.Memory!.Reps);
-        Assert.Single(parent.ReviewTag);
+        await Quiz(new FsrsReviewScheduler(), _ => Partial()).ProcessAnswerAsync(project, parent, "原始复习答案", DateTime.Now.AddMinutes(-1));
+        var before = JsonSerializer.Serialize(project);
+        var service = new ExamAnswerService(new Grader(_ => Complete()));
+        var first = await service.GradeForReviewAsync(project, parent, "考试原文", DateTime.Now);
+        var second = await service.GradeAsync(parent, "再次考试答案");
+        Assert.True(first!.IsCorrect);
+        Assert.Equal("考试原文", first.UserAnswer);
+        Assert.Equal("再次考试答案", second!.UserAnswer);
+        Assert.Equal(before, JsonSerializer.Serialize(project));
+        Assert.Equal("原始复习答案", parent.LastAiAssessment!.UserAnswer);
     }
 
     [Fact]
-    public async Task ExamCloneMapsBackToTheRightOriginalEvenWhenNumericIdsCollide()
+    public async Task ExamCloneUsesTheSourceRubricWithoutWritingToEitherOriginal()
     {
         var (project, parent) = CreateProject();
         parent.SetId(1);
@@ -347,11 +355,17 @@ public sealed class FacetReviewTests
         var clone = clones.Single(q => q.ReviewIdentity == parent.ReviewIdentity);
         Assert.NotSame(parent, clone);
         Assert.True(clone.RequiresAiGrading);
-        await new ExamAnswerService(new Grader(_ => Partial()), new FacetReviewService(new FsrsReviewScheduler()))
+        var before = JsonSerializer.Serialize(project);
+        Question? gradedQuestion = null;
+        var assessment = await new ExamAnswerService(new Grader(q => { gradedQuestion = q; return Partial(); }))
             .GradeForReviewAsync(project, clone, "考试答案", DateTime.Now);
-        Assert.Equal(2, parent.ReviewFacets.Count);
+        Assert.NotSame(parent, gradedQuestion);
+        Assert.Equal(parent.ReviewIdentity, gradedQuestion!.ReviewIdentity);
+        Assert.Equal("考试答案", assessment!.UserAnswer);
+        Assert.Equal(before, JsonSerializer.Serialize(project));
+        Assert.Empty(parent.ReviewFacets);
         Assert.Empty(other.ReviewFacets);
-        Assert.NotNull(parent.LastAiAssessment);
+        Assert.Null(parent.LastAiAssessment);
     }
 
     private static (Project, Question) CreateProject()
@@ -362,7 +376,7 @@ public sealed class FacetReviewTests
     }
 
     private static AiAnswerAssessment Partial(double cycleWeight = 0.6, double cycleScore = 0)
-        => new() { ScoreRatio = 1 - cycleWeight + cycleWeight * cycleScore, IsCorrect = cycleScore == 1,
+        => new() { ScoreRatio = 1 - cycleWeight + cycleWeight * cycleScore, IsCorrect = 1 - cycleWeight + cycleWeight * cycleScore >= AiGradingPolicy.MasteryThreshold,
             Facets = [new() { Key = "symptoms", Name = "病症", Weight = 1 - cycleWeight, WeightReason = "病症对应的得分要点",
                 ScoreRatio = 1, IsCorrect = true, Question = "说明小麦叶斑病的病症。", ReferenceAnswer = "病症的完整参考答案。" },
                 new() { Key = "cycle", Name = "病害循环", Weight = cycleWeight, WeightReason = "循环对应的得分要点",

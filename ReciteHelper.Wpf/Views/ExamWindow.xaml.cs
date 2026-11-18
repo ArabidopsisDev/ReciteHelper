@@ -7,6 +7,7 @@ using ReciteHelper.Wpf.Controls.ExamPaper;
 using ReciteHelper.Wpf.Models;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Text.Json;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Threading;
@@ -53,8 +54,6 @@ public partial class ExamWindow : Window
     {
         _examAnswerService = examAnswerService;
         _project = project;
-        if (project?.TemplateType == ProjectTemplateType.RuleBasedReview)
-            foreach (var question in questions) question.RequiresAiGrading = true;
         _projectCreationService = projectCreationService;
         _projectFileService = projectFileService;
         _settings = settings;
@@ -97,8 +96,11 @@ public partial class ExamWindow : Window
 
         for (var index = 0; index < orderedQuestions.Count; index++)
         {
-            var question = orderedQuestions[index];
-            var importedQuestion = importedMetadata.TryGetValue(question, out var metadata)
+            var sourceQuestion = orderedQuestions[index];
+            var question = JsonSerializer.Deserialize<Question>(JsonSerializer.Serialize(sourceQuestion))!;
+            if (_project?.TemplateType == ProjectTemplateType.RuleBasedReview && question.IsWritten)
+                question.RequiresAiGrading = true;
+            var importedQuestion = importedMetadata.TryGetValue(sourceQuestion, out var metadata)
                 ? metadata
                 : null;
             _questions.Add(new ExamQuestionItem
@@ -167,15 +169,18 @@ public partial class ExamWindow : Window
             EstimateEssayQuestionHeight,
             academicYear);
 
-        AddQuestionSectionIfAny(
-            ref builder,
-            ref sectionNumber,
-            _questions.Where(question => question.Question?.IsEssay is true).ToList(),
-            "解答题",
-            CreateEssaySectionDescription,
-            ExamPaperElementKind.EssayQuestion,
-            EstimateEssayQuestionHeight,
-            academicYear);
+        foreach (var section in _questions.Where(item => item.Question?.IsEssay is true).GroupBy(item => item.Question!.Type))
+        {
+            AddQuestionSectionIfAny(
+                ref builder,
+                ref sectionNumber,
+                section.ToList(),
+                section.First().Question!.TypeDisplayName,
+                CreateEssaySectionDescription,
+                ExamPaperElementKind.EssayQuestion,
+                EstimateEssayQuestionHeight,
+                academicYear);
+        }
 
         if (_pages.Count == 0 || _pages[^1] != builder.Page)
             _pages.Add(builder.Page);
@@ -383,7 +388,8 @@ public partial class ExamWindow : Window
             QuestionType.FillBlank => 1,
             QuestionType.TrueFalse => 2,
             QuestionType.TermDefinition => 3,
-            _ => 4
+            QuestionType.Essay => 4,
+            _ => (int)type
         };
     }
 
@@ -562,8 +568,6 @@ public partial class ExamWindow : Window
                     ? Math.Round(item.Score * assessment.ScoreRatio, 2)
                     : _examAnswerService.IsCorrect(item.Question, item.UserAnswer) ? item.Score : 0;
             }
-            if (_project is not null && _projectFileService is not null)
-                await _projectFileService.SaveProjectAsync(_project);
             _isSubmitted = true;
             RunningPanel.Visibility = Visibility.Collapsed;
             CalculateScore();

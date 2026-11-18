@@ -449,7 +449,7 @@ namespace ReciteHelper.Wpf.Views {
 
             var dict = new Dictionary<Chapter, double>();
             foreach (var chapter in _project.Chapters)
-                dict.Add(chapter, SelectChapterWindow.CalculateMasteryLevel(chapter));
+                dict.Add(chapter, ProjectView.CalculateMasteryLevel(chapter));
 
             var lowestChapters = dict.OrderBy(kvp => kvp.Value).
                                       ThenBy(kvp => Guid.NewGuid()).Take(5).
@@ -476,14 +476,14 @@ namespace ReciteHelper.Wpf.Views {
 
             var dict = new Dictionary<Chapter, double>();
             foreach (var chapter in _project.Chapters)
-                dict.Add(chapter, SelectChapterWindow.CalculateMasteryLevel(chapter));
+                dict.Add(chapter, ProjectView.CalculateMasteryLevel(chapter));
 
             var sum = dict.Values.Sum(v => 100 - (int)v);
             var count = 0;
             foreach (var kvp in dict)
             {
                 var chapter = dict.Where(x => x.Key == kvp.Key).FirstOrDefault().Key;
-                var weight = SelectChapterWindow.CalculateMasteryLevel(chapter);
+                var weight = ProjectView.CalculateMasteryLevel(chapter);
 
                 var ch = _chapterWeights.Where(x => x.ChapterName == kvp.Key.Name).FirstOrDefault();
                 ch!.Weight = (100 - weight) * 100 / sum;

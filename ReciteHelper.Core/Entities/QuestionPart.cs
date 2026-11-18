@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using ReciteHelper.Core.Enums;
 
 namespace ReciteHelper.Core.Entities;
 
@@ -13,4 +14,7 @@ public sealed class QuestionPart
     public string ReferenceAnswer { get; set; } = string.Empty;
     [JsonPropertyName("weight")]
     public double Weight { get; set; } = 1;
+    [JsonPropertyName("answer_nature")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public AnswerNature AnswerNature { get; set; }
 }

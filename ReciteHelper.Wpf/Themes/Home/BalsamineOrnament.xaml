@@ -1,0 +1,49 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <DrawingImage x:Key="BalsamineOrnament">
+        <DrawingImage.Drawing>
+            <DrawingGroup>
+                <GeometryDrawing Brush="Transparent" Geometry="M 0,0 H 318 V 104 H 0 Z" />
+                <GeometryDrawing Geometry="M 9,94 C 56,91 85,75 132,65 C 168,57 194,53 216,31
+                                           M 70,81 C 95,67 103,48 125,37
+                                           M 131,65 C 158,67 174,78 204,77 C 245,77 270,63 306,69
+                                           M 178,54 C 194,44 187,31 199,23
+                                           M 215,75 C 243,70 252,48 279,42
+                                           M 250,71 C 265,64 274,63 293,59">
+                    <GeometryDrawing.Pen>
+                        <Pen Brush="#A17A887D" Thickness="1.15" StartLineCap="Round" EndLineCap="Round" LineJoin="Round" />
+                    </GeometryDrawing.Pen>
+                </GeometryDrawing>
+                <GeometryDrawing Brush="#277F9C83"
+                                 Geometry="M 67,83 Q 44,86 29,75 Q 54,73 67,83 Z
+                                           M 92,64 Q 75,64 66,48 Q 85,50 92,64 Z
+                                           M 100,56 Q 105,44 102,32 Q 92,42 100,56 Z
+                                           M 156,59 Q 136,56 127,46 Q 147,47 156,59 Z
+                                           M 182,52 Q 171,39 176,27 Q 187,37 182,52 Z
+                                           M 155,70 Q 168,85 190,85 Q 178,72 155,70 Z
+                                           M 199,45 Q 213,46 227,40 Q 210,38 199,45 Z
+                                           M 235,68 Q 236,55 227,47 Q 224,61 235,68 Z
+                                           M 263,52 Q 269,42 263,33 Q 255,43 263,52 Z
+                                           M 278,69 Q 289,78 306,75 Q 294,68 278,69 Z">
+                    <GeometryDrawing.Pen>
+                        <Pen Brush="#9B7A887D" Thickness="0.95" LineJoin="Round" />
+                    </GeometryDrawing.Pen>
+                </GeometryDrawing>
+                <GeometryDrawing Brush="#40B87E83"
+                                 Geometry="M 124,37 C 119,33 117,27 121,25 C 124,23 127,29 129,31
+                                           C 129,27 132,22 136,24 C 140,27 136,34 132,35 C 130,39 127,39 124,37 Z
+                                           M 198,23 C 194,20 191,14 194,12 C 197,10 200,14 201,16
+                                           C 203,11 207,10 209,13 C 211,16 206,20 203,21 C 202,24 200,25 198,23 Z
+                                           M 214,33 C 209,30 203,25 207,22 C 210,19 215,22 217,25
+                                           C 216,20 219,14 224,15 C 229,16 228,23 224,27
+                                           C 230,24 236,25 235,29 C 234,34 224,35 220,33 Q 219,36 214,33 Z
+                                           M 278,43 C 273,39 271,34 275,32 C 279,31 282,34 282,37
+                                           C 285,34 290,33 291,37 C 293,41 285,45 278,43 Z">
+                    <GeometryDrawing.Pen>
+                        <Pen Brush="#A5956469" Thickness="1" LineJoin="Round" />
+                    </GeometryDrawing.Pen>
+                </GeometryDrawing>
+            </DrawingGroup>
+        </DrawingImage.Drawing>
+    </DrawingImage>
+</ResourceDictionary>

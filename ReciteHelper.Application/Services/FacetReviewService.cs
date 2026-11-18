@@ -1,6 +1,7 @@
 using ReciteHelper.Core.Aggregates;
 using ReciteHelper.Core.DTOs;
 using ReciteHelper.Core.Entities;
+using ReciteHelper.Core.Enums;
 using ReciteHelper.Core.Interfaces.Services;
 using ReciteHelper.Core.Scheduling;
 using ReciteHelper.Core.Services;
@@ -9,18 +10,6 @@ namespace ReciteHelper.Application.Services;
 
 public sealed class FacetReviewService(IReviewScheduler scheduler) : IFacetReviewService
 {
-    public void RecordExamAssessment(Project project, Question question, AiAnswerAssessment assessment, DateTime reviewedAt)
-    {
-        RecordAssessment(project, question, assessment, reviewedAt);
-        var grade = ReviewGrader.FromJudgement(assessment.IsCorrect);
-        var outcome = scheduler.Record(project, question, grade, reviewedAt);
-        var tag = new ReviewTag { Time = reviewedAt, Similarity = assessment.ScoreRatio, IsCorrect = assessment.IsCorrect,
-            Grade = (int)grade, QValue = assessment.IsCorrect ? 4 : 1, ElapsedDays = outcome.ElapsedDays,
-            Retrievability = outcome.RetrievabilityBefore, Stability = outcome.StateAfter.Stability, Difficulty = outcome.StateAfter.Difficulty };
-        tag.SetId(question.ReviewTag.Count + 1);
-        question.ReviewTag.Add(tag);
-    }
-
     public FacetReviewUpdate? RecordAssessment(Project project, Question question, AiAnswerAssessment assessment, DateTime reviewedAt)
     {
         var points = FacetAssessmentValidator.Prepare(question, assessment);
@@ -46,7 +35,7 @@ public sealed class FacetReviewService(IReviewScheduler scheduler) : IFacetRevie
             if (EssayAnswerLayout.NeedsFacetRegrouping(question)) ArchiveFacets(question);
             return null;
         }
-        if (question.ReviewFacets.Count == 0 && assessment.IsCorrect) return null;
+        if (question.ReviewFacets.Count == 0 && points.All(point => point.IsCorrect)) return null;
         var masteryBefore = question.ReviewFacets.Count > 0
             ? FacetMemoryProjection.Mastery(question, reviewedAt, parameters)
             : question.Status is true ? 1d : 0d;
@@ -61,6 +50,7 @@ public sealed class FacetReviewService(IReviewScheduler scheduler) : IFacetRevie
             {
                 Key = point.Key, Name = point.Name, Weight = point.Weight, WeightReason = point.WeightReason,
                 Question = new Question { Text = point.Question, CorrectAnswer = point.ReferenceAnswer,
+                    Type = QuestionType.ShortAnswer, AnswerNature = point.AnswerNature,
                     RequiresAiGrading = true, ReviewFacetId = Guid.NewGuid(), SourceExcerpts = question.SourceExcerpts.ToList() }
             }).ToList();
             foreach (var facet in question.ReviewFacets)
@@ -74,6 +64,8 @@ public sealed class FacetReviewService(IReviewScheduler scheduler) : IFacetRevie
         foreach (var point in points)
         {
             var facet = question.ReviewFacets.Single(f => string.Equals(f.Key, point.Key, StringComparison.OrdinalIgnoreCase));
+            if (point.AnswerNature != AnswerNature.None)
+                facet.Question.AnswerNature = point.AnswerNature;
             var grade = ReviewGrader.FromJudgement(point.IsCorrect);
             var outcome = scheduler.Record(project, facet.Question, grade, reviewedAt);
             var tag = new ReviewTag
@@ -108,7 +100,7 @@ public sealed class FacetReviewService(IReviewScheduler scheduler) : IFacetRevie
         // A complete successful answer is evidence for every component. A failed whole
         // answer cannot identify which component failed, so it supplies no component label.
         // These context observations already belong to the parent's pre-split training history.
-        foreach (var original in parent.ReviewTag.Where(tag => tag.IsCorrect is true && tag.Time < createdAt).OrderBy(tag => tag.Time))
+        foreach (var original in parent.ReviewTag.Where(tag => tag.IsCorrect is true && tag.Similarity >= 1 - 1e-9 && tag.Time < createdAt).OrderBy(tag => tag.Time))
         {
             var grade = original.Grade > 0 ? (ReviewGrade)original.Grade : ReviewGrader.FromLegacyQuality(original.QValue);
             if (!ReviewGrader.IsRecall(grade)) continue;

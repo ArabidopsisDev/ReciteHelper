@@ -1,17 +1,20 @@
 <ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="clr-namespace:System;assembly=mscorlib">
     <!-- Adapted from TKCode.Arc ArcDesignToken / ArcTokens (MIT).
          Copyright (c) 2026 TKCode.Arc contributors; (c) 2026 Elia Kuratli.
          Source revision and full licenses: ThirdPartyNotices/TKCode.Arc/. -->
     <SolidColorBrush x:Key="ArcBackground" Color="#FFFFFF" />
     <SolidColorBrush x:Key="ArcSurface" Color="#FFFFFF" />
     <SolidColorBrush x:Key="ArcSurfaceMuted" Color="#F8F8F8" />
+    <SolidColorBrush x:Key="ReadingSurface" Color="#FCFBF8" />
     <SolidColorBrush x:Key="ArcSurfaceHover" Color="#F0F0F0" />
     <SolidColorBrush x:Key="ArcSurfacePressed" Color="#E8E8E8" />
     <SolidColorBrush x:Key="ArcForeground" Color="#0B0B0B" />
     <SolidColorBrush x:Key="ArcTextSecondary" Color="#585858" />
     <SolidColorBrush x:Key="ArcTextMuted" Color="#7D7D7D" />
     <SolidColorBrush x:Key="ArcBorder" Color="#E9E9E9" />
+    <SolidColorBrush x:Key="ArcBorderSubtle" Color="#F0F0F0" />
     <SolidColorBrush x:Key="ArcBorderStrong" Color="#C4C4C4" />
     <SolidColorBrush x:Key="ArcAccent" Color="#353535" />
     <SolidColorBrush x:Key="ArcAccentStrong" Color="#1F1F1F" />
@@ -26,9 +29,18 @@
     <FontFamily x:Key="ArcBodyFont">/ReciteHelper.Wpf;component/Fonts/#Noto Sans CJK SC</FontFamily>
     <FontFamily x:Key="ArcReadingFont">/ReciteHelper.Wpf;component/Fonts/#Noto Serif CJK SC</FontFamily>
     <FontFamily x:Key="ArcIconFont">Segoe Fluent Icons, Segoe MDL2 Assets</FontFamily>
-    <CornerRadius x:Key="ArcRadiusControl">18</CornerRadius>
-    <CornerRadius x:Key="ArcRadiusFocus">22</CornerRadius>
-    <CornerRadius x:Key="ArcRadiusNavigation">14</CornerRadius>
+    <sys:Double x:Key="ArcFontCaption">13</sys:Double>
+    <sys:Double x:Key="ArcFontControl">14</sys:Double>
+    <sys:Double x:Key="ArcFontBody">15</sys:Double>
+    <sys:Double x:Key="ArcFontSection">17</sys:Double>
+    <sys:Double x:Key="ArcFontReading">18</sys:Double>
+    <sys:Double x:Key="ArcFontQuestion">22</sys:Double>
+    <sys:Double x:Key="ArcFontTitle">26</sys:Double>
+    <sys:Double x:Key="ArcControlSmall">36</sys:Double>
+    <sys:Double x:Key="ArcControlMedium">44</sys:Double>
+    <CornerRadius x:Key="ArcRadiusControl">12</CornerRadius>
+    <CornerRadius x:Key="ArcRadiusFocus">16</CornerRadius>
+    <CornerRadius x:Key="ArcRadiusNavigation">10</CornerRadius>
     <CornerRadius x:Key="ArcRadiusPopup">18</CornerRadius>
     <Thickness x:Key="ArcControlPadding">16,9</Thickness>
     <Thickness x:Key="ArcPagePadding">40,32</Thickness>
@@ -37,5 +49,6 @@
     <Geometry x:Key="ArcPlusIcon">M12,5 L12,19 M5,12 L19,12</Geometry>
     <Geometry x:Key="ArcSettingsIcon">M4,7 L20,7 M4,17 L20,17 M8,4 L8,10 M16,14 L16,20</Geometry>
     <Geometry x:Key="ArcArrowIcon">M5,12 L19,12 M13,6 L19,12 13,18</Geometry>
+    <Geometry x:Key="ArcChevronIcon">M8,5 L15,12 8,19</Geometry>
     <Geometry x:Key="ArcCloudIcon">M7,18 C2,18 2,11 6,10 C6,3 17,3 18,10 C24,11 23,18 18,18 Z</Geometry>
 </ResourceDictionary>

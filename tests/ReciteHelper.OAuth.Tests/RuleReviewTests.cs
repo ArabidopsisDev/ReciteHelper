@@ -29,7 +29,7 @@ public sealed class RuleReviewTests
         var chapter = await service.CompleteAsync(preview);
         Assert.Equal(4, chapter.Questions!.Count);
         Assert.Same(preview.Questions[0], chapter.Questions[0]);
-        Assert.All(chapter.Questions, q => { Assert.True(q.RequiresAiGrading); Assert.Equal(QuestionType.Essay, q.Type); });
+        Assert.All(chapter.Questions, q => { Assert.True(q.RequiresAiGrading); Assert.Equal(QuestionType.ShortAnswer, q.Type); });
         Assert.Equal(preview.Prompt, chapter.GenerationPrompt);
         using var input = JsonDocument.Parse(chat.Prompts[1]);
         Assert.Equal(preview.Prompt, input.RootElement.GetProperty("requirements").GetString());
@@ -149,7 +149,7 @@ public sealed class RuleReviewTests
         Assert.Same(result.AiAssessment, question.LastAiAssessment);
         Assert.Single(question.ReviewTag);
         Assert.NotNull(question.Memory);
-        Assert.Equal(0.6, result.Similarity);
+        Assert.Equal(0.55, result.Similarity);
         Assert.False(result.IsCorrect);
     }
 
@@ -176,16 +176,41 @@ public sealed class RuleReviewTests
     }
 
     [Fact]
+    public async Task ConfiguredModelGradesOrdinaryWrittenQuestionsInPracticeAndExam()
+    {
+        var config = new ConfigStub(new ConfigOptions { OpenRouterKey = "offline-test" });
+        var grader = new GraderStub();
+        var question = new Question { Type = QuestionType.Discussion, AnswerNature = AnswerNature.Expressive };
+        var project = new Project();
+        var quiz = new QuizService(config, new ForbiddenLocalJudge(), new FsrsReviewScheduler(), grader);
+        var exam = new ExamAnswerService(grader, config);
+
+        var practice = await quiz.ProcessAnswerAsync(project, question, "练习作答", DateTime.Now);
+        var examAssessment = await exam.GradeForReviewAsync(project, question, "考试作答", DateTime.Now);
+
+        Assert.Equal(2, grader.Calls);
+        Assert.Equal("考试作答", examAssessment!.UserAnswer);
+        Assert.Same(practice.AiAssessment, question.LastAiAssessment);
+        Assert.Single(question.ReviewTag);
+        Assert.Null(await exam.GradeAsync(new Question { Type = QuestionType.TrueFalse }, "正确"));
+    }
+
+    [Fact]
     public void SmartReviewDrawsFromAllCategories()
     {
-        var first = new Question { Text = "细菌" };
-        var second = new Question { Text = "真菌" };
+        var first = new Question { Text = "细菌", Status = true };
+        var second = new Question { Text = "真菌", Status = false };
+        var fresh = new Question { Text = "未作答" };
         var project = new Project { TemplateType = ProjectTemplateType.RuleBasedReview,
-            Chapters = [new() { Name = "细菌类", Questions = [first] }, new() { Name = "真菌类", Questions = [second] }] };
-        var review = new ReviewGenerator(new FsrsReviewScheduler()).GenerateReview(project, 30);
+            Chapters = [new() { Name = "细菌类", Questions = [first, fresh] }, new() { Name = "真菌类", Questions = [second] }] };
+        var generator = new ReviewGenerator(new FsrsReviewScheduler());
+        var review = generator.GenerateReview(project, 30);
         Assert.Equal(2, review.Count);
         Assert.Contains(first, review);
         Assert.Contains(second, review);
+        Assert.DoesNotContain(fresh, generator.GenerateParameterizationReview(project, new() { NewQuestionRatio = 1 }));
+        Assert.True(first.Status);
+        Assert.False(second.Status);
     }
 
     [Fact]
@@ -250,13 +275,13 @@ public sealed class RuleReviewTests
         {
             Calls++;
             if (Fail) throw new InvalidOperationException("服务暂时不可用");
-            return Task.FromResult(new AiAnswerAssessment { UserAnswer = answer, ScoreRatio = 0.6, Annotations = [new() { Text = answer, Status = "partial" }] });
+            return Task.FromResult(new AiAnswerAssessment { UserAnswer = answer, ScoreRatio = 0.55, Annotations = [new() { Text = answer, Status = "partial" }] });
         }
     }
 
-    private sealed class ConfigStub : IConfigService
+    private sealed class ConfigStub(ConfigOptions? options = null) : IConfigService
     {
-        public Task<ConfigOptions> LoadAsync() => Task.FromResult(new ConfigOptions());
+        public Task<ConfigOptions> LoadAsync() => Task.FromResult(options ?? new ConfigOptions());
         public Task SaveAsync(ConfigOptions config) => Task.CompletedTask;
     }
 

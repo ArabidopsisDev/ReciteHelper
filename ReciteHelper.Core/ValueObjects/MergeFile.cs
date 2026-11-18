@@ -16,9 +16,11 @@ public class MergeFile : ValueObject
     }
 
     [JsonPropertyName("content")]
+    [JsonInclude]
     public List<string> Contents { get; private set; } = new();
 
     [JsonPropertyName("cluster_name")]
+    [JsonInclude]
 
     public FileClusterType ClusterType { get; private set; }
 

@@ -3,6 +3,7 @@ using ReciteHelper.Core.DTOs;
 using ReciteHelper.Core.Entities;
 using ReciteHelper.Core.Enums;
 using ReciteHelper.Core.Interfaces.Services;
+using ReciteHelper.Core.Serialization;
 using ReciteHelper.Core.Services;
 using ReciteHelper.Core.ValueObjects;
 using System.Text.Json;
@@ -94,8 +95,10 @@ public sealed class ExamSetImportService(
 
         必须完成以下任务：
         1. 保留每套试卷原有题目顺序和题干，不要把题干与选项拆成不同题目。
-        2. 将题目严格分类为 single_choice、fill_blank、true_false、term_definition、essay 五类。
-           简答题、论述题、计算题、分析题都归入 essay；“解释某术语含义”归入 term_definition。
+        2. 每题保留一种题型。选择题用 single_choice，填空题用 fill_blank，判断题用 true_false，名词解释用 term_definition，
+           解答题用 essay，简答题用 short_answer，论述题用 discussion，综合题用 comprehensive。
+           文字题另外填写 answer_nature：概念和事实用 "Conceptual"，开放的分析、方案和论证用 "Expressive"，兼具两项用 "Conceptual, Expressive"。
+           有多个自然小问时用 answer_parts 列出每问的 key、prompt、reference_answer、weight 和 answer_nature。按原卷分值确定各问 weight，总和为1，不拆分问内的细节。
            填空题按空的顺序写入 correct_answers，每个实际空位对应一个数组元素；同一空的多个可接受答案写在同一个字符串中并用“或”连接。
            填空题的 text 必须在题干原本应作答的位置写入 ________，不得把所有空位集中追加到题末；如果 PDF 文本层丢失横线，必须根据语义恢复空位位置。
            PDF 文本层可能丢失横线，仍需根据语义恢复答案；判断题答案统一使用“正确”或“错误”。
@@ -373,7 +376,7 @@ public sealed class ExamSetImportService(
         }
         else if (string.IsNullOrWhiteSpace(correctAnswer))
         {
-            throw new InvalidDataException($"套卷“{examTitle}”的第 {fallbackNumber} 道解答题缺少标准答案。");
+            throw new InvalidDataException($"套卷“{examTitle}”的第 {fallbackNumber} 道文字题缺少参考答案。");
         }
 
         if (string.IsNullOrWhiteSpace(extracted.Explanation))
@@ -383,6 +386,8 @@ public sealed class ExamSetImportService(
         {
             Text = text,
             Type = questionType,
+            AnswerNature = extracted.AnswerNature,
+            AnswerParts = extracted.AnswerParts ?? [],
             Options = isChoice ? options : [],
             CorrectOptionIds = isChoice ? [correctAnswer] : [],
             CorrectAnswers = questionType == QuestionType.FillBlank ? correctAnswers : [],
@@ -422,7 +427,7 @@ public sealed class ExamSetImportService(
             return QuestionType.TermDefinition;
         if (normalized.Contains("choice") || normalized.Contains("选择"))
             return QuestionType.SingleChoice;
-        return QuestionType.Essay;
+        return QuestionTypeJsonConverter.Parse(normalized);
     }
 
     private sealed class ExtractedExamSet
@@ -456,6 +461,12 @@ public sealed class ExamSetImportService(
 
         [JsonPropertyName("type")]
         public string? Type { get; set; }
+
+        [JsonPropertyName("answer_nature")]
+        public AnswerNature AnswerNature { get; set; }
+
+        [JsonPropertyName("answer_parts")]
+        public List<QuestionPart>? AnswerParts { get; set; }
 
         [JsonPropertyName("text")]
         public string? Text { get; set; }

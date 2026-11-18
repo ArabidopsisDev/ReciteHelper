@@ -29,9 +29,12 @@ public sealed class RuleReviewService(IAiChatService chat) : IRuleReviewService
             existingQuestions 是该大类已有的题目。追加出题时只安排本次 requirements 要求的新题，避免重复或改写已有题目。
             例如植物病理学：用户列出所有病原体名称，并指定形态、寄主、传播途径、致病机制或防治措施；计划应覆盖这些具体要求。
             materials 非空时，只按资料中明确给出的知识出题和编写答案，不用资料外的专业知识增加要求。
+            按考查内容首次出现在资料中的位置排列 questionPlan 和预览题，资料依照 materials 的顺序读取。
             从资料提取与题目直接相关的原文到 source_excerpts，每条必须是资料中的连续原文。资料不足以覆盖的要求在 coverageNote 中说明，勿编造。
             materials 为空时，按本科课程常见要求出题，参考答案只列足以拿满分的核心要点，不追求专家级穷尽。
             questions 仅返回计划的前两道简答题（全计划仅一题时返回一题），参考答案简洁。多问用 answer_parts 明确列出每问、参考答案及分值占比；单问也只列一个部分。
+            每问填写 answer_nature。症状、术语和主要特征等用 "Conceptual"，防治、分析、论证或应用等用 "Expressive"，同一问兼具两种要求时用 "Conceptual, Expressive"。
+            表达问的参考答案给出一组说得通的本科课程示例，避免把其它合理做法或答题思路排除在外。
             每问对应病症、循环、防治等自然内容范围，禁止将一句话拆成多个微小知识碎片。weight 之和为1。
             用户明确指定的自然分问具有最高优先级；若指定症状、发病循环、病害特征三问，题干和 answer_parts 就只保留三问。
             每问中的识别表现、颜色部位、侵染阶段、越冬越夏等是该问内部的评分要点，写进 reference_answer，不新增小问或输入框。
@@ -43,14 +46,15 @@ public sealed class RuleReviewService(IAiChatService chat) : IRuleReviewService
             输出 JSON：{"questionPlan":["第1题的对象与考查内容","第2题的对象与考查内容","其余题目的对象与考查内容"],
             "coverageNote":"资料不足之处，无则空字符串",
             "questions":[{"text":"题干","correct_answer":"满分所需核心要点","source_excerpts":["资料原文"],
-            "answer_parts":[{"key":"symptoms","prompt":"说明具体对象的病症。","reference_answer":"本科课程核心要点","weight":1}]}]}。
+            "answer_parts":[{"key":"symptoms","prompt":"说明具体对象的病症。","reference_answer":"本科课程核心要点","weight":1,"answer_nature":"Conceptual"}]}]}。
             无资料时 source_excerpts 为空数组。计划每项只用一句话，答案不写长篇解析，以减少等待。
             输出完整 JSON，省略其他说明。
             """).WaitAsync(cancellationToken);
         var result = AiJson.Read<PreviewResponse>(response);
         ValidatePlan(result.QuestionPlan);
         PrepareQuestions(result.Questions, Math.Min(2, result.QuestionPlan.Count), existing, category.Materials);
-        return new(name, scope, result.QuestionPlan.AsReadOnly(), result.Questions.AsReadOnly())
+        var ordered = OrderByMaterials(result.Questions, category.Materials);
+        return new(name, scope, result.QuestionPlan.AsReadOnly(), ordered.AsReadOnly())
         { ExistingQuestionTexts = existing.AsReadOnly(), IsAppending = category.IsAppending,
             Materials = category.Materials.ToList(), CoverageNote = result.CoverageNote };
     }
@@ -74,7 +78,8 @@ public sealed class RuleReviewService(IAiChatService chat) : IRuleReviewService
         }));
         questions.AddRange(generated.SelectMany(batch => batch));
         ValidateUnique(questions, acceptedPreview.ExistingQuestionTexts);
-        return new Chapter { Name = acceptedPreview.Name, GenerationPrompt = acceptedPreview.Prompt, Questions = questions,
+        return new Chapter { Name = acceptedPreview.Name, GenerationPrompt = acceptedPreview.Prompt,
+            Questions = OrderByMaterials(questions, acceptedPreview.Materials),
             ReviewMaterials = acceptedPreview.Materials.ToList(), KnowledgePoints = [] };
     }
 
@@ -89,14 +94,17 @@ public sealed class RuleReviewService(IAiChatService chat) : IRuleReviewService
             例如植物病理学：用户会列明病原体名称，并指定形态、寄主、传播途径、致病机制或防治措施；按这些具体要求提问。
             面向本科课程复习，考查主要概念与典型特征，避免钻细节、冷僻知识及无关拓展。参考答案只列满分所需的核心要点，使用简洁短句。
             materials 非空时严格依据资料，source_excerpts 摘录资料中的连续原文；不得补入资料外的必答点。无资料时采用本科课程通常要求，source_excerpts 返回空数组。
+            摘录能定位本题考查内容的连续原文，按资料顺序列出。
             多问用 answer_parts 明确列出各问。单问列一个部分；每问是自然的考查范围，不能拆成词句碎片。weight 之和为1。
+            每问填写 answer_nature。症状、术语和主要特征等用 "Conceptual"，防治、分析、论证或应用等用 "Expressive"，同一问兼具两种要求时用 "Conceptual, Expressive"。
+            表达问的参考答案给出一组本科课程的合理示例，避免将其写成唯一作答方式。
             严格保留用户指定的自然分问数量和范围。例如症状、发病循环、病害特征只对应三个 answer_parts 项，不能扩成七八项。
             颜色和部位、各侵染阶段、各种防治手段等仅是对应问的内部评分要点，统一写入该问 reference_answer，禁止再次拆成小问。
             题干只按这些自然范围用（1）（2）编号。例如基本特点、操作位置是两问，
             病症、病害循环是两问；病症中的颜色、形状及发生部位合为一问，不能为了增加数量拆成细节题。
             小麦叶锈病病症答出夏孢子堆形状、橘红色、主要在叶正面及后期叶背黑褐色冬孢子堆即可满分，不额外要求尺寸。
             题干直接写问题，编号和分数由界面添加。输出 JSON 数组，每项为 {"text":"题干","correct_answer":"核心参考答案",
-            "source_excerpts":["资料连续原文"],"answer_parts":[{"key":"稳定标识","prompt":"独立的一问，写明对象","reference_answer":"该问核心要点","weight":1}]}。
+            "source_excerpts":["资料连续原文"],"answer_parts":[{"key":"稳定标识","prompt":"独立的一问，写明对象","reference_answer":"该问核心要点","weight":1,"answer_nature":"Conceptual"}]}。
             输出完整 JSON，省略其他说明。
             """).WaitAsync(token);
         var questions = AiJson.Read<List<Question>>(response);
@@ -110,9 +118,10 @@ public sealed class RuleReviewService(IAiChatService chat) : IRuleReviewService
         ValidateUnique(questions, existing);
         foreach (var question in questions)
         {
-            question.Type = QuestionType.Essay;
+            question.Type = QuestionType.ShortAnswer;
             question.RequiresAiGrading = true;
             question.AnswerParts = EssayAnswerLayout.Parts(question).ToList();
+            question.AnswerNature = question.AnswerParts.Aggregate(question.AnswerNature, (nature, part) => nature | part.AnswerNature);
             if (question.AnswerParts.Count > 0 && (question.AnswerParts.Any(p => string.IsNullOrWhiteSpace(p.Key) || string.IsNullOrWhiteSpace(p.Prompt) ||
                 string.IsNullOrWhiteSpace(p.ReferenceAnswer) || !double.IsFinite(p.Weight) || p.Weight <= 0) ||
                 question.AnswerParts.Select(p => p.Key).Distinct(StringComparer.OrdinalIgnoreCase).Count() != question.AnswerParts.Count))
@@ -123,12 +132,26 @@ public sealed class RuleReviewService(IAiChatService chat) : IRuleReviewService
                 foreach (var part in question.AnswerParts) part.Weight /= total;
             }
             if (materials.Count > 0 && (question.SourceExcerpts.Count == 0 || question.SourceExcerpts.Any(quote => string.IsNullOrWhiteSpace(quote) ||
-                !materials.Any(material => Normalize(material.Content).Contains(Normalize(quote), StringComparison.Ordinal)))))
+                !materials.Any(material => SourceEvidenceOrder.Find(SourceEvidenceOrder.Normalize(material.Content), quote) >= 0))))
                 throw new InvalidDataException("题目缺少可核对的资料原文，请修改范围或重新生成。");
         }
     }
 
-    private static string Normalize(string value) => System.Text.RegularExpressions.Regex.Replace(value, @"\s+", string.Empty);
+    private static List<Question> OrderByMaterials(List<Question> questions, IReadOnlyList<ReviewMaterial> materials)
+    {
+        if (materials.Count == 0) return questions;
+        var sources = materials.Select(material => SourceEvidenceOrder.Normalize(material.Content)).ToArray();
+        return questions.OrderBy(question =>
+        {
+            for (var index = 0; index < sources.Length; index++)
+            {
+                var position = question.SourceExcerpts.Select(quote => SourceEvidenceOrder.Find(sources[index], quote))
+                    .Where(offset => offset >= 0).DefaultIfEmpty(-1).Min();
+                if (position >= 0) return (index, position);
+            }
+            return (int.MaxValue, int.MaxValue);
+        }).ToList();
+    }
 
     private static void ValidateUnique(IReadOnlyList<Question> questions, IReadOnlyList<string> existing)
     {

@@ -88,12 +88,6 @@ public partial class MainWindow : Window
         SloganLabel.Content = "Arabidopsis\n学习记录保存在项目中。";
     }
 
-    private async void ModelSettings_Click(object sender, RoutedEventArgs e)
-    {
-        var window = new ActivationWindow(_hostedModelService, _configService, _piModelService) { Owner = this };
-        if (window.ShowDialog() == true) Config.Use(await _configService.LoadAsync());
-    }
-
     private async Task LoadRecentProjectsAsync()
     {
         try
@@ -119,7 +113,7 @@ public partial class MainWindow : Window
             {
                 Text = "暂无最近项目。创建或打开项目后，它会显示在这里。",
                 Style = (Style)FindResource("SubtitleTextStyle"),
-                Margin = new Thickness(0, 12, 24, 0)
+                Margin = new Thickness(12, 12, 24, 0)
             });
         }
 
@@ -132,18 +126,20 @@ public partial class MainWindow : Window
         var button = new Button
         {
             Style = (Style)FindResource("RecentItemStyle"),
-            Tag = projectPath
+            Tag = projectPath,
+            ToolTip = projectPath
         };
 
         var grid = new Grid();
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
         grid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        grid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
 
         var image = new System.Windows.Shapes.Path
         {
             Data = (System.Windows.Media.Geometry)FindResource("ArcFolderIcon"),
             Style = (Style)FindResource("ArcLineIcon"),
-            Width = 24, Height = 24, Margin = new Thickness(0, 0, 20, 0)
+            Margin = new Thickness(0, 0, 14, 0)
         };
         Grid.SetColumn(image, 0);
 
@@ -161,9 +157,10 @@ public partial class MainWindow : Window
         var pathTextBlock = new TextBlock
         {
             Text = projectPath,
-            FontSize = 12,
+            Style = (Style)FindResource("CaptionTextStyle"),
             Margin = new Thickness(0, 4, 0, 0),
             Foreground = (System.Windows.Media.Brush)FindResource("ArcTextSecondary"),
+            TextWrapping = TextWrapping.NoWrap,
             TextTrimming = TextTrimming.CharacterEllipsis
         };
 
@@ -172,6 +169,14 @@ public partial class MainWindow : Window
 
         grid.Children.Add(image);
         grid.Children.Add(stackPanel);
+        var chevron = new System.Windows.Shapes.Path
+        {
+            Data = (System.Windows.Media.Geometry)FindResource("ArcChevronIcon"),
+            Style = (Style)FindResource("ArcLineIcon"),
+            Width = 7, Height = 12, Margin = new Thickness(12, 0, 4, 0)
+        };
+        Grid.SetColumn(chevron, 2);
+        grid.Children.Add(chevron);
 
         button.Content = grid;
         button.Click += RecentProject_Click;
@@ -315,12 +320,20 @@ public partial class MainWindow : Window
 
     private async Task OpenProjectAsync(string projectPath)
     {
+        projectPath = System.IO.Path.GetFullPath(projectPath);
+        if (_projectTabs.TryGetValue(projectPath, out var openTab))
+        {
+            SelectTab(openTab);
+            return;
+        }
+
         if (!_projectFileService.ProjectExists(projectPath))
         {
             MessageBox.Show($"项目文件不存在: {projectPath}", "错误",
                 MessageBoxButton.OK, MessageBoxImage.Error);
             return;
         }
+        if (!_openingProjects.Add(projectPath)) return;
 
         try
         {
@@ -328,21 +341,28 @@ public partial class MainWindow : Window
             if (project is null)
                 return;
 
-            var quizWindow = new SelectChapterWindow(
+            var view = new ProjectView(
                 project,
                 _projectFileService,
-                _quizService,
-                _reviewGenerator,
                 _examAnswerService,
                 _examPaperService,
                 _examSettingsService,
                 _examSetImportService,
                 _examSetRepository,
                 _projectCreationService,
-                _questionHelpService,
-                _reviewPersonalizationService,
                 _ruleReviewService);
-            quizWindow.Show();
+            view.HomeRequested += (_, _) => SelectTab(HomeTab);
+            view.KnowledgeRequested += (_, _) => OpenKnowledgeTab(project);
+            view.ChapterPracticeRequested += (_, chapter) => OpenPracticeTab(view, chapter);
+            view.SmartPracticeRequested += (_, _) => OpenPracticeTab(view, null);
+            view.KnowledgeSourcesChanged += (_, _) =>
+            {
+                if (_knowledgeTabs.TryGetValue(project, out var knowledgeTab) && knowledgeTab.Content is KnowledgePointView knowledge)
+                    knowledge.RefreshSources();
+            };
+            var tab = CreateTab(project.ProjectName ?? System.IO.Path.GetFileNameWithoutExtension(projectPath), view, projectPath);
+            _projectTabs.Add(projectPath, tab);
+            SelectTab(tab);
 
             PopulateRecentProjectsUI();
         }
@@ -351,10 +371,25 @@ public partial class MainWindow : Window
             MessageBox.Show($"打开项目失败: {ex.Message}", "错误",
                 MessageBoxButton.OK, MessageBoxImage.Error);
         }
+        finally { _openingProjects.Remove(projectPath); }
     }
 
     private async void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
     {
+        if (_savingPracticeTabs || WorkspaceTabs.Items.OfType<TabItem>().Any(IsBusyTab))
+        {
+            e.Cancel = true;
+            return;
+        }
+        var practiceViews = PracticeTabs().Select(tab => (QuizView)tab.Content).ToArray();
+        if (practiceViews.Any(view => view.HasCloseWork))
+        {
+            e.Cancel = true;
+            if (await SavePracticeTabsAsync(practiceViews))
+                _ = Dispatcher.BeginInvoke(new Action(Close));
+            return;
+        }
+        foreach (var view in practiceViews) view.Release();
         recentProjects = (await _recentProjectService.RemoveMissingAsync()).ToList();
     }
 }

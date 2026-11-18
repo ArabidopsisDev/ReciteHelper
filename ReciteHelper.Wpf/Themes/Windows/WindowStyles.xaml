@@ -1,14 +1,57 @@
-<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:controls="clr-namespace:ReciteHelper.Wpf.Controls"
+                    xmlns:shell="clr-namespace:System.Windows.Shell;assembly=PresentationFramework">
     <ResourceDictionary.MergedDictionaries>
         <ResourceDictionary Source="/ReciteHelper.Wpf;component/Themes/Arc/ArcTokens.xaml" />
     </ResourceDictionary.MergedDictionaries>
     <Style x:Key="AppWindowStyle" TargetType="Window">
         <Setter Property="Background" Value="{DynamicResource ArcSurface}" /><Setter Property="Foreground" Value="{DynamicResource ArcForeground}" />
-        <Setter Property="FontFamily" Value="{DynamicResource ArcBodyFont}" /><Setter Property="FontSize" Value="16" />
+        <Setter Property="FontFamily" Value="{DynamicResource ArcBodyFont}" /><Setter Property="FontSize" Value="{StaticResource ArcFontBody}" />
         <Setter Property="FontWeight" Value="Normal" />
         <Setter Property="UseLayoutRounding" Value="True" /><Setter Property="TextOptions.TextFormattingMode" Value="Ideal" />
         <Setter Property="TextOptions.TextRenderingMode" Value="Grayscale" /><Setter Property="TextOptions.TextHintingMode" Value="Fixed" />
         <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="shell:WindowChrome.WindowChrome">
+            <Setter.Value>
+                <shell:WindowChrome CaptionHeight="30" ResizeBorderThickness="6" GlassFrameThickness="0" CornerRadius="8" UseAeroCaptionButtons="False" />
+            </Setter.Value>
+        </Setter>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Window">
+                    <Border x:Name="WindowSurface" Background="{TemplateBinding Background}"
+                            Padding="{Binding FrameInsets, ElementName=TitleBar}">
+                        <AdornerDecorator>
+                            <Grid ClipToBounds="True">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="36" />
+                                    <RowDefinition Height="*" />
+                                </Grid.RowDefinitions>
+                                <controls:WindowTitleBar x:Name="TitleBar" />
+                                <ContentPresenter Grid.Row="1" ContentSource="Content" />
+                            </Grid>
+                        </AdornerDecorator>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+        <Style.Triggers>
+            <Trigger Property="ResizeMode" Value="NoResize">
+                <Setter Property="shell:WindowChrome.WindowChrome">
+                    <Setter.Value>
+                        <shell:WindowChrome CaptionHeight="36" ResizeBorderThickness="0" GlassFrameThickness="0" CornerRadius="8" UseAeroCaptionButtons="False" />
+                    </Setter.Value>
+                </Setter>
+            </Trigger>
+            <Trigger Property="ResizeMode" Value="CanMinimize">
+                <Setter Property="shell:WindowChrome.WindowChrome">
+                    <Setter.Value>
+                        <shell:WindowChrome CaptionHeight="36" ResizeBorderThickness="0" GlassFrameThickness="0" CornerRadius="8" UseAeroCaptionButtons="False" />
+                    </Setter.Value>
+                </Setter>
+            </Trigger>
+        </Style.Triggers>
     </Style>
     <Style x:Key="DefaultWindowStyle" TargetType="Window" BasedOn="{StaticResource AppWindowStyle}" />
 </ResourceDictionary>

@@ -9,7 +9,7 @@ public static class FacetAssessmentValidator
     public static IReadOnlyList<FacetAssessment> Prepare(Question question, AiAnswerAssessment assessment, bool requireFacets = false)
     {
         if (!double.IsFinite(assessment.ScoreRatio) || assessment.ScoreRatio is < 0 or > 1 ||
-            assessment.IsCorrect != (assessment.ScoreRatio >= 1 - 1e-9)) throw Invalid();
+            assessment.IsCorrect != (!assessment.HasFallacy && (assessment.RawScoreRatio ?? assessment.ScoreRatio) >= AiGradingPolicy.MasteryThreshold)) throw Invalid();
         if (assessment.Facets is null) throw Invalid();
         if (question.IsReviewFacet)
         {
@@ -36,11 +36,11 @@ public static class FacetAssessmentValidator
         {
             Key = f.Key.Trim(), Name = f.Name.Trim(), Weight = f.Weight / total,
             WeightReason = f.WeightReason.Trim(), ScoreRatio = f.ScoreRatio, RawScoreRatio = f.RawScoreRatio, IsCorrect = f.IsCorrect,
+            AnswerNature = f.AnswerNature,
             HasFallacy = f.HasFallacy, FallacyReason = f.FallacyReason, Explanation = f.Explanation,
             Question = f.Question.Trim(), ReferenceAnswer = f.ReferenceAnswer.Trim()
         }).ToList();
-        if (Math.Abs(prepared.Sum(f => f.Weight * f.ScoreRatio) - assessment.ScoreRatio) > 0.03 ||
-            prepared.All(f => f.IsCorrect) != assessment.IsCorrect) throw Invalid();
+        if (Math.Abs(prepared.Sum(f => f.Weight * f.ScoreRatio) - assessment.ScoreRatio) > 0.03) throw Invalid();
         if (question.ReviewFacets.Count > 0)
         {
             var known = EssayAnswerLayout.NeedsFacetRegrouping(question)

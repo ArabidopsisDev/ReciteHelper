@@ -39,7 +39,7 @@ public sealed class ExamPaperService : IExamPaperService
         SelectType(QuestionType.SingleChoice, targetChoiceCount);
         SelectType(QuestionType.FillBlank, targetFillBlankCount);
         SelectType(QuestionType.TermDefinition, targetTermDefinitionCount);
-        SelectType(QuestionType.Essay, targetEssayCount);
+        Select(question => question.IsEssay, targetEssayCount);
 
         if (selected.Count < settings.QuestionCount)
         {
@@ -55,9 +55,12 @@ public sealed class ExamPaperService : IExamPaperService
             .ToList();
 
         void SelectType(QuestionType type, int count)
+            => Select(question => question.Type == type, count);
+
+        void Select(Func<Question, bool> matches, int count)
         {
             selected.AddRange(SelectCandidates(
-                candidates.Where(candidate => candidate.Question.Type == type).ToList(),
+                candidates.Where(candidate => matches(candidate.Question)).ToList(),
                 count));
         }
     }
@@ -118,8 +121,9 @@ public sealed class ExamPaperService : IExamPaperService
             Text = question.Text,
             ReviewIdentity = question.ReviewIdentity,
             RequiresAiGrading = question.RequiresAiGrading,
+            AnswerNature = question.AnswerNature,
             AnswerParts = question.AnswerParts.Select(p => new QuestionPart { Key = p.Key, Prompt = p.Prompt,
-                ReferenceAnswer = p.ReferenceAnswer, Weight = p.Weight }).ToList(),
+                ReferenceAnswer = p.ReferenceAnswer, Weight = p.Weight, AnswerNature = p.AnswerNature }).ToList(),
             SourceExcerpts = question.SourceExcerpts.ToList(),
             Type = question.Type,
             Options = question.Options
@@ -143,7 +147,8 @@ public sealed class ExamPaperService : IExamPaperService
             QuestionType.FillBlank => 1,
             QuestionType.TrueFalse => 2,
             QuestionType.TermDefinition => 3,
-            _ => 4
+            QuestionType.Essay => 4,
+            _ => (int)type
         };
     }
 

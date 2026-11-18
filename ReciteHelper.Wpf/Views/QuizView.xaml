@@ -1,56 +1,56 @@
-<Window x:Class="ReciteHelper.Wpf.Views.QuizWindow"
+<UserControl x:Class="ReciteHelper.Wpf.Views.QuizView"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:controls="clr-namespace:ReciteHelper.Wpf.Controls"
-        Title="答题窗口 - ReciteHelper" Width="1200" Height="800" MinWidth="960" MinHeight="640"
-        Closing="Window_Closing" Icon="/Images/project.png" WindowStartupLocation="CenterScreen" Style="{StaticResource AppWindowStyle}">
+        Background="{DynamicResource ReadingSurface}">
     <Grid>
-        <Grid.ColumnDefinitions><ColumnDefinition Width="220" /><ColumnDefinition Width="*" /><ColumnDefinition x:Name="HelpSidebarColumn" Width="0" /></Grid.ColumnDefinitions>
+        <Grid x:Name="PracticeLayout">
+        <Grid.ColumnDefinitions><ColumnDefinition Width="176" /><ColumnDefinition Width="*" /><ColumnDefinition x:Name="HelpSidebarColumn" Width="0" /></Grid.ColumnDefinitions>
         <Image Name="PhonkImage" Grid.ColumnSpan="3" Width="256" Height="256" HorizontalAlignment="Center" VerticalAlignment="Center" Panel.ZIndex="1000" IsHitTestVisible="False">
             <Image.RenderTransform><TranslateTransform x:Name="ImageTranslate" X="0" Y="0" /></Image.RenderTransform>
         </Image>
         <MediaElement Name="PhonkPlayer" Width="0" Height="0" LoadedBehavior="Manual" UnloadedBehavior="Manual" />
-        <Border Background="{DynamicResource ArcSurfaceMuted}" BorderBrush="{DynamicResource ArcBorder}" BorderThickness="0">
+        <Border Background="{DynamicResource ArcSurfaceMuted}" BorderBrush="{DynamicResource ArcBorder}" BorderThickness="0,0,1,0">
             <Grid><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
-                <StackPanel Margin="24,32,20,24"><TextBlock Text="答题卡" Style="{StaticResource SectionLabelTextStyle}" /><TextBlock Text="选择题号切换题目" Style="{StaticResource CaptionTextStyle}" Margin="0,6,0,0" /></StackPanel>
-                <ScrollViewer Grid.Row="1" Padding="22,0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                <TextBlock Text="答题卡" Style="{StaticResource SectionLabelTextStyle}" Margin="18,24,18,16" />
+                <ScrollViewer Grid.Row="1" Padding="12,0" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                     <ItemsControl x:Name="AnswerCardItemsControl">
                         <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel Orientation="Horizontal" /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
                         <ItemsControl.ItemTemplate><DataTemplate><Button Click="SwitchButton_Click" CommandParameter="{Binding Number}" Content="{Binding Number}" Style="{Binding StatusStyle}" /></DataTemplate></ItemsControl.ItemTemplate>
                     </ItemsControl>
                 </ScrollViewer>
-                <Button x:Name="ManageRuleQuestionsButton" Grid.Row="2" Click="ManageRuleQuestions_Click" Content="管理大类与出题" Margin="12,12,12,16" Visibility="Collapsed" />
-                <Border Grid.Row="3" BorderBrush="{DynamicResource ArcBorder}" BorderThickness="0,1,0,0" Padding="20,16"><TextBlock x:Name="StatsTextBlock" Style="{StaticResource CaptionTextStyle}" /></Border>
+                <Button x:Name="ManageRuleQuestionsButton" Grid.Row="2" Click="ManageRuleQuestions_Click" Content="管理大类与出题" Style="{StaticResource SmallButtonStyle}" Margin="16,12" Visibility="Collapsed" />
+                <Border Grid.Row="3" BorderBrush="{DynamicResource ArcBorder}" BorderThickness="0,1,0,0" Padding="16,12"><TextBlock x:Name="StatsTextBlock" Style="{StaticResource CaptionTextStyle}" /></Border>
             </Grid>
         </Border>
         <Grid Grid.Column="1">
             <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
-            <Border Padding="40,20" BorderBrush="{DynamicResource ArcBorder}" BorderThickness="0,0,0,1">
-                <WrapPanel>
-                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" MinWidth="180" Margin="0,6,0,6">
+            <Border Padding="28,12" BorderBrush="{DynamicResource ArcBorder}" BorderThickness="0,0,0,1">
+                <DockPanel MaxWidth="760" LastChildFill="True">
+                    <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                        <Button x:Name="ClearButton" Click="ClearButton_Click" Content="清空记录" Style="{StaticResource SubtleButtonStyle}" MinHeight="{StaticResource ArcControlSmall}" Margin="0,0,8,0" />
+                        <Button x:Name="PrevButton" Click="PrevButton_Click" Content="上一题" Style="{StaticResource SmallButtonStyle}" Margin="0,0,8,0" />
+                        <Button x:Name="NextButton" Click="NextButton_Click" Content="下一题" Style="{StaticResource SmallButtonStyle}" />
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="0,0,12,0">
                         <TextBlock Text="第 " Foreground="{DynamicResource ArcTextSecondary}" /><TextBlock x:Name="CurrentQuestionText" Text="1" FontWeight="Medium" />
                         <TextBlock Text=" 题 / 共 " Foreground="{DynamicResource ArcTextSecondary}" /><TextBlock x:Name="TotalQuestionsText" Text="20" /><TextBlock Text=" 题" Foreground="{DynamicResource ArcTextSecondary}" />
                     </StackPanel>
-                    <StackPanel Orientation="Horizontal">
-                        <Button x:Name="ClearButton" Click="ClearButton_Click" Content="清空记录" Style="{StaticResource SubtleButtonStyle}" Margin="0,0,16,0" />
-                        <Button x:Name="PrevButton" Click="PrevButton_Click" Content="上一题" Margin="0,0,8,0" />
-                        <Button x:Name="NextButton" Click="NextButton_Click" Content="下一题" />
-                    </StackPanel>
-                </WrapPanel>
+                </DockPanel>
             </Border>
-            <ScrollViewer x:Name="QuestionAnswerScroll" Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="40,32">
+            <ScrollViewer x:Name="QuestionAnswerScroll" Grid.Row="1" Background="{DynamicResource ReadingSurface}" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="28,24">
                 <StackPanel MaxWidth="760">
-                    <Grid Margin="0,0,0,28"><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                    <Grid Margin="0,0,0,16"><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
                         <TextBlock x:Name="FacetContextText" Style="{StaticResource CaptionTextStyle}" Margin="0,0,0,10" Foreground="{DynamicResource ArcAccent}" Visibility="Collapsed" />
-                        <TextBlock x:Name="QuestionTextBlock" Grid.Row="1" FontFamily="{DynamicResource ArcReadingFont}" FontSize="21" LineHeight="34" FontWeight="Normal" TextWrapping="Wrap" />
-                        <Label Name="QDisplayLabel" Grid.Row="2" Padding="0" Margin="0,8,0,0" FontSize="12" Foreground="{DynamicResource ArcTextMuted}"><Label.ContentTemplate><DataTemplate><TextBlock Text="{Binding}" TextWrapping="Wrap" /></DataTemplate></Label.ContentTemplate></Label>
+                        <TextBlock x:Name="QuestionTextBlock" Grid.Row="1" Style="{StaticResource QuestionTextStyle}" />
+                        <Label Name="QDisplayLabel" Grid.Row="2" Padding="0" Margin="0,6,0,0" FontSize="{StaticResource ArcFontCaption}" Foreground="{DynamicResource ArcTextMuted}"><Label.ContentTemplate><DataTemplate><TextBlock Text="{Binding}" TextWrapping="Wrap" /></DataTemplate></Label.ContentTemplate></Label>
                     </Grid>
-                    <Border BorderBrush="{DynamicResource ArcBorder}" BorderThickness="0,1,0,0" Padding="0,28,0,0">
+                    <Border BorderBrush="{DynamicResource ArcBorder}" BorderThickness="0,1,0,0" Padding="0,16,0,0">
                         <StackPanel>
                             <TextBlock x:Name="AnswerPromptText" Text="请输入答案：" Style="{StaticResource FieldLabel}" Margin="0,0,0,12" />
-                            <TextBox x:Name="AnswerTextBox" MinHeight="160" FontFamily="{DynamicResource ArcReadingFont}" FontWeight="Normal" Style="{StaticResource QuizTextBoxStyle}" TextChanged="AnswerTextBox_TextChanged" />
+                            <TextBox x:Name="AnswerTextBox" MinHeight="160" FontFamily="{DynamicResource ArcReadingFont}" FontWeight="Normal" Style="{StaticResource QuizTextBoxStyle}" />
                             <controls:MultipartAnswerEditor x:Name="MultipartAnswers" Visibility="Collapsed" />
-                            <Border x:Name="InlineAnswerFeedbackBorder" MinHeight="120" MaxHeight="300" Padding="12" Background="{DynamicResource ArcSurface}" BorderBrush="{DynamicResource ArcBorder}" BorderThickness="1" CornerRadius="{DynamicResource ArcRadiusControl}" Visibility="Collapsed">
-                                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"><controls:AiAnnotatedAnswer x:Name="InlineAnswerFeedback" FontSize="16" LineHeight="28" TextWrapping="Wrap" /></ScrollViewer>
+                            <Border x:Name="InlineAnswerFeedbackBorder" MaxHeight="320" Padding="14,4,0,4" BorderBrush="{DynamicResource ArcBorderStrong}" BorderThickness="2,0,0,0" Visibility="Collapsed">
+                                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"><controls:AiAnnotatedAnswer x:Name="InlineAnswerFeedback" /></ScrollViewer>
                             </Border>
                             <controls:SubquestionResults x:Name="PartResults" Margin="0,20,0,8" />
                             <Expander x:Name="AiReferenceExpander" Header="查看参考答案" Margin="0,12,0,0" FontSize="13" Foreground="{DynamicResource ArcTextSecondary}" Visibility="Collapsed">
@@ -64,11 +64,11 @@
                                 </StackPanel></DataTemplate></ItemsControl.ItemTemplate>
                             </ItemsControl>
                             <ItemsControl x:Name="ChoiceOptionsItemsControl" Visibility="Collapsed"><ItemsControl.ItemTemplate><DataTemplate>
-                                <RadioButton Checked="ChoiceOption_Checked" Content="{Binding DisplayText}" GroupName="QuizChoiceOptions" Style="{StaticResource ChoiceOptionRadioStyle}" Tag="{Binding Id}" />
+                                <RadioButton Checked="ChoiceOption_Checked" Content="{Binding DisplayText}" GroupName="{Binding ChoiceGroupName, RelativeSource={RelativeSource AncestorType=UserControl}}" Style="{StaticResource ChoiceOptionRadioStyle}" Tag="{Binding Id}" />
                             </DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
                             <StackPanel x:Name="TrueFalseOptionsPanel" Orientation="Horizontal" Visibility="Collapsed">
-                                <RadioButton x:Name="TrueOptionRadioButton" Margin="0,0,16,0" Checked="TrueFalseOption_Checked" Content="正确" GroupName="QuizTrueFalseOptions" Style="{StaticResource ChoiceOptionRadioStyle}" Tag="正确" />
-                                <RadioButton x:Name="FalseOptionRadioButton" Checked="TrueFalseOption_Checked" Content="错误" GroupName="QuizTrueFalseOptions" Style="{StaticResource ChoiceOptionRadioStyle}" Tag="错误" />
+                                <RadioButton x:Name="TrueOptionRadioButton" Margin="0,0,16,0" Checked="TrueFalseOption_Checked" Content="正确" Style="{StaticResource ChoiceOptionRadioStyle}" Tag="正确" />
+                                <RadioButton x:Name="FalseOptionRadioButton" Checked="TrueFalseOption_Checked" Content="错误" Style="{StaticResource ChoiceOptionRadioStyle}" Tag="错误" />
                             </StackPanel>
                         </StackPanel>
                     </Border>
@@ -83,8 +83,8 @@
                     </Border>
                 </StackPanel>
             </ScrollViewer>
-            <Border Grid.Row="2" Padding="28,16" BorderBrush="{DynamicResource ArcBorder}" BorderThickness="0,1,0,0">
-                <Grid><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+            <Border Grid.Row="2" Padding="28,12" BorderBrush="{DynamicResource ArcBorder}" BorderThickness="0,1,0,0">
+                <Grid MaxWidth="760"><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
                     <Button x:Name="AskDeepSeekButton" Content="查看解析" Click="AskDeepSeekButton_Click" IsEnabled="False" HorizontalAlignment="Left" Style="{StaticResource SubtleButtonStyle}" ToolTip="提交答案后，查看当前题目的解析" />
                     <StackPanel Grid.Column="1" Orientation="Horizontal">
                         <Button x:Name="SkipButton" Content="跳过" Click="SkipButton_Click" Margin="0,0,8,0" />
@@ -118,5 +118,9 @@
                 </StackPanel></ScrollViewer>
             </Grid>
         </Border>
+        </Grid>
+        <TextBlock x:Name="PracticeEmptyText" Text="本轮题目已更新。可关闭标签页后重新开始复习。"
+                   Style="{StaticResource SubtitleTextStyle}" Margin="24" VerticalAlignment="Center"
+                   HorizontalAlignment="Center" TextWrapping="Wrap" Visibility="Collapsed" />
     </Grid>
-</Window>
+</UserControl>

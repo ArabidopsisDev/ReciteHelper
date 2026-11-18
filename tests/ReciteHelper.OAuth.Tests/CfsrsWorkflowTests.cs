@@ -13,9 +13,9 @@ namespace ReciteHelper.OAuth.Tests;
 public sealed class CfsrsWorkflowTests
 {
     [Fact]
-    public async Task ThresholdAppliesPerPartAndAnOmittedPartCannotBeHiddenByTotalScore()
+    public async Task SixtyPercentPassesTheWholeWhileAnOmittedPartStillNeedsReview()
     {
-        foreach (var (coverage, mastered) in new[] { (0.69, false), (0.7, true) })
+        foreach (var (coverage, mastered) in new[] { (0.599, false), (0.6, true) })
         {
             var raw = new AiAnswerAssessment { ScoreRatio = coverage, Annotations = [new() { Text = "简述", Status = "correct" }] };
             var result = await new AiAnswerGrader(new Chat(JsonSerializer.Serialize(raw))).GradeAsync(new Question { Text = "说明病症。" }, "简述");
@@ -23,12 +23,25 @@ public sealed class CfsrsWorkflowTests
             Assert.Equal(mastered ? 1 : coverage, result.ScoreRatio);
             Assert.Equal(coverage, result.RawScoreRatio);
         }
-        var assessment = new AiAnswerAssessment { ScoreRatio = 0.8, Facets = [
-            new() { Key = "a", Weight = 0.8, ScoreRatio = 1 }, new() { Key = "b", Weight = 0.2, ScoreRatio = 0 }] };
+        var assessment = new AiAnswerAssessment { ScoreRatio = 0.6, Facets = [
+            new() { Key = "a", Name = "病症", Weight = 0.6, ScoreRatio = 1, WeightReason = "本问占六分", Question = "说明病症。", ReferenceAnswer = "病症要点。" },
+            new() { Key = "b", Name = "循环", Weight = 0.4, ScoreRatio = 0, WeightReason = "本问占四分", Question = "说明病害循环。", ReferenceAnswer = "循环要点。" }] };
         AiGradingPolicy.Apply(assessment);
-        Assert.False(assessment.IsCorrect);
-        Assert.Equal(0.8, assessment.ScoreRatio);
+        Assert.True(assessment.IsCorrect);
+        Assert.Equal(0.6, assessment.ScoreRatio);
         Assert.False(assessment.Facets[1].IsCorrect);
+        var question = new Question { Text = "课程复习题。", RequiresAiGrading = true };
+        var project = new Project { Chapters = [new() { Questions = [question] }] };
+        new FacetReviewService(new FsrsReviewScheduler()).RecordAssessment(project, question, assessment, DateTime.Now);
+        Assert.True(question.Status);
+        Assert.Equal(2, question.ReviewFacets.Count);
+        Assert.True(question.ReviewFacets[1].NeedsReview);
+
+        var credited = new AiAnswerAssessment { ScoreRatio = 0.595, Facets = [
+            new() { Weight = 0.5, ScoreRatio = 0.6 }, new() { Weight = 0.5, ScoreRatio = 0.59 }] };
+        AiGradingPolicy.Apply(credited);
+        Assert.True(credited.ScoreRatio > AiGradingPolicy.MasteryThreshold);
+        Assert.False(credited.IsCorrect); // Whole acceptance uses observed coverage, before per-part full credit.
     }
 
     [Fact]
@@ -104,7 +117,7 @@ public sealed class CfsrsWorkflowTests
     }
 
     private static ReviewFacet Facet(string text, double weight) => new() { Weight = weight, NeedsReview = true,
-        ReviewAvailableAt = DateTime.Now.AddMinutes(-1), Question = new() { Text = text, ReviewFacetId = Guid.NewGuid() } };
+        ReviewAvailableAt = DateTime.Now.AddMinutes(-1), Question = new() { Text = text, ReviewFacetId = Guid.NewGuid(), Status = false } };
 
     [Fact]
     public async Task AnnotationIdsPreserveTheUsersExactWords()

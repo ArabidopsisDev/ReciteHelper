@@ -1,49 +1,122 @@
 <Window x:Class="ReciteHelper.Wpf.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="ReciteHelper" Width="1120" Height="740" MinWidth="880" MinHeight="600"
-        Closing="Window_Closing" WindowStartupLocation="CenterScreen" Style="{StaticResource AppWindowStyle}">
+        Closing="Window_Closing" PreviewKeyDown="Workspace_PreviewKeyDown" WindowStartupLocation="CenterScreen" Style="{StaticResource AppWindowStyle}">
     <Window.Resources>
-        <Style x:Key="RecentItemStyle" TargetType="Button" BasedOn="{StaticResource ListRowButtonStyle}">
-            <Setter Property="Padding" Value="16,20" /><Setter Property="Margin" Value="0,4" />
-            <Setter Property="FontSize" Value="16" />
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Themes/Home/BalsamineOrnament.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        <Style x:Key="RecentItemStyle" TargetType="Button" BasedOn="{StaticResource WorkspaceRowStyle}">
+            <Setter Property="Padding" Value="12,12" />
+            <Setter Property="FontSize" Value="{DynamicResource ArcFontBody}" />
         </Style>
+        <Style x:Key="WorkspaceTab" TargetType="TabItem">
+            <Setter Property="MaxWidth" Value="236" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TabItem">
+                        <Border x:Name="TabSurface" Background="Transparent" CornerRadius="7"
+                                Padding="12,4,5,4" Margin="0,0,4,0" MinHeight="32">
+                            <Grid>
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                                <ContentPresenter x:Name="TabHeader" ContentSource="Header" VerticalAlignment="Center" RecognizesAccessKey="True"
+                                                  TextElement.Foreground="{DynamicResource ArcTextSecondary}" TextElement.FontWeight="Normal" />
+                                <Button x:Name="CloseTabButton" Grid.Column="1" Style="{StaticResource IconButtonStyle}"
+                                        Width="24" Height="24" MinHeight="24" Margin="6,0,0,0" Content="×"
+                                        Click="CloseTab_Click" IsTabStop="False" ToolTip="关闭标签页" AutomationProperties.Name="关闭标签页" />
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="TabSurface" Property="Background" Value="{DynamicResource ArcSurfaceHover}" />
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="TabSurface" Property="Background" Value="{DynamicResource ArcAccentSubtle}" />
+                                <Setter TargetName="TabHeader" Property="TextElement.Foreground" Value="{DynamicResource ArcForeground}" />
+                                <Setter TargetName="TabHeader" Property="TextElement.FontWeight" Value="Medium" />
+                            </Trigger>
+                            <Trigger Property="Tag" Value="Home">
+                                <Setter TargetName="CloseTabButton" Property="Visibility" Value="Collapsed" />
+                                <Setter TargetName="TabSurface" Property="Padding" Value="12,4" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <DataTemplate x:Key="WorkspaceTabHeader">
+            <TextBlock Text="{Binding}" TextTrimming="CharacterEllipsis" FontSize="{StaticResource ArcFontControl}" />
+        </DataTemplate>
+        </ResourceDictionary>
     </Window.Resources>
-    <Grid>
-        <Grid.ColumnDefinitions><ColumnDefinition Width="244" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
-        <Border Background="{DynamicResource ArcSurfaceMuted}" Padding="16,28,16,20">
+    <TabControl x:Name="WorkspaceTabs" ItemContainerStyle="{StaticResource WorkspaceTab}" SelectionChanged="WorkspaceTabs_SelectionChanged">
+        <TabControl.ItemsPanel>
+            <ItemsPanelTemplate><StackPanel Orientation="Horizontal" /></ItemsPanelTemplate>
+        </TabControl.ItemsPanel>
+        <TabControl.Template>
+            <ControlTemplate TargetType="TabControl">
+                <Grid KeyboardNavigation.TabNavigation="Local">
+                    <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions>
+                    <Border Padding="12,4,8,6" BorderBrush="{DynamicResource ArcBorderSubtle}" BorderThickness="0,0,0,1">
+                        <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled" Focusable="False">
+                            <ItemsPresenter />
+                        </ScrollViewer>
+                    </Border>
+                    <ContentPresenter x:Name="PART_SelectedContentHost" Grid.Row="1" ContentSource="SelectedContent" />
+                </Grid>
+            </ControlTemplate>
+        </TabControl.Template>
+        <TabItem x:Name="HomeTab" Header="首页" Tag="Home" HeaderTemplate="{StaticResource WorkspaceTabHeader}">
+            <Grid>
+        <Grid.ColumnDefinitions><ColumnDefinition Width="216" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+        <Border Background="{DynamicResource ArcSurfaceMuted}" BorderBrush="{DynamicResource ArcBorder}" BorderThickness="0,0,1,0" Padding="12,24,12,16">
             <Grid>
                 <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
                 <StackPanel>
-                    <StackPanel Margin="16,0,0,40"><TextBlock Text="ReciteHelper" FontSize="21" FontWeight="Medium" /><TextBlock Text="6.0 Balsamine" Style="{StaticResource CaptionTextStyle}" Margin="0,6,0,0" /></StackPanel>
+                    <StackPanel Margin="12,0,0,28"><TextBlock Text="ReciteHelper" Style="{StaticResource SectionLabelTextStyle}" /><TextBlock Text="6.0 Balsamine" Style="{StaticResource CaptionTextStyle}" Margin="0,4,0,0" /></StackPanel>
                     <TextBlock Text="工作区" Style="{StaticResource SidebarLabelStyle}" />
-                    <Border Background="{DynamicResource ArcSurface}" CornerRadius="{DynamicResource ArcRadiusNavigation}" Padding="16,13" Margin="0,0,0,12">
-                        <StackPanel Orientation="Horizontal"><Path Data="{StaticResource ArcGridIcon}" Style="{StaticResource ArcLineIcon}" /><TextBlock Text="我的项目" FontSize="15" FontWeight="Medium" VerticalAlignment="Center" /></StackPanel>
+                    <Border Background="{DynamicResource ArcAccentSubtle}" CornerRadius="{DynamicResource ArcRadiusNavigation}" Padding="12,8" Margin="0,2">
+                        <StackPanel Orientation="Horizontal"><Path Data="{StaticResource ArcGridIcon}" Style="{StaticResource ArcLineIcon}" /><TextBlock Text="我的项目" FontSize="{StaticResource ArcFontControl}" FontWeight="Medium" VerticalAlignment="Center" /></StackPanel>
                     </Border>
                     <Button Click="LoadProject_Click" Style="{StaticResource SidebarButtonStyle}"><StackPanel Orientation="Horizontal"><Path Data="{StaticResource ArcFolderIcon}" Style="{StaticResource ArcLineIcon}" /><TextBlock Text="打开项目" VerticalAlignment="Center" /></StackPanel></Button>
                     <Button Click="OpenFolder_Click" Style="{StaticResource SidebarButtonStyle}"><StackPanel Orientation="Horizontal"><Path Data="{StaticResource ArcArrowIcon}" Style="{StaticResource ArcLineIcon}" /><TextBlock Text="导入共享项目" VerticalAlignment="Center" /></StackPanel></Button>
-                    <TextBlock Text="资源" Style="{StaticResource SidebarLabelStyle}" Margin="16,28,0,8" />
+                    <TextBlock Text="资源" Style="{StaticResource SidebarLabelStyle}" Margin="12,20,0,8" />
                     <Button Click="ResourceCenter_Click" Style="{StaticResource SidebarButtonStyle}"><StackPanel Orientation="Horizontal"><Path Data="{StaticResource ArcCloudIcon}" Style="{StaticResource ArcLineIcon}" /><TextBlock Text="资源中心" VerticalAlignment="Center" /></StackPanel></Button>
                 </StackPanel>
                 <StackPanel Grid.Row="2">
+                    <Border BorderBrush="{DynamicResource ArcBorder}" BorderThickness="0,1,0,0" Margin="0,0,0,8" />
                     <Button Click="ModelSettings_Click" Style="{StaticResource SidebarButtonStyle}"><StackPanel Orientation="Horizontal"><Path Data="{StaticResource ArcSettingsIcon}" Style="{StaticResource ArcLineIcon}" /><TextBlock Text="模型服务设置" VerticalAlignment="Center" /></StackPanel></Button>
                     <Label x:Name="SloganLabel" Padding="16,18,12,4" FontSize="12" Foreground="{DynamicResource ArcTextMuted}"><Label.ContentTemplate><DataTemplate><TextBlock Text="{Binding}" TextWrapping="Wrap" LineHeight="20" /></DataTemplate></Label.ContentTemplate></Label>
                 </StackPanel>
             </Grid>
         </Border>
-        <Grid Grid.Column="1" Margin="40,40,40,24" MaxWidth="880">
-            <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="*" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
-            <Grid Margin="0,0,0,40">
+        <Grid Grid.Column="1" Margin="36,28,36,24" MaxWidth="880">
+            <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions>
+            <Grid Margin="0,0,0,28">
                 <Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-                <StackPanel><TextBlock Text="我的项目" Style="{StaticResource TitleTextStyle}" /><TextBlock Text="从上次停下的地方继续。" Style="{StaticResource SubtitleTextStyle}" Margin="0,8,16,0" /></StackPanel>
+                <TextBlock Text="我的项目" Style="{StaticResource TitleTextStyle}" VerticalAlignment="Center" />
                 <Button Grid.Column="1" Click="CreateNewProject_Click" Style="{StaticResource PrimaryButtonStyle}" VerticalAlignment="Center">
                     <StackPanel Orientation="Horizontal"><Path Data="{StaticResource ArcPlusIcon}" Width="16" Height="16" Stretch="Uniform" Stroke="White" StrokeThickness="1.5" Margin="0,0,8,0" /><TextBlock Text="创建项目" /></StackPanel>
                 </Button>
             </Grid>
-            <TextBlock Grid.Row="1" Text="最近打开" Style="{StaticResource SectionLabelTextStyle}" Margin="16,0,0,16" />
-            <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"><StackPanel x:Name="RecentProjectsPanel" /></ScrollViewer>
-            <Border Grid.Row="3" BorderBrush="{DynamicResource ArcBorder}" BorderThickness="0,1,0,0" Padding="0,20,0,0" Margin="0,24,0,0">
-                <TextBlock Text="导入资料或设定范围 → 智能出题 → 练习与考试 → 按掌握情况复习" Style="{StaticResource CaptionTextStyle}" />
+            <Border Grid.Row="1" BorderBrush="{DynamicResource ArcBorder}" BorderThickness="0,0,0,1" Padding="12,0,12,10">
+                <TextBlock Text="最近打开" Style="{StaticResource CaptionTextStyle}" />
             </Border>
+            <ScrollViewer Grid.Row="2" x:Name="RecentProjectsScroll" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                <Grid MinHeight="{Binding ViewportHeight, ElementName=RecentProjectsScroll}">
+                    <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions>
+                    <StackPanel x:Name="RecentProjectsPanel" />
+                    <Border Grid.Row="1" Width="318" HorizontalAlignment="Right" IsHitTestVisible="False">
+                        <Border.Background>
+                            <ImageBrush ImageSource="{StaticResource BalsamineOrnament}" Stretch="Uniform"
+                                        AlignmentX="Right" AlignmentY="Bottom" />
+                        </Border.Background>
+                    </Border>
+                </Grid>
+            </ScrollViewer>
         </Grid>
-    </Grid>
+            </Grid>
+        </TabItem>
+    </TabControl>
 </Window>

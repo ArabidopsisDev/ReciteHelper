@@ -5,60 +5,45 @@ using ReciteHelper.Core.ValueObjects;
 using ReciteHelper.Wpf.Models;
 using ReciteHelper.Wpf.Utilities;
 using System.ComponentModel;
-using System.IO;
+using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 
 namespace ReciteHelper.Wpf.Views;
 
-public partial class KnowledgePointWindow : Window, INotifyPropertyChanged
+public partial class KnowledgePointView : UserControl, INotifyPropertyChanged
 {
     private readonly IProjectFileService _projectFileService;
-    private Project _currentProject;
-    private KnowledgePoint _currentKnowledgePoint;
-    private string _currentMarkdownContent;
-    private Renderer renderer;
+    private readonly Project _currentProject;
+    private KnowledgePoint? _currentKnowledgePoint;
+    private readonly Renderer _renderer;
+    private List<KnowledgeSection> _sections = [];
 
-    public KnowledgePointWindow(Project project, IProjectFileService projectFileService)
+    internal Project Project => _currentProject;
+
+    public KnowledgePointView(Project project, IProjectFileService projectFileService)
     {
         _projectFileService = projectFileService;
 
         InitializeComponent();
         _currentProject = project;
+        _renderer = new Renderer(MarkdownViewer, Dispatcher);
 
         DataContext = this;
-        InitializeData();
-        UpdateDisplay();
+        RefreshSources();
     }
 
-    private void InitializeData()
+    internal void RefreshSources()
     {
-        if (_currentProject?.Chapters != null)
-        {
-            ChaptersItemsControl.ItemsSource = _currentProject.Chapters;
-
-            // Check if there are any knowledge points
-            var hasKnowledgePoints = _currentProject.Chapters.Any(c =>
-                c.KnowledgePoints != null && c.KnowledgePoints.Count > 0);
-
-            EmptyStatePanel.Visibility = hasKnowledgePoints ? Visibility.Collapsed : Visibility.Visible;
-        }
-        else
-        {
-            EmptyStatePanel.Visibility = Visibility.Visible;
-        }
-    }
-
-    private void UpdateDisplay()
-    {
-        // Update project title
-        Title = $"知识点学习 - {_currentProject?.ProjectName ?? "未命名项目"}";
+        _sections = (_currentProject.Chapters ?? []).Select(chapter => new KnowledgeSection(chapter)).ToList();
+        ChaptersItemsControl.ItemsSource = _sections;
+        EmptyStatePanel.Visibility = _sections.Any(section => section.KnowledgePoints.Count > 0) ? Visibility.Collapsed : Visibility.Visible;
     }
 
     private void ChapterToggleButton_Click(object sender, RoutedEventArgs e)
     {
-        if (sender is Button button && button.Tag is Chapter chapter)
+        if (sender is Button button && button.Tag is KnowledgeSection section)
         {
             // Find the corresponding knowledge point ItemsControl
             var parent = VisualTreeHelper.GetParent(button);
@@ -69,7 +54,7 @@ public partial class KnowledgePointWindow : Window, INotifyPropertyChanged
 
             if (parent is ItemsControl itemsControl)
             {
-                var container = itemsControl.ItemContainerGenerator.ContainerFromItem(chapter);
+                var container = itemsControl.ItemContainerGenerator.ContainerFromItem(section);
                 if (container != null)
                 {
                     var knowledgePointsControl = FindVisualChild<ItemsControl>(container, "KnowledgePointsItemsControl");
@@ -114,31 +99,14 @@ public partial class KnowledgePointWindow : Window, INotifyPropertyChanged
 
         if (sender is CheckBox checkBox && checkBox.Tag is KnowledgePoint knowledgePoint)
         {
-            knowledgePoint = knowledgePoint.ModifyMasteredStatus(checkBox.IsChecked is true);
-
-            // If this knowledge point is currently displayed, update the details area.
-            if (_currentKnowledgePoint == knowledgePoint)
-            {
-                UpdateMasteryDisplay();
-            }
-
-            // Save changes
-            SaveProjectChanges();
+            SaveMastery(knowledgePoint, checkBox.IsChecked is true);
         }
     }
 
     private void DetailMasteryCheckBox_Click(object sender, RoutedEventArgs e)
     {
-        if (_currentKnowledgePoint != null)
-        {
-            _currentKnowledgePoint = 
-                _currentKnowledgePoint.ModifyMasteredStatus(MasteryCheckBox.IsChecked is true);
-            UpdateMasteryDisplay();
-            SaveProjectChanges();
-
-            // Update the checkbox status in the list
-            RefreshKnowledgePointList();
-        }
+        if (_currentKnowledgePoint is { } point)
+            SaveMastery(point, MasteryCheckBox.IsChecked is true);
     }
 
     private void ShowKnowledgePointDetail(KnowledgePoint knowledgePoint)
@@ -174,23 +142,43 @@ public partial class KnowledgePointWindow : Window, INotifyPropertyChanged
         }
     }
 
-    private void RefreshKnowledgePointList()
+    private async void SaveMastery(KnowledgePoint original, bool mastered)
     {
-        // Force refresh list display
-        ChaptersItemsControl.Items.Refresh();
-    }
+        var section = _sections.First(group => group.KnowledgePoints.Any(point => ReferenceEquals(point, original)));
+        var index = section.Chapter.KnowledgePoints!.FindIndex(point => ReferenceEquals(point, original));
+        IsEnabled = false;
+        void UpdatePoint(KnowledgePoint point)
+        {
+            if (ReferenceEquals(_currentKnowledgePoint, section.KnowledgePoints[index]))
+                _currentKnowledgePoint = point;
+            section.Chapter.KnowledgePoints[index] = point;
+            section.KnowledgePoints[index] = point;
+            UpdateMasteryDisplay();
+        }
 
-    private async void SaveProjectChanges()
-    {
+        UpdatePoint(original.ModifyMasteredStatus(mastered));
         try
         {
             await _projectFileService.SaveProjectAsync(_currentProject);
         }
         catch (Exception ex)
         {
+            UpdatePoint(original);
             MessageBox.Show($"保存知识点状态失败: {ex.Message}", "错误",
                 MessageBoxButton.OK, MessageBoxImage.Error);
         }
+        finally
+        {
+            IsEnabled = true;
+        }
+    }
+
+    private sealed class KnowledgeSection(Chapter chapter)
+    {
+        public Chapter Chapter { get; } = chapter;
+        public string? Name => Chapter.Name;
+        public int Number => Chapter.Number;
+        public ObservableCollection<KnowledgePoint> KnowledgePoints { get; } = new(chapter.KnowledgePoints ?? []);
     }
 
     private T? FindVisualChild<T>(DependencyObject parent, string childName = null) where T : DependencyObject
@@ -227,7 +215,7 @@ public partial class KnowledgePointWindow : Window, INotifyPropertyChanged
 
             Dispatcher.BeginInvoke(new Action(() =>
             {
-                renderer.ApplyMarkdownStylesWithRetry();
+                _renderer.ApplyMarkdownStylesWithRetry();
             }), System.Windows.Threading.DispatcherPriority.ContextIdle);
         }
     }
@@ -238,8 +226,4 @@ public partial class KnowledgePointWindow : Window, INotifyPropertyChanged
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
 
-    private void Window_Loaded(object sender, RoutedEventArgs e)
-    {
-        renderer = new Renderer(MarkdownViewer, Dispatcher);
-    }
 }
