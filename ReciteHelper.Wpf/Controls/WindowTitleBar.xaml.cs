@@ -1,7 +1,6 @@
-using System.Runtime.InteropServices;
+using ReciteHelper.Wpf.Utilities;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Shell;
 
@@ -9,10 +8,19 @@ namespace ReciteHelper.Wpf.Controls;
 
 public partial class WindowTitleBar : UserControl
 {
-    private static readonly DependencyPropertyKey FrameInsetsPropertyKey = DependencyProperty.RegisterReadOnly(
-        nameof(FrameInsets), typeof(Thickness), typeof(WindowTitleBar), new PropertyMetadata(default(Thickness)));
+    private static readonly DependencyPropertyKey FrameInsetsPropertyKey = DependencyProperty.RegisterAttachedReadOnly(
+        "FrameInsets", typeof(Thickness), typeof(WindowTitleBar), new PropertyMetadata(default(Thickness)));
     public static readonly DependencyProperty FrameInsetsProperty = FrameInsetsPropertyKey.DependencyProperty;
-    public Thickness FrameInsets => (Thickness)GetValue(FrameInsetsProperty);
+    public static Thickness GetFrameInsets(DependencyObject target) => (Thickness)target.GetValue(FrameInsetsProperty);
+
+    public static readonly DependencyProperty ShowTitleProperty = DependencyProperty.Register(
+        nameof(ShowTitle), typeof(bool), typeof(WindowTitleBar), new PropertyMetadata(true));
+
+    public bool ShowTitle
+    {
+        get => (bool)GetValue(ShowTitleProperty);
+        set => SetValue(ShowTitleProperty, value);
+    }
 
     private Window? _window;
     private WindowChrome? _maximizedChrome;
@@ -51,25 +59,20 @@ public partial class WindowTitleBar : UserControl
         {
             if (_maximizedChrome is null) return;
             _maximizedChrome = null;
-            SetValue(FrameInsetsPropertyKey, default(Thickness));
+            window.SetValue(FrameInsetsPropertyKey, default(Thickness));
             window.ClearValue(WindowChrome.WindowChromeProperty);
             return;
         }
 
         // The native maximized rectangle includes invisible resize margins outside the monitor work area.
-        const uint nearestMonitor = 2;
-        var handle = new WindowInteropHelper(window).Handle;
-        var monitor = MonitorFromWindow(handle, nearestMonitor);
-        var info = new MonitorInfo { Size = (uint)Marshal.SizeOf<MonitorInfo>() };
-        if (!GetWindowRect(handle, out var bounds) || !GetMonitorInfoW(monitor, ref info)) return;
+        if (!NativeWindowBounds.TryGet(window, out var bounds, out var work)) return;
         var dpi = VisualTreeHelper.GetDpi(window);
-        var work = info.WorkArea;
         var insets = new Thickness(
             Math.Max(0, work.Left - bounds.Left) / dpi.DpiScaleX,
             Math.Max(0, work.Top - bounds.Top) / dpi.DpiScaleY,
             Math.Max(0, bounds.Right - work.Right) / dpi.DpiScaleX,
             Math.Max(0, bounds.Bottom - work.Bottom) / dpi.DpiScaleY);
-        SetValue(FrameInsetsPropertyKey, insets);
+        window.SetValue(FrameInsetsPropertyKey, insets);
 
         var captionHeight = ActualHeight + insets.Top;
         if (_maximizedChrome is null)
@@ -111,28 +114,4 @@ public partial class WindowTitleBar : UserControl
     private void Close_Click(object sender, RoutedEventArgs e)
         => SystemCommands.CloseWindow(Window.GetWindow(this));
 
-    [StructLayout(LayoutKind.Sequential)]
-    private struct NativeRect
-    {
-        public int Left, Top, Right, Bottom;
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    private struct MonitorInfo
-    {
-        public uint Size;
-        public NativeRect Bounds, WorkArea;
-        public uint Flags;
-    }
-
-    [DllImport("user32.dll", ExactSpelling = true)]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    private static extern bool GetWindowRect(IntPtr window, out NativeRect rect);
-
-    [DllImport("user32.dll", ExactSpelling = true)]
-    private static extern IntPtr MonitorFromWindow(IntPtr window, uint flags);
-
-    [DllImport("user32.dll", ExactSpelling = true)]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    private static extern bool GetMonitorInfoW(IntPtr monitor, ref MonitorInfo info);
 }

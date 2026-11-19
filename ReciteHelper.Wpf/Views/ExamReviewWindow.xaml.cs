@@ -78,6 +78,7 @@ public partial class ExamReviewWindow : Window, INotifyPropertyChanged
                 QuestionContent = examQuestion.Question?.Text ?? "题目内容缺失",
                 UserAnswer = FormatUserAnswer(examQuestion),
                 AiAssessment = examQuestion.AiAssessment,
+                HistorySource = examQuestion.HistorySource,
                 CorrectAnswer = examQuestion.Question?.GetCorrectAnswerText() ?? "正确答案缺失",
                 Explanation = string.IsNullOrWhiteSpace(examQuestion.Explanation)
                     ? "无解析"

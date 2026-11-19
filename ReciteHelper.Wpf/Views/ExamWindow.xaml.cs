@@ -2,6 +2,7 @@ using ReciteHelper.Core.Aggregates;
 using ReciteHelper.Core.Entities;
 using ReciteHelper.Core.Enums;
 using ReciteHelper.Core.Interfaces.Services;
+using ReciteHelper.Core.Scheduling;
 using ReciteHelper.Core.ValueObjects;
 using ReciteHelper.Wpf.Controls.ExamPaper;
 using ReciteHelper.Wpf.Models;
@@ -20,6 +21,7 @@ public partial class ExamWindow : Window
     private const double RegularPageContentBudget = 860d;
     private const double PaperContentWidth = 582d;
     private const double PaginationSafetyMargin = 4d;
+    private static readonly SemaphoreSlim ExamHistoryWrites = new(1);
 
     private readonly IExamAnswerService _examAnswerService;
     private readonly Project? _project;
@@ -39,6 +41,8 @@ public partial class ExamWindow : Window
     private bool _grading;
     private DateTime _submittedAt;
     private readonly bool _isImportedExamSet;
+    private readonly ExamSet? _importedSet;
+    private readonly IExamSetRepository? _examSets;
 
     public ExamWindow(
         List<Question> questions,
@@ -50,7 +54,9 @@ public partial class ExamWindow : Window
         Project? project = null,
         IProjectCreationService? projectCreationService = null,
         IProjectFileService? projectFileService = null,
-        bool isImportedExamSet = false)
+        bool isImportedExamSet = false,
+        ExamSet? importedSet = null,
+        IExamSetRepository? examSets = null)
     {
         _examAnswerService = examAnswerService;
         _project = project;
@@ -60,6 +66,8 @@ public partial class ExamWindow : Window
         _examName = examName;
         _paperTitle = paperTitle;
         _isImportedExamSet = isImportedExamSet;
+        _importedSet = importedSet;
+        _examSets = examSets;
         _timeRemaining = TimeSpan.FromMinutes(settings.ExamTimeMinutes);
         _examTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(1) };
         _examTimer.Tick += ExamTimer_Tick;
@@ -84,11 +92,11 @@ public partial class ExamWindow : Window
         IReadOnlyList<Question> questions,
         IReadOnlyList<ExamSetQuestion>? examSetQuestions)
     {
-        var importedMetadata = new Dictionary<Question, ExamSetQuestion>(ReferenceEqualityComparer.Instance);
+        var importedMetadata = new Dictionary<Question, int>(ReferenceEqualityComparer.Instance);
         if (examSetQuestions is not null)
         {
-            foreach (var item in examSetQuestions)
-                importedMetadata[item.Question] = item;
+            for (var index = 0; index < examSetQuestions.Count; index++)
+                importedMetadata[examSetQuestions[index].Question] = index;
         }
         var orderedQuestions = questions
             .OrderBy(question => GetQuestionTypeOrder(question.Type))
@@ -100,13 +108,16 @@ public partial class ExamWindow : Window
             var question = JsonSerializer.Deserialize<Question>(JsonSerializer.Serialize(sourceQuestion))!;
             if (_project?.TemplateType == ProjectTemplateType.RuleBasedReview && question.IsWritten)
                 question.RequiresAiGrading = true;
-            var importedQuestion = importedMetadata.TryGetValue(sourceQuestion, out var metadata)
-                ? metadata
-                : null;
+            int? importedIndex = importedMetadata.TryGetValue(sourceQuestion, out var position) ? position : null;
+            var importedQuestion = importedIndex is { } sourceIndex ? examSetQuestions![sourceIndex] : null;
             _questions.Add(new ExamQuestionItem
             {
                 Number = index + 1,
                 Question = question,
+                HistorySource = _project is not null && !_isImportedExamSet
+                    ? ReviewQuestionCatalog.FindOriginal(_project, sourceQuestion) ?? sourceQuestion
+                    : sourceQuestion,
+                ImportedIndex = importedIndex,
                 Score = importedQuestion?.Score ?? question.DefaultExamScore,
                 Explanation = importedQuestion?.Explanation ?? string.Empty,
                 UserAnswer = string.Empty,
@@ -568,6 +579,7 @@ public partial class ExamWindow : Window
                     ? Math.Round(item.Score * assessment.ScoreRatio, 2)
                     : _examAnswerService.IsCorrect(item.Question, item.UserAnswer) ? item.Score : 0;
             }
+            await SaveExamHistoryAsync();
             _isSubmitted = true;
             RunningPanel.Visibility = Visibility.Collapsed;
             CalculateScore();
@@ -581,6 +593,61 @@ public partial class ExamWindow : Window
             if (_timeRemaining > TimeSpan.Zero) _examTimer.Start();
         }
         finally { _grading = false; IsEnabled = true; }
+    }
+
+    private async Task SaveExamHistoryAsync()
+    {
+        var answered = _questions.Where(item => item.HistorySource is not null &&
+            !string.IsNullOrWhiteSpace(item.UserAnswer)).ToArray();
+        if (answered.Length == 0) return;
+
+        await ExamHistoryWrites.WaitAsync();
+        var appended = new List<(Question Question, ReviewTag Tag)>();
+        try
+        {
+            var examSet = _importedSet;
+            if (examSet is not null && _project is not null && _examSets is not null)
+            {
+                examSet = (await _examSets.LoadAllAsync(_project)).FirstOrDefault(value => value.Id == examSet.Id) ?? examSet;
+                foreach (var item in answered)
+                    item.HistorySource = examSet.Questions[item.ImportedIndex!.Value].Question;
+            }
+
+            foreach (var item in answered)
+            {
+                var source = item.HistorySource!;
+                var assessment = item.AiAssessment;
+                var correct = assessment?.IsCorrect ?? _examAnswerService.IsCorrect(item.Question!, item.UserAnswer);
+                var tag = new ReviewTag
+                {
+                    Time = _submittedAt,
+                    Similarity = item.Score > 0 ? item.EarnedScore / item.Score : 0,
+                    IsCorrect = correct,
+                    EFValue = ReviewQuestionCatalog.HasAnswerRecord(source) ? source.EFValue : null,
+                    Stability = source.Memory?.Stability,
+                    Difficulty = source.Memory?.Difficulty,
+                    Verdict = AiGradingPolicy.GetRecordedVerdict(correct,
+                        assessment?.RawScoreRatio ?? assessment?.ScoreRatio, assessment?.HasFallacy is true)
+                };
+                (source.ExamHistory ??= []).Add(tag);
+                appended.Add((source, tag));
+            }
+
+            if (_project is not null && examSet is not null && _examSets is not null)
+                await _examSets.SaveAsync(_project, examSet);
+            else if (_project is not null && !_isImportedExamSet && _projectFileService is not null)
+                await _projectFileService.SaveProjectAsync(_project);
+        }
+        catch
+        {
+            foreach (var (question, tag) in appended)
+                question.ExamHistory?.Remove(tag);
+            throw;
+        }
+        finally
+        {
+            ExamHistoryWrites.Release();
+        }
     }
 
     private void CalculateScore()

@@ -52,10 +52,6 @@
                             <Border x:Name="InlineAnswerFeedbackBorder" MaxHeight="320" Padding="14,4,0,4" BorderBrush="{DynamicResource ArcBorderStrong}" BorderThickness="2,0,0,0" Visibility="Collapsed">
                                 <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"><controls:AiAnnotatedAnswer x:Name="InlineAnswerFeedback" /></ScrollViewer>
                             </Border>
-                            <controls:SubquestionResults x:Name="PartResults" Margin="0,20,0,8" />
-                            <Expander x:Name="AiReferenceExpander" Header="查看参考答案" Margin="0,12,0,0" FontSize="13" Foreground="{DynamicResource ArcTextSecondary}" Visibility="Collapsed">
-                                <TextBlock x:Name="AiReferenceText" Margin="0,12,0,0" Style="{StaticResource ReadingTextStyle}" />
-                            </Expander>
                             <ItemsControl x:Name="FillBlankAnswersItemsControl" Visibility="Collapsed">
                                 <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
                                 <ItemsControl.ItemTemplate><DataTemplate><StackPanel Margin="0,0,20,12" Orientation="Horizontal">
@@ -64,12 +60,17 @@
                                 </StackPanel></DataTemplate></ItemsControl.ItemTemplate>
                             </ItemsControl>
                             <ItemsControl x:Name="ChoiceOptionsItemsControl" Visibility="Collapsed"><ItemsControl.ItemTemplate><DataTemplate>
-                                <RadioButton Checked="ChoiceOption_Checked" Content="{Binding DisplayText}" GroupName="{Binding ChoiceGroupName, RelativeSource={RelativeSource AncestorType=UserControl}}" Style="{StaticResource ChoiceOptionRadioStyle}" Tag="{Binding Id}" />
+                                <RadioButton Loaded="ChoiceOption_Loaded" Checked="ChoiceOption_Checked" Content="{Binding DisplayText}" GroupName="{Binding ChoiceGroupName, RelativeSource={RelativeSource AncestorType=UserControl}}" Style="{StaticResource ChoiceOptionRadioStyle}" Tag="{Binding Id}" />
                             </DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
                             <StackPanel x:Name="TrueFalseOptionsPanel" Orientation="Horizontal" Visibility="Collapsed">
                                 <RadioButton x:Name="TrueOptionRadioButton" Margin="0,0,16,0" Checked="TrueFalseOption_Checked" Content="正确" Style="{StaticResource ChoiceOptionRadioStyle}" Tag="正确" />
                                 <RadioButton x:Name="FalseOptionRadioButton" Checked="TrueFalseOption_Checked" Content="错误" Style="{StaticResource ChoiceOptionRadioStyle}" Tag="错误" />
                             </StackPanel>
+                            <controls:AnswerHistoryTimeline x:Name="AnswerHistory" Margin="0,18,0,0" />
+                            <controls:SubquestionResults x:Name="PartResults" Margin="0,20,0,8" />
+                            <Expander x:Name="AiReferenceExpander" Header="查看参考答案" Margin="0,12,0,0" FontSize="13" Foreground="{DynamicResource ArcTextSecondary}" Visibility="Collapsed">
+                                <TextBlock x:Name="AiReferenceText" Margin="0,12,0,0" Style="{StaticResource ReadingTextStyle}" />
+                            </Expander>
                         </StackPanel>
                     </Border>
                     <Border x:Name="ResultArea" Margin="0,28,0,0" Padding="20" CornerRadius="{DynamicResource ArcRadiusControl}" BorderThickness="1" Visibility="Collapsed">
@@ -85,7 +86,13 @@
             </ScrollViewer>
             <Border Grid.Row="2" Padding="28,12" BorderBrush="{DynamicResource ArcBorder}" BorderThickness="0,1,0,0">
                 <Grid MaxWidth="760"><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-                    <Button x:Name="AskDeepSeekButton" Content="查看解析" Click="AskDeepSeekButton_Click" IsEnabled="False" HorizontalAlignment="Left" Style="{StaticResource SubtleButtonStyle}" ToolTip="提交答案后，查看当前题目的解析" />
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                        <Button x:Name="AskDeepSeekButton" Content="查看解析" Click="AskDeepSeekButton_Click" IsEnabled="False" Style="{StaticResource SubtleButtonStyle}" ToolTip="提交答案后，查看当前题目的解析" />
+                        <Button x:Name="RuleSourcesButton" Content="资料知识点" Click="QuestionHelpButton_Click" Visibility="Collapsed"
+                                Style="{StaticResource SubtleButtonStyle}" />
+                        <Button x:Name="OpenNotesButton" Content="笔记" Click="OpenNotesButton_Click" Visibility="Collapsed"
+                                Style="{StaticResource SubtleButtonStyle}" ToolTip="打开项目笔记" />
+                    </StackPanel>
                     <StackPanel Grid.Column="1" Orientation="Horizontal">
                         <Button x:Name="SkipButton" Content="跳过" Click="SkipButton_Click" Margin="0,0,8,0" />
                         <Button x:Name="SubmitButton" Content="提交答案" Click="SubmitButton_Click" Style="{StaticResource PrimaryButtonStyle}" />
@@ -96,7 +103,7 @@
         <Border x:Name="HelpSidebar" Grid.Column="2" Background="{DynamicResource ArcSurfaceMuted}" BorderBrush="{DynamicResource ArcBorder}" BorderThickness="1,0,0,0" Visibility="Collapsed">
             <Grid Margin="20"><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="*" /></Grid.RowDefinitions>
                 <Grid Margin="0,0,0,20"><Grid.ColumnDefinitions><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-                    <StackPanel><TextBlock Text="答题助手" Style="{StaticResource SectionLabelTextStyle}" /><TextBlock Text="当前题目与项目知识库" Style="{StaticResource CaptionTextStyle}" Margin="0,4,0,0" /></StackPanel>
+                    <StackPanel><TextBlock Text="答题助手" Style="{StaticResource SectionLabelTextStyle}" /><TextBlock x:Name="HelpSourceText" Text="项目知识库" Style="{StaticResource CaptionTextStyle}" Margin="0,4,0,0" /></StackPanel>
                     <Button Grid.Column="1" Click="CloseHelpSidebar_Click" Style="{StaticResource IconButtonStyle}" Content="×" ToolTip="关闭答题助手" />
                 </Grid>
                 <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"><StackPanel>

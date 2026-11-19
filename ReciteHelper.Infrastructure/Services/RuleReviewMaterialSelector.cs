@@ -19,7 +19,9 @@ internal static class RuleReviewMaterialSelector
             .Select(c => new { Chunk = c, Score = terms.Count(t => c.Text.Contains(t, StringComparison.OrdinalIgnoreCase)) })
             .OrderByDescending(c => c.Score).ThenBy(c => c.Chunk.File).ThenBy(c => c.Chunk.Index)
             .Take(budget / 1000).Select(c => c.Chunk).OrderBy(c => c.File).ThenBy(c => c.Index);
-        return chunks.GroupBy(c => c.File).Select(group => new ReviewMaterial(materials[group.Key].Name,
-            string.Join("\n\n", group.Select(c => c.Text)))).ToList();
+        return chunks.GroupBy(c => c.File).Select(group => materials[group.Key] with
+        {
+            Content = string.Join("\n\n", group.Select(c => c.Text))
+        }).ToList();
     }
 }

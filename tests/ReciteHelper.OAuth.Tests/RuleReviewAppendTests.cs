@@ -56,6 +56,40 @@ public sealed class RuleReviewAppendTests
     }
 
     [Fact]
+    public async Task AdditionalGenerationKeepsEachQuestionsOwnFileAcrossReload()
+    {
+        const string excerpt = "课程复习应说明传播途径。";
+        var project = ProjectWithHistory();
+        var chapter = project.Chapters![0];
+        var original = chapter.Questions![0];
+        var first = new ReviewMaterial("讲义.txt", "原材料只讲甲的传播途径。" + excerpt);
+        var second = new ReviewMaterial("讲义.txt", "新材料只讲乙的传播途径。" + excerpt);
+        chapter.ReviewMaterials = [first];
+        original.SourceExcerpts = [excerpt];
+
+        var chat = new Chat(JsonSerializer.Serialize(new
+        {
+            questionPlan = new[] { "乙的传播途径" },
+            questions = new[] { new { text = "说明乙的传播途径。", correct_answer = excerpt, source_excerpts = new[] { excerpt },
+                source_material_ids = new[] { second.SourceId } } }
+        }));
+        var service = new RuleReviewService(chat);
+        var preview = await service.PreviewAsync(new() { Name = chapter.Name!, Prompt = "说明乙的传播途径。", Materials = [second] });
+        var generated = await service.CompleteAsync(preview);
+        await new RuleReviewProjectEditor(new FilesStub()).AppendAsync(project, chapter, generated);
+        var restored = JsonSerializer.Deserialize<Project>(JsonSerializer.Serialize(project))!;
+        var questions = restored.Chapters![0].Questions!;
+        var help = new QuestionHelpService(null!, null!, null!);
+
+        var oldPassage = Assert.Single(await help.FindMatchesAsync(restored, questions[0]));
+        var newPassage = Assert.Single(await help.FindMatchesAsync(restored, questions[1]));
+        Assert.Contains("只讲甲", oldPassage.Content);
+        Assert.Contains("只讲乙", newPassage.Content);
+        Assert.Equal(first.SourceId, Assert.Single(questions[0].SourceMaterialIds!));
+        Assert.Equal(second.SourceId, Assert.Single(questions[1].SourceMaterialIds!));
+    }
+
+    [Fact]
     public async Task AdditionalGenerationCarriesExistingQuestionsThroughPreviewAndCompletion()
     {
         var chat = new Chat(Preview(), Questions("补充1", "补充2"));

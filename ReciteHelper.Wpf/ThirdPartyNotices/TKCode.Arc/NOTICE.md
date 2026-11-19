@@ -14,5 +14,6 @@ The WPF theme adapts the semantic token vocabulary and button/input state struct
 - src/TKCode.Arc/TextFields/Input/Themes/InputTheme.axaml
 - src/TKCode.Arc/TextFields/Textarea/Themes/TextareaTheme.axaml
 - src/TKCode.Arc/Selects/Select/Themes/SelectTheme.axaml
+- src/TKCode.Arc.AdvancedCharts/SankeyFlow/SankeyFlow.Render.cs (Bézier ribbons and gradient fills in the answer history timeline)
 
 ReciteHelper modifications: WPF ControlTemplate and Trigger implementations; Arc's neutral light palette, 44 px medium controls and 18 px control corners; grouped side navigation, constrained form widths, and continuous record lists. Native Windows fonts and locally drawn line icons are used. Checkbox, expander, slider and progress templates retain native WPF interaction. No Avalonia binaries, Arc Pro code, upstream icon assets or fonts are included. See LICENSE.txt and Arc-LICENSE.txt for the full MIT terms.

@@ -72,6 +72,8 @@ public sealed class FacetReviewService(IReviewScheduler scheduler) : IFacetRevie
             {
                 Time = reviewedAt, Similarity = point.ScoreRatio, Grade = (int)grade, QValue = point.IsCorrect ? 4 : 1,
                 IsCorrect = point.IsCorrect, ElapsedDays = outcome.ElapsedDays,
+                Verdict = AiGradingPolicy.GetRecordedVerdict(point.IsCorrect, point.RawScoreRatio ?? point.ScoreRatio, point.HasFallacy),
+                EFValue = facet.Question.EFValue, NextIntervalDays = outcome.NextIntervalDays,
                 Retrievability = outcome.RetrievabilityBefore, Stability = outcome.StateAfter.Stability,
                 Difficulty = outcome.StateAfter.Difficulty, OptimizerWeight = facet.Weight
             };

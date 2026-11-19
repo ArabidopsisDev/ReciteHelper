@@ -19,6 +19,14 @@ public class Question : Entity
     [JsonPropertyName("status")]
     public bool? Status { get; set; }
 
+    [JsonPropertyName("submitted_answer")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? SubmittedAnswer { get; set; }
+
+    [JsonPropertyName("answer_cleared")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public bool AnswerCleared { get; set; }
+
     [JsonPropertyName("text")]
     public string? Text { get; set; }
 
@@ -57,6 +65,10 @@ public class Question : Entity
     [JsonPropertyName("review_tag")]
     public List<ReviewTag> ReviewTag { get; set; } = [];
 
+    [JsonPropertyName("exam_history")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public List<ReviewTag>? ExamHistory { get; set; }
+
     [JsonPropertyName("correct_answer")]
     public string? CorrectAnswer { get; set; }
 
@@ -66,8 +78,16 @@ public class Question : Entity
     [JsonPropertyName("answer_parts")]
     public List<QuestionPart> AnswerParts { get; set; } = [];
 
+    [JsonPropertyName("review_note")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? ReviewNote { get; set; }
+
     [JsonPropertyName("source_excerpts")]
     public List<string> SourceExcerpts { get; set; } = [];
+
+    [JsonPropertyName("source_material_ids")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public List<string>? SourceMaterialIds { get; set; }
 
     [JsonPropertyName("last_ai_assessment")]
     public DTOs.AiAnswerAssessment? LastAiAssessment { get; set; }

@@ -8,7 +8,7 @@ public partial class MainWindow
     private void ShowAiHomeEasterEgg()
     {
         var page = new AiHomeEasterEgg();
-        ((ScrollViewer)RecentProjectsPanel.Parent).Content = null;
+        ((Panel)RecentProjectsPanel.Parent).Children.Remove(RecentProjectsPanel);
         page.RecentProjectsHost.Content = RecentProjectsPanel;
         Resources["RecentItemStyle"] = page.FindResource("AiRecentItemStyle");
         page.CreateProjectButton.Click += CreateNewProject_Click;

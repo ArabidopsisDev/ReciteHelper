@@ -9,6 +9,8 @@ namespace ReciteHelper.Infrastructure.Services;
 
 public sealed class ProjectFileService : IProjectFileService
 {
+    private readonly SemaphoreSlim _saveGate = new(1, 1);
+
     public bool ProjectExists(string projectPath)
     {
         return File.Exists(projectPath);
@@ -19,7 +21,7 @@ public sealed class ProjectFileService : IProjectFileService
         if (!File.Exists(projectPath))
             return null;
 
-        await using var stream = File.OpenRead(projectPath);
+        await using var stream = File.Open(projectPath, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete);
         var project = await JsonSerializer.DeserializeAsync<Project>(stream);
         project?.UpdateLastAccessed();
 
@@ -48,10 +50,27 @@ public sealed class ProjectFileService : IProjectFileService
             throw new ArgumentException("Project storage path or project name is missing.");
 
         var projectPath = Path.Combine(project.StoragePath, project.ProjectName, $"{project.ProjectName}.rhproj");
-        Directory.CreateDirectory(Path.GetDirectoryName(projectPath)!);
+        var stagedPath = $"{projectPath}.{Guid.NewGuid():N}.tmp";
 
-        var json = JsonSerializer.Serialize(project, new JsonSerializerOptions { WriteIndented = true });
-        await File.WriteAllTextAsync(projectPath, json);
+        await _saveGate.WaitAsync();
+        try
+        {
+            try
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(projectPath)!);
+                var json = JsonSerializer.Serialize(project, new JsonSerializerOptions { WriteIndented = true });
+                await File.WriteAllTextAsync(stagedPath, json);
+                File.Move(stagedPath, projectPath, overwrite: true);
+            }
+            finally
+            {
+                File.Delete(stagedPath);
+            }
+        }
+        finally
+        {
+            _saveGate.Release();
+        }
     }
 
     public async Task<ImportedProject> ImportProjectArchiveAsync(string archivePath, string destinationDirectory)

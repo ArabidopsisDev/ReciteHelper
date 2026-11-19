@@ -5,6 +5,20 @@
     <ResourceDictionary.MergedDictionaries>
         <ResourceDictionary Source="/ReciteHelper.Wpf;component/Themes/Arc/ArcTokens.xaml" />
     </ResourceDictionary.MergedDictionaries>
+    <Style x:Key="WindowSurfaceStyle" TargetType="Border">
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="BorderBrush" Value="{DynamicResource ArcBorder}" />
+        <Setter Property="CornerRadius" Value="10" />
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding IsActive, RelativeSource={RelativeSource AncestorType=Window}}" Value="True">
+                <Setter Property="BorderBrush" Value="{DynamicResource ArcBorderStrong}" />
+            </DataTrigger>
+            <DataTrigger Binding="{Binding WindowState, RelativeSource={RelativeSource AncestorType=Window}}" Value="Maximized">
+                <Setter Property="BorderThickness" Value="0" />
+                <Setter Property="CornerRadius" Value="0" />
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
     <Style x:Key="AppWindowStyle" TargetType="Window">
         <Setter Property="Background" Value="{DynamicResource ArcSurface}" /><Setter Property="Foreground" Value="{DynamicResource ArcForeground}" />
         <Setter Property="FontFamily" Value="{DynamicResource ArcBodyFont}" /><Setter Property="FontSize" Value="{StaticResource ArcFontBody}" />
@@ -14,21 +28,24 @@
         <Setter Property="SnapsToDevicePixels" Value="True" />
         <Setter Property="shell:WindowChrome.WindowChrome">
             <Setter.Value>
-                <shell:WindowChrome CaptionHeight="30" ResizeBorderThickness="6" GlassFrameThickness="0" CornerRadius="8" UseAeroCaptionButtons="False" />
+                <shell:WindowChrome CaptionHeight="38" ResizeBorderThickness="6" GlassFrameThickness="0" CornerRadius="10" UseAeroCaptionButtons="False" />
             </Setter.Value>
         </Setter>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Window">
-                    <Border x:Name="WindowSurface" Background="{TemplateBinding Background}"
-                            Padding="{Binding FrameInsets, ElementName=TitleBar}">
+                    <Border x:Name="WindowSurface" Style="{StaticResource WindowSurfaceStyle}" Background="{TemplateBinding Background}"
+                            Padding="{Binding Path=(controls:WindowTitleBar.FrameInsets), RelativeSource={RelativeSource TemplatedParent}}">
                         <AdornerDecorator>
                             <Grid ClipToBounds="True">
                                 <Grid.RowDefinitions>
-                                    <RowDefinition Height="36" />
+                                    <RowDefinition Height="44" />
                                     <RowDefinition Height="*" />
                                 </Grid.RowDefinitions>
-                                <controls:WindowTitleBar x:Name="TitleBar" />
+                                <Border Background="{DynamicResource ArcSurfaceMuted}" BorderBrush="{DynamicResource ArcBorder}"
+                                        BorderThickness="0,0,0,1">
+                                    <controls:WindowTitleBar x:Name="TitleBar" />
+                                </Border>
                                 <ContentPresenter Grid.Row="1" ContentSource="Content" />
                             </Grid>
                         </AdornerDecorator>
@@ -40,18 +57,32 @@
             <Trigger Property="ResizeMode" Value="NoResize">
                 <Setter Property="shell:WindowChrome.WindowChrome">
                     <Setter.Value>
-                        <shell:WindowChrome CaptionHeight="36" ResizeBorderThickness="0" GlassFrameThickness="0" CornerRadius="8" UseAeroCaptionButtons="False" />
+                        <shell:WindowChrome CaptionHeight="45" ResizeBorderThickness="0" GlassFrameThickness="0" CornerRadius="10" UseAeroCaptionButtons="False" />
                     </Setter.Value>
                 </Setter>
             </Trigger>
             <Trigger Property="ResizeMode" Value="CanMinimize">
                 <Setter Property="shell:WindowChrome.WindowChrome">
                     <Setter.Value>
-                        <shell:WindowChrome CaptionHeight="36" ResizeBorderThickness="0" GlassFrameThickness="0" CornerRadius="8" UseAeroCaptionButtons="False" />
+                        <shell:WindowChrome CaptionHeight="45" ResizeBorderThickness="0" GlassFrameThickness="0" CornerRadius="10" UseAeroCaptionButtons="False" />
                     </Setter.Value>
                 </Setter>
             </Trigger>
         </Style.Triggers>
+    </Style>
+    <Style x:Key="WorkspaceWindowStyle" TargetType="Window" BasedOn="{StaticResource AppWindowStyle}">
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="Window">
+                    <Border x:Name="WindowSurface" Style="{StaticResource WindowSurfaceStyle}" Background="{TemplateBinding Background}"
+                            Padding="{Binding Path=(controls:WindowTitleBar.FrameInsets), RelativeSource={RelativeSource TemplatedParent}}">
+                        <AdornerDecorator>
+                            <ContentPresenter ContentSource="Content" />
+                        </AdornerDecorator>
+                    </Border>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
     </Style>
     <Style x:Key="DefaultWindowStyle" TargetType="Window" BasedOn="{StaticResource AppWindowStyle}" />
 </ResourceDictionary>

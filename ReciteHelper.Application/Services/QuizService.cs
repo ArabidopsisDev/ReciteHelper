@@ -65,6 +65,11 @@ public class QuizService : IQuizService
             QValue = isCorrect ? 4 : 1,
             Grade = (int)grade,
             IsCorrect = isCorrect,
+            Verdict = AiGradingPolicy.GetRecordedVerdict(isCorrect,
+                assessment?.RawScoreRatio ?? assessment?.ScoreRatio, assessment?.HasFallacy is true),
+            EFValue = question.EFValue,
+            NextIntervalDays = !question.IsReviewFacet && facetUpdate is not null
+                ? facetUpdate.ParentNextIntervalDays : outcome.NextIntervalDays,
             ElapsedDays = outcome.ElapsedDays,
             Retrievability = outcome.RetrievabilityBefore,
             ResponseSeconds = responseSeconds,
@@ -74,9 +79,12 @@ public class QuizService : IQuizService
         };
         reviewTag.SetId(question.ReviewTag.Count + 1);
         question.ReviewTag.Add(reviewTag);
+        question.Status = isCorrect;
+        question.SubmittedAnswer = userAnswer;
+        question.AnswerCleared = false;
+        question.LastAiAssessment = assessment;
         if (assessment is not null)
         {
-            question.LastAiAssessment = assessment;
             if (question.AnswerNature == Core.Enums.AnswerNature.None)
                 question.AnswerNature = assessment.AnswerNature;
         }

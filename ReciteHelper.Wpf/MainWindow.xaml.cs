@@ -376,16 +376,17 @@ public partial class MainWindow : Window
 
     private async void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
     {
-        if (_savingPracticeTabs || WorkspaceTabs.Items.OfType<TabItem>().Any(IsBusyTab))
+        if (_savingWorkspace || WorkspaceTabs.Items.OfType<TabItem>().Any(IsBusyTab))
         {
             e.Cancel = true;
             return;
         }
         var practiceViews = PracticeTabs().Select(tab => (QuizView)tab.Content).ToArray();
-        if (practiceViews.Any(view => view.HasCloseWork))
+        var notebooks = _projectNotes.Values.ToArray();
+        if (practiceViews.Any(view => view.HasCloseWork) || notebooks.Any(notebook => notebook.HasCloseWork))
         {
             e.Cancel = true;
-            if (await SavePracticeTabsAsync(practiceViews))
+            if (await SaveWorkspaceAsync(practiceViews, notebooks))
                 _ = Dispatcher.BeginInvoke(new Action(Close));
             return;
         }

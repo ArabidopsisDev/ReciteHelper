@@ -337,7 +337,9 @@ namespace ReciteHelper.Wpf.Views {
                 _project,
                 _projectCreationService,
                 _projectFileService,
-                isImportedExamSet: true);
+                isImportedExamSet: true,
+                importedSet: examSet,
+                examSets: _examSetRepository);
             examWindow.Show();
             Close();
         }

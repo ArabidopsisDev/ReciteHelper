@@ -13,9 +13,10 @@ public partial class MainWindow
 {
     private readonly Dictionary<string, TabItem> _projectTabs = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<Project, TabItem> _knowledgeTabs = new(ReferenceEqualityComparer.Instance);
+    private readonly Dictionary<Project, ProjectNotesWindow> _projectNotes = new(ReferenceEqualityComparer.Instance);
     private readonly HashSet<string> _openingProjects = new(StringComparer.OrdinalIgnoreCase);
     private TabItem? _settingsTab;
-    private bool _savingPracticeTabs;
+    private bool _savingWorkspace;
 
     private TabItem CreateTab(string title, FrameworkElement content, string? tooltip = null)
     {
@@ -71,6 +72,12 @@ public partial class MainWindow
         var project = projectView.Project;
         var tab = PracticeTabs().FirstOrDefault(tab => tab.Content is QuizView view &&
             ReferenceEquals(view.Project, project) && ReferenceEquals(view.Chapter, chapter));
+        if (chapter is null && tab?.Content is QuizView { HasQuestions: false, HasCloseWork: false } empty)
+        {
+            empty.Release();
+            WorkspaceTabs.Items.Remove(tab);
+            tab = null;
+        }
         if (tab is null)
         {
             var questions = chapter is null ? _reviewGenerator.GenerateReview(project, 30) : chapter.Questions!;
@@ -86,25 +93,56 @@ public partial class MainWindow
                 _questionHelpService, _reviewPersonalizationService, _ruleReviewService);
             tab = CreateTab(title, view, $"{project.ProjectName ?? "项目"} / {title}");
             view.RecordsChanged += (_, _) => projectView.RefreshChapters();
-            view.CloseRequested += (_, _) => CloseTab(tab);
+            view.RecordsCleared += (_, affected) =>
+            {
+                foreach (var practice in PracticeTabs().Select(candidate => (QuizView)candidate.Content))
+                    if (!ReferenceEquals(practice, view) && ReferenceEquals(practice.Project, project))
+                        practice.RefreshRecords(affected);
+            };
+            view.NotesRequested += (_, _) => ToggleProjectNotes(project);
         }
         SelectTab(tab);
     }
 
-    private async Task<bool> SavePracticeTabsAsync(IEnumerable<QuizView> views)
+    private void ToggleProjectNotes(Project project)
     {
-        _savingPracticeTabs = true;
+        if (!_projectNotes.TryGetValue(project, out var notebook))
+        {
+            notebook = new ProjectNotesWindow(this, project, _projectFileService);
+            _projectNotes.Add(project, notebook);
+            notebook.Closed += (_, _) => _projectNotes.Remove(project);
+        }
+
+        if (notebook.IsVisible)
+            notebook.Close();
+        else
+            notebook.ShowBesideOwner();
+    }
+
+    private async Task<bool> SaveWorkspaceAsync(IEnumerable<QuizView> views, IReadOnlyList<ProjectNotesWindow>? notebooks = null)
+    {
+        notebooks ??= [];
+        _savingWorkspace = true;
         WorkspaceTabs.IsEnabled = false;
+        foreach (var notebook in notebooks) notebook.IsEnabled = false;
         try
         {
             foreach (var view in views)
                 if (view.HasCloseWork && !await view.SaveOnCloseAsync()) return false;
+            foreach (var notebook in notebooks)
+            {
+                if (!notebook.HasCloseWork || await notebook.SavePendingAsync()) continue;
+                if (!notebook.IsVisible) notebook.ShowBesideOwner(moveOwner: false);
+                notebook.Activate();
+                return false;
+            }
             return true;
         }
         finally
         {
+            foreach (var notebook in notebooks) notebook.IsEnabled = true;
             WorkspaceTabs.IsEnabled = true;
-            _savingPracticeTabs = false;
+            _savingWorkspace = false;
         }
     }
 
@@ -123,6 +161,16 @@ public partial class MainWindow
         if (e.AddedItems.Count == 1 && e.AddedItems[0] is TabItem { Content: QuizView practice } selected &&
             !IsBusyTab(selected))
             practice.RefreshRecords();
+
+        var project = (WorkspaceTabs.SelectedItem as TabItem)?.Content switch
+        {
+            QuizView quiz => quiz.Project,
+            ProjectView view => view.Project,
+            KnowledgePointView knowledge => knowledge.Project,
+            _ => null
+        };
+        foreach (var notebook in _projectNotes.Values)
+            if (notebook.IsVisible && !ReferenceEquals(notebook.Project, project)) notebook.Hide();
     }
 
     private void Workspace_PreviewKeyDown(object sender, KeyEventArgs e)
@@ -142,12 +190,12 @@ public partial class MainWindow
 
     private async void CloseTab(TabItem tab)
     {
-        if (tab == HomeTab || _savingPracticeTabs || IsBusyTab(tab)) return;
+        if (tab == HomeTab || _savingWorkspace || IsBusyTab(tab)) return;
 
         if (tab.Content is QuizView practice)
         {
             if (practice.HasCloseWork && (WorkspaceTabs.Items.OfType<TabItem>().Any(IsBusyTab) ||
-                !await SavePracticeTabsAsync([practice]))) return;
+                !await SaveWorkspaceAsync([practice]))) return;
             if (WorkspaceTabs.SelectedItem == tab)
             {
                 var projectTab = _projectTabs.Values.First(candidate =>
@@ -165,9 +213,12 @@ public partial class MainWindow
                 ReferenceEquals(view.Project, projectView.Project)).ToArray();
             if (practiceTabs.Any(IsBusyTab)) return;
             var practiceViews = practiceTabs.Select(candidate => (QuizView)candidate.Content).ToArray();
-            if (practiceViews.Any(view => view.HasCloseWork) &&
-                (WorkspaceTabs.Items.OfType<TabItem>().Any(IsBusyTab) || !await SavePracticeTabsAsync(practiceViews))) return;
+            _projectNotes.TryGetValue(projectView.Project, out var notebook);
+            if ((practiceViews.Any(view => view.HasCloseWork) || notebook?.HasCloseWork == true) &&
+                (WorkspaceTabs.Items.OfType<TabItem>().Any(IsBusyTab) ||
+                 !await SaveWorkspaceAsync(practiceViews, notebook is null ? [] : [notebook]))) return;
 
+            notebook?.Close();
             foreach (var view in practiceViews) view.Release();
             foreach (var practiceTab in practiceTabs) WorkspaceTabs.Items.Remove(practiceTab);
             if (knowledgeTab is not null)

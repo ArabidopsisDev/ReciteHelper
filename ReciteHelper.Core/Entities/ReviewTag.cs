@@ -35,6 +35,18 @@ public class ReviewTag : Entity
     [JsonPropertyName("is_correct")]
     public bool? IsCorrect { get; set; }
 
+    [JsonPropertyName("verdict")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? Verdict { get; set; }
+
+    [JsonPropertyName("ef_value")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public double? EFValue { get; set; }
+
+    [JsonPropertyName("next_interval_days")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public double? NextIntervalDays { get; set; }
+
     /// <summary>Whole study days since the previous review of this question.</summary>
     [JsonPropertyName("elapsed_days")]
     public int? ElapsedDays { get; set; }

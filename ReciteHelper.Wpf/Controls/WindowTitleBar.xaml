@@ -7,21 +7,23 @@
         <Style x:Key="FrameAction" TargetType="Button">
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="Foreground" Value="{DynamicResource ArcTextSecondary}" />
-            <Setter Property="FontSize" Value="{DynamicResource ArcFontCaption}" />
-            <Setter Property="Padding" Value="10,0" />
+            <Setter Property="Width" Value="32" />
+            <Setter Property="Height" Value="30" />
             <Setter Property="Focusable" Value="False" />
             <Setter Property="IsTabStop" Value="False" />
             <Setter Property="shell:WindowChrome.IsHitTestVisibleInChrome" Value="True" />
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border x:Name="ActionSurface" Background="{TemplateBinding Background}"
-                                Padding="{TemplateBinding Padding}" CornerRadius="6">
+                        <Border x:Name="ActionSurface" Background="{TemplateBinding Background}" CornerRadius="7">
                             <ContentPresenter VerticalAlignment="Center" HorizontalAlignment="Center" />
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="ActionSurface" Property="Background" Value="{DynamicResource ArcSurfaceHover}" />
+                                <Setter TargetName="ActionSurface" Property="Background" Value="{DynamicResource ArcAccentSubtle}" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="ActionSurface" Property="Background" Value="{DynamicResource ArcSurfacePressed}" />
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -47,16 +49,26 @@
         </Style>
     </UserControl.Resources>
     <Grid Background="Transparent">
-        <Grid Margin="16,6,10,2">
+        <Grid Margin="14,0,8,0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
             <TextBlock Text="{Binding Title, RelativeSource={RelativeSource AncestorType=Window}}"
-                       FontSize="{DynamicResource ArcFontCaption}" Foreground="{DynamicResource ArcTextMuted}"
-                       TextTrimming="CharacterEllipsis" VerticalAlignment="Center" IsHitTestVisible="False" />
-            <StackPanel Grid.Column="1" Orientation="Horizontal" Margin="12,0,0,0">
-                <Button x:Name="WindowMenuButton" Click="OpenWindowMenu_Click" AutomationProperties.Name="窗口菜单">
+                       FontSize="{DynamicResource ArcFontCaption}" Foreground="{DynamicResource ArcTextSecondary}"
+                       TextTrimming="CharacterEllipsis" VerticalAlignment="Center" IsHitTestVisible="False">
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding ShowTitle, RelativeSource={RelativeSource AncestorType=UserControl}}" Value="False">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
+            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                <Button x:Name="WindowMenuButton" Click="OpenWindowMenu_Click" ToolTip="窗口操作" AutomationProperties.Name="窗口操作">
                     <Button.Style>
                         <Style TargetType="Button" BasedOn="{StaticResource FrameAction}">
                             <Style.Triggers>
@@ -66,10 +78,10 @@
                             </Style.Triggers>
                         </Style>
                     </Button.Style>
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="窗口" />
-                        <Path Data="M0,0 L3,3 6,0" Stroke="{DynamicResource ArcTextMuted}" StrokeThickness="1.2"
-                              Margin="6,0,0,0" VerticalAlignment="Center" />
+                    <StackPanel Orientation="Horizontal" Opacity="0.9">
+                        <Ellipse Width="2.6" Height="2.6" Fill="{DynamicResource ArcTextSecondary}" />
+                        <Ellipse Width="2.6" Height="2.6" Fill="{DynamicResource ArcTextSecondary}" Margin="3,0" />
+                        <Ellipse Width="2.6" Height="2.6" Fill="{DynamicResource ArcTextSecondary}" />
                     </StackPanel>
                     <Button.ContextMenu>
                         <ContextMenu x:Name="WindowMenu" Placement="Bottom" VerticalOffset="4" MinWidth="116"
@@ -88,8 +100,12 @@
                         </ContextMenu>
                     </Button.ContextMenu>
                 </Button>
-                <Button x:Name="CloseButton" Content="关闭" Click="Close_Click" Style="{StaticResource FrameAction}"
-                        AutomationProperties.Name="关闭窗口" Margin="4,0,0,0" />
+                <Button x:Name="CloseButton" Click="Close_Click" Style="{StaticResource FrameAction}"
+                        ToolTip="关闭窗口" AutomationProperties.Name="关闭窗口" Margin="2,0,0,0">
+                    <Path Data="M3,3 L11,11 M11,3 L3,11" Width="12" Height="12" Stretch="Uniform"
+                          Stroke="{DynamicResource ArcTextSecondary}" StrokeThickness="1.15"
+                          StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
+                </Button>
             </StackPanel>
         </Grid>
     </Grid>

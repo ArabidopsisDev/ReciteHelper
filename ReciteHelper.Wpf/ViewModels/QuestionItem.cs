@@ -23,6 +23,8 @@ public class QuestionItem : INotifyPropertyChanged
     public Question? Question { get; set; }
     public AnswerStatus Status { get; set; }
     public string? UserAnswer { get; set; }
+    internal string? DraftText { get; set; }
+    internal IReadOnlyList<string>? DraftParts { get; set; }
     public AiAnswerAssessment? Assessment { get; set; }
     public List<ReviewTag> ReviewTag { get; set; } = [];
 

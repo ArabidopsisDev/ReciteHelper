@@ -14,9 +14,10 @@ public sealed class MultipartAnswerEditor : UserControl
     private readonly List<TextBox> _inputs = [];
     private readonly List<Border> _feedback = [];
     public event EventHandler? AnswerChanged;
-    public string AnswerText => EssayAnswerLayout.Join(_inputs.Select(input => input.Text).ToList());
+    public IReadOnlyList<string> AnswerTexts => _inputs.Select(input => input.Text).ToArray();
+    public string AnswerText => EssayAnswerLayout.Join(AnswerTexts);
 
-    public void SetQuestion(Question question, string? answer, bool editable, bool paper = false)
+    public void SetQuestion(Question question, string? answer, bool editable, bool paper = false, IReadOnlyList<string>? draft = null)
     {
         FontFamily = AppFonts.Serif;
         FontWeight = FontWeights.Normal;
@@ -24,7 +25,7 @@ public sealed class MultipartAnswerEditor : UserControl
         _inputs.Clear();
         _feedback.Clear();
         var parts = EssayAnswerLayout.Parts(question);
-        var answers = EssayAnswerLayout.Split(answer, parts.Count);
+        var answers = draft ?? EssayAnswerLayout.Split(answer, parts.Count);
         Content = paper ? new ScrollViewer { Content = _panel, MaxHeight = 440, VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
             HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled } : _panel;
         for (var i = 0; i < parts.Count; i++)
@@ -32,7 +33,7 @@ public sealed class MultipartAnswerEditor : UserControl
             var title = new TextBlock { Text = $"（{i + 1}）{parts[i].Prompt}", TextWrapping = TextWrapping.Wrap,
                 Margin = new Thickness(0, i == 0 ? 0 : 20, 0, 8), FontSize = paper ? 15 : 17, LineHeight = 28 };
             _panel.Children.Add(title);
-            var input = new TextBox { Text = answers[i], AcceptsReturn = true, TextWrapping = TextWrapping.Wrap,
+            var input = new TextBox { Text = i < answers.Count ? answers[i] : string.Empty, AcceptsReturn = true, TextWrapping = TextWrapping.Wrap,
                 VerticalScrollBarVisibility = ScrollBarVisibility.Auto, VerticalContentAlignment = VerticalAlignment.Top,
                 Height = paper ? 80 : 116, Padding = new Thickness(paper ? 8 : 12), FontSize = paper ? 16 : 18,
                 FontFamily = AppFonts.Serif, FontWeight = FontWeights.Normal,

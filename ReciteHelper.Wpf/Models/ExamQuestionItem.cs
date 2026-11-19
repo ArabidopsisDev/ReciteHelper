@@ -13,6 +13,8 @@ public sealed class ExamQuestionItem : INotifyPropertyChanged
 
     public int Number { get; set; }
     public Question? Question { get; set; }
+    internal Question? HistorySource { get; set; }
+    internal int? ImportedIndex { get; init; }
     public int Score { get; set; }
     public Core.DTOs.AiAnswerAssessment? AiAssessment { get; set; }
     public double EarnedScore { get; set; }

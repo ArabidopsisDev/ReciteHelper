@@ -12,6 +12,7 @@ public class ReviewItemViewModel : INotifyPropertyChanged
     public string? Explanation { get; set; }
     public bool IsCorrect { get; set; }
     public Core.DTOs.AiAnswerAssessment? AiAssessment { get; set; }
+    public Core.Entities.Question? HistorySource { get; set; }
     public Style? ItemStyle { get; set; }
 
     public bool HasExplanation => !string.IsNullOrEmpty(Explanation);

@@ -2,8 +2,11 @@ using System.Text;
 using ReciteHelper.Core.Aggregates;
 using ReciteHelper.Core.DTOs;
 using ReciteHelper.Core.Entities;
+using ReciteHelper.Core.Enums;
 using ReciteHelper.Core.Interfaces.Configuration;
 using ReciteHelper.Core.Interfaces.Services;
+using ReciteHelper.Core.Scheduling;
+using ReciteHelper.Core.Services;
 
 namespace ReciteHelper.Application.Services;
 
@@ -17,6 +20,15 @@ public sealed class QuestionHelpService(
         Question question,
         CancellationToken cancellationToken = default)
     {
+        if (project.TemplateType == ProjectTemplateType.RuleBasedReview)
+        {
+            var root = ReviewQuestionCatalog.FindFacet(project, question)?.Parent
+                ?? ReviewQuestionCatalog.FindOriginal(project, question) ?? question;
+            var chapter = project.Chapters?.FirstOrDefault(value => value.Questions?.Any(item => ReferenceEquals(item, root)) is true);
+            var materials = chapter is null ? [] : RuleReviewSources.ForChapter(chapter).Resolve(root).ToArray();
+            return await Task.Run(() => RuleReviewMaterialIndex.Search(materials, question, cancellationToken), cancellationToken);
+        }
+
         if (project.KnowledgeBase is not { Entries.Count: > 0 } store)
             return [];
 

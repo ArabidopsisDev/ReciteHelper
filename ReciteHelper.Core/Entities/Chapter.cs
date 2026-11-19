@@ -25,6 +25,10 @@ public class Chapter : Entity, IJsonOnDeserialized
     [JsonPropertyName("review_materials")]
     public List<ReviewMaterial> ReviewMaterials { get; set; } = [];
 
+    [JsonPropertyName("prior_review_materials")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public List<ReviewMaterial>? PriorReviewMaterials { get; set; }
+
     [JsonPropertyName("bank")]
     public List<Question>? Questions { get; set; }
 

@@ -10,6 +10,9 @@ public static class AiGradingPolicy
     public static string GetVerdict(double coverage, bool hasFallacy = false)
         => hasFallacy ? "FL" : coverage >= MasteryThreshold ? "AC" : coverage >= PartialThreshold ? "PC" : "WA";
 
+    public static string GetRecordedVerdict(bool correct, double? coverage = null, bool hasFallacy = false)
+        => hasFallacy ? "FL" : correct ? "AC" : coverage >= PartialThreshold ? "PC" : "WA";
+
     // A critical misconception cannot pass; retain its actual coverage separately.
     private static double Credit(double coverage, bool hasFallacy)
         => hasFallacy ? Math.Min(coverage, Math.BitDecrement(MasteryThreshold))

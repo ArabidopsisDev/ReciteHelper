@@ -176,7 +176,10 @@
                                     </StackPanel>
                                 </Border>
 
-                                <controls:SubquestionResults Grid.Row="3" Assessment="{Binding AiAssessment}" Margin="12,16,12,12" />
+                                <StackPanel Grid.Row="3" Margin="12,10,12,0">
+                                    <controls:AnswerHistoryTimeline Question="{Binding HistorySource}" />
+                                    <controls:SubquestionResults Assessment="{Binding AiAssessment}" Margin="0,12,0,4" />
+                                </StackPanel>
 
                                 <Border
                                     Grid.Row="4"

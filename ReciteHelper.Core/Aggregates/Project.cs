@@ -26,6 +26,10 @@ public class Project : AggregateRoot
     [JsonPropertyName("chapter")]
     public List<Chapter>? Chapters { get; set; }
 
+    [JsonPropertyName("review_note")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? ReviewNote { get; set; }
+
     [JsonPropertyName("knowledge_base")]
     public string? KnowledgeBasePath { get; set; }
 

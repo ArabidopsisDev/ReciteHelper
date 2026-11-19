@@ -1,8 +1,8 @@
 using System.Text.RegularExpressions;
 
-namespace ReciteHelper.Infrastructure.Services;
+namespace ReciteHelper.Core.Services;
 
-internal static partial class SourceEvidenceOrder
+public static partial class SourceEvidenceOrder
 {
     public static string Normalize(string text) => Whitespace().Replace(text, string.Empty);
 

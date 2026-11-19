@@ -52,6 +52,34 @@ public sealed class ReviewHistoryTests
     }
 
     [Fact]
+    public void ClearingAnswersKeepsReviewAndExamHistoryAndMemory()
+    {
+        var question = LearnedQuestion();
+        var facet = LearnedQuestion();
+        question.SubmittedAnswer = "原答案";
+        question.LastAiAssessment!.Annotations.Add(new() { Text = "原答案" });
+        question.ReviewFacets = [new() { Question = facet, NeedsReview = true, LastScoreRatio = 0.5 }];
+        question.ExamHistory = [new() { Verdict = "PC" }];
+        var memory = question.Memory;
+        var project = new Project { Chapters = [new() { Questions = [question] }] };
+
+        ReviewHistory.Clear(project, [question], answersOnly: true);
+
+        Assert.True(question.AnswerCleared);
+        Assert.True(facet.AnswerCleared);
+        Assert.Null(question.SubmittedAnswer);
+        Assert.Empty(question.LastAiAssessment.UserAnswer);
+        Assert.Empty(question.LastAiAssessment.Annotations);
+        Assert.Equal(1, question.LastAiAssessment.ScoreRatio);
+        Assert.True(question.Status);
+        Assert.Equal(3, question.EFValue);
+        Assert.Same(memory, question.Memory);
+        Assert.Single(question.ReviewTag);
+        Assert.Equal("PC", Assert.Single(question.ExamHistory).Verdict);
+        Assert.True(Assert.Single(question.ReviewFacets).NeedsReview);
+    }
+
+    [Fact]
     public void ClearingOneFacetRemovesItsMasteryWithoutResettingItsSibling()
     {
         var now = DateTime.Now;
