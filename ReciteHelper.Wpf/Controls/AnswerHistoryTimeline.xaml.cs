@@ -15,18 +15,33 @@ public partial class AnswerHistoryTimeline : UserControl
         nameof(Question), typeof(Question), typeof(AnswerHistoryTimeline),
         new PropertyMetadata(null, (target, args) => ((AnswerHistoryTimeline)target).Draw((Question?)args.NewValue)));
 
-    private const double Spacing = 56;
-    private const double NodeWidth = 26;
-    private const double NodeHeight = 16;
-    private readonly record struct Attempt(ReviewTag Tag, bool IsExam, string Verdict);
-    private readonly record struct Lane(double Y, SolidColorBrush Foreground, SolidColorBrush Background);
+    private const double MinimumSpacing = 62;
+    private const double PlotTop = 29;
+    private const double ScoreHeight = 106;
+    private const double PlotHeight = PlotTop + ScoreHeight + 27;
+    private static readonly double[] Ticks = [1, 0.75, 0.5, 0.25, 0];
+    private static readonly Color LowScore = Color.FromRgb(178, 76, 96);
+    private static readonly Color MidScore = Color.FromRgb(181, 129, 53);
+    private static readonly Color HighScore = Color.FromRgb(33, 134, 112);
 
-    private static readonly Lane Accepted = new(10, Brush(0x176647), Brush(0xD9F0E4));
-    private static readonly Lane Partial = new(28, Brush(0x7E5414), Brush(0xFAEAC6));
-    private static readonly Lane Wrong = new(46, Brush(0xA43342), Brush(0xF8DEE1));
-    private static readonly Lane Fallacy = new(64, Brush(0x6E438B), Brush(0xEFE3F7));
+    private readonly record struct Attempt(ReviewTag Tag, bool IsExam, double Score, bool UsesLegacyValue = false);
+    private Attempt[] _attempts = [];
 
-    public AnswerHistoryTimeline() => InitializeComponent();
+    public AnswerHistoryTimeline()
+    {
+        InitializeComponent();
+        Plot.Height = PlotHeight;
+        foreach (var tick in Ticks)
+        {
+            var label = new TextBlock
+            {
+                Text = Percent(tick), FontSize = 11, Height = 16, Width = 34, TextAlignment = TextAlignment.Right
+            };
+            label.SetResourceReference(TextBlock.ForegroundProperty, "ArcTextSecondary");
+            Canvas.SetTop(label, ScoreY(tick) - 8);
+            ScoreAxis.Children.Add(label);
+        }
+    }
 
     public Question? Question
     {
@@ -44,42 +59,58 @@ public partial class AnswerHistoryTimeline : UserControl
 
     private void Draw(Question? question)
     {
-        Plot.Children.Clear();
         var lastReview = question?.ReviewTag.MaxBy(tag => tag.Time);
-        var attempts = question?.ReviewTag
-            .Select(tag => new Attempt(tag, false, Verdict(tag, ReferenceEquals(tag, lastReview) ? question.LastAiAssessment : null)))
-            .Concat((question.ExamHistory ?? []).Select(tag => new Attempt(tag, true, Verdict(tag))))
+        _attempts = question?.ReviewTag
+            .Where(tag => tag.OptimizerWeight > 0)
+            .Select(tag => PracticeAttempt(tag, question, ReferenceEquals(tag, lastReview)))
+            .Concat((question.ExamHistory ?? []).Select(tag => new Attempt(tag, true, Normalize(tag.ScoreRatio ?? tag.Similarity))))
             .OrderBy(attempt => attempt.Tag.Time).ToArray() ?? [];
-        Visibility = attempts.Length == 0 ? Visibility.Collapsed : Visibility.Visible;
-        if (attempts.Length == 0) return;
-
-        CountText.Text = $"{attempts.Length} 次";
-        Plot.Width = attempts.Length * Spacing;
-        var minY = attempts.Min(attempt => GetLane(attempt.Verdict).Y);
-        Plot.Height = attempts.Max(attempt => GetLane(attempt.Verdict).Y) - minY + 32;
-        var points = attempts.Select((attempt, index) =>
-            new Point(Spacing * (index + 0.5), GetLane(attempt.Verdict).Y - minY + 10)).ToArray();
-        for (var i = 1; i < points.Length; i++)
-        {
-            var from = new Point(points[i - 1].X + NodeWidth / 2 - 1, points[i - 1].Y);
-            var to = new Point(points[i].X - NodeWidth / 2 + 1, points[i].Y);
-            var fromColor = GetLane(attempts[i - 1].Verdict).Foreground.Color;
-            var toColor = GetLane(attempts[i].Verdict).Foreground.Color;
-            var fill = new LinearGradientBrush(Tint(fromColor), Tint(toColor), new Point(0, 0), new Point(1, 0));
-            fill.Freeze();
-            Plot.Children.Add(new Path { Data = Ribbon(from, to), Fill = fill, IsHitTestVisible = false });
-        }
-        for (var i = 0; i < attempts.Length; i++)
-            AddNode(attempts[i], points[i], i + 1);
-
+        Visibility = _attempts.Length == 0 ? Visibility.Collapsed : Visibility.Visible;
+        CountText.Text = $"{_attempts.Length} 次";
+        DrawPlot();
         HistoryScroll.ScrollToRightEnd();
     }
 
-    // Adapted from TKCode.Arc's SankeyFlow.Render.cs (MIT). The history has one
-    // node per column, so every ribbon joins the center of two adjacent nodes.
+    private void DrawPlot()
+    {
+        Plot.Children.Clear();
+        if (_attempts.Length == 0) return;
+
+        var width = Math.Max(HistoryScroll.ViewportWidth, MinimumSpacing * _attempts.Length);
+        var spacing = Math.Clamp(width / _attempts.Length, MinimumSpacing, 94);
+        Plot.Width = width;
+        var startX = (width - spacing * (_attempts.Length - 1)) / 2;
+
+        foreach (var tick in Ticks)
+        {
+            var y = ScoreY(tick);
+            var line = new Line { X2 = width, Y1 = y, Y2 = y, StrokeThickness = 1, IsHitTestVisible = false };
+            line.SetResourceReference(Shape.StrokeProperty, tick == 0 ? "ArcBorderStrong" : "ArcBorder");
+            if (tick > 0) line.StrokeDashArray = new DoubleCollection { 2, 4 };
+            Plot.Children.Add(line);
+        }
+
+        var points = _attempts.Select((attempt, index) => new Point(startX + spacing * index, ScoreY(attempt.Score))).ToArray();
+        for (var i = 1; i < points.Length; i++)
+        {
+            var from = _attempts[i - 1].Score;
+            var to = _attempts[i].Score;
+            var fill = new LinearGradientBrush(ScoreColor(from), ScoreColor(to),
+                new Point(0, 0), new Point(1, 0)) { Opacity = 0.6 };
+            if ((from - 0.5) * (to - 0.5) < 0)
+                fill.GradientStops.Add(new GradientStop(MidScore, (0.5 - from) / (to - from)));
+            fill.Freeze();
+            Plot.Children.Add(new Path { Data = Ribbon(points[i - 1], points[i]), Fill = fill, IsHitTestVisible = false });
+        }
+
+        for (var i = 0; i < points.Length; i++)
+            AddNode(_attempts[i], points[i], i + 1, spacing);
+    }
+
+    // Adapted from TKCode.Arc's SankeyFlow.Render.cs (MIT).
     private static StreamGeometry Ribbon(Point from, Point to)
     {
-        const double half = 3;
+        const double half = 1.7;
         var reach = (to.X - from.X) * 0.5;
         var geometry = new StreamGeometry();
         using (var context = geometry.Open())
@@ -95,66 +126,90 @@ public partial class AnswerHistoryTimeline : UserControl
         return geometry;
     }
 
-    private void AddNode(Attempt attempt, Point center, int number)
+    private void AddNode(Attempt attempt, Point center, int number, double spacing)
     {
-        var lane = GetLane(attempt.Verdict);
+        const double markerSize = 24;
+        const double valueHeight = 17;
+        var color = new SolidColorBrush(ScoreColor(attempt.Score));
+        color.Freeze();
+        var halo = new Ellipse { Stroke = color, StrokeThickness = 1.5, Opacity = 0 };
+        var dot = new Ellipse { Width = 18, Height = 18, Fill = color, Stroke = Brushes.White, StrokeThickness = 2 };
+        var marker = new Grid { Width = markerSize, Height = markerSize, Children = { halo, dot } };
+        var value = new TextBlock
+        {
+            Text = Percent(attempt.Score), FontSize = 12, FontWeight = FontWeights.Medium,
+            Height = valueHeight, TextAlignment = TextAlignment.Center
+        };
+        value.SetResourceReference(TextBlock.ForegroundProperty, "ArcForeground");
         var tooltip = Describe(attempt, number);
         var node = new Border
         {
-            Width = NodeWidth, Height = NodeHeight, CornerRadius = new CornerRadius(4),
-            BorderBrush = lane.Foreground, Background = lane.Background, Focusable = true,
-            ToolTip = tooltip,
-            Child = new TextBlock
-            {
-                Text = attempt.Verdict, FontSize = 10, FontWeight = FontWeights.SemiBold,
-                Foreground = lane.Foreground, HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Center
-            }
+            Width = Math.Min(spacing, 56), Background = Brushes.Transparent, Focusable = true,
+            ToolTip = tooltip, Child = new StackPanel { Children = { value, marker } }
         };
         AutomationProperties.SetName(node, tooltip);
         ToolTipService.SetShowDuration(node, 20000);
-        node.MouseEnter += (_, _) => node.BorderThickness = new Thickness(1);
-        node.MouseLeave += (_, _) => node.BorderThickness = new Thickness(node.IsKeyboardFocused ? 1 : 0);
-        node.IsKeyboardFocusedChanged += (_, _) => node.BorderThickness = new Thickness(node.IsKeyboardFocused || node.IsMouseOver ? 1 : 0);
-        Canvas.SetLeft(node, center.X - NodeWidth / 2);
-        Canvas.SetTop(node, center.Y - NodeHeight / 2);
+        void UpdateHalo() => halo.Opacity = node.IsKeyboardFocused || node.IsMouseOver ? 0.65 : 0;
+        node.MouseEnter += (_, _) => UpdateHalo();
+        node.MouseLeave += (_, _) => UpdateHalo();
+        node.IsKeyboardFocusedChanged += (_, _) => UpdateHalo();
+        Canvas.SetLeft(node, center.X - node.Width / 2);
+        Canvas.SetTop(node, center.Y - valueHeight - markerSize / 2);
         Plot.Children.Add(node);
 
-        var label = new TextBlock { Text = $"#{number}", FontSize = 10, Width = Spacing, TextAlignment = TextAlignment.Center };
+        var tick = new Line
+        {
+            X1 = center.X, X2 = center.X, Y1 = ScoreY(0), Y2 = ScoreY(0) + 4, StrokeThickness = 1, IsHitTestVisible = false
+        };
+        tick.SetResourceReference(Shape.StrokeProperty, "ArcBorderStrong");
+        Plot.Children.Add(tick);
+        var label = new TextBlock { Text = $"#{number}", FontSize = 11, Width = spacing, TextAlignment = TextAlignment.Center };
         label.SetResourceReference(TextBlock.ForegroundProperty, "ArcTextMuted");
-        Canvas.SetLeft(label, center.X - Spacing / 2);
-        Canvas.SetBottom(label, 0);
+        Canvas.SetLeft(label, center.X - spacing / 2);
+        Canvas.SetTop(label, ScoreY(0) + 7);
         Plot.Children.Add(label);
     }
 
-    private static string Verdict(ReviewTag tag, Core.DTOs.AiAnswerAssessment? assessment = null)
-        => tag.Verdict ?? (assessment is not null
-            ? AiGradingPolicy.GetRecordedVerdict(assessment.IsCorrect,
-                assessment.RawScoreRatio ?? assessment.ScoreRatio, assessment.HasFallacy)
-            : (tag.IsCorrect ?? ReviewGrader.IsRecall(tag.Grade > 0
-                ? (ReviewGrade)tag.Grade : ReviewGrader.FromLegacyQuality(tag.QValue))) ? "AC" : "WA");
-
-    private static Lane GetLane(string verdict) => verdict switch
+    private static Attempt PracticeAttempt(ReviewTag tag, Question question, bool isLatest)
     {
-        "AC" => Accepted,
-        "PC" => Partial,
-        "FL" => Fallacy,
-        _ => Wrong
-    };
+        if (tag.ScoreRatio is { } score) return new Attempt(tag, false, Normalize(score));
+        if (isLatest && question.LastAiAssessment?.RawScoreRatio is { } raw)
+            return new Attempt(tag, false, Normalize(raw));
+        if (question.IsSingleChoice || question.IsTrueFalse)
+        {
+            var correct = tag.IsCorrect ?? ReviewGrader.IsRecall(tag.Grade > 0
+                ? (ReviewGrade)tag.Grade : ReviewGrader.FromLegacyQuality(tag.QValue));
+            return new Attempt(tag, false, correct ? 1 : 0);
+        }
+        return new Attempt(tag, false, Normalize(tag.Similarity), UsesLegacyValue: true);
+    }
+
+    private static double ScoreY(double score) => PlotTop + (1 - score) * ScoreHeight;
+
+    private static double Normalize(double recorded) => Math.Clamp(recorded > 1 ? recorded / 100 : recorded, 0, 1);
+
+    private static string Percent(double score) => $"{score * 100:0.#}%";
+
+    private static Color ScoreColor(double score)
+    {
+        var from = score <= 0.5 ? LowScore : MidScore;
+        var to = score <= 0.5 ? MidScore : HighScore;
+        var fraction = score <= 0.5 ? score * 2 : (score - 0.5) * 2;
+        byte Mix(byte a, byte b) => (byte)Math.Round(a + (b - a) * fraction);
+        return Color.FromRgb(Mix(from.R, to.R), Mix(from.G, to.G), Mix(from.B, to.B));
+    }
 
     private static string Describe(Attempt attempt, int number)
     {
         var tag = attempt.Tag;
-        var status = attempt.Verdict switch { "AC" => "通过", "PC" => "部分正确", "FL" => "概念混淆", _ => "错误" };
         var kind = attempt.IsExam ? "考试" : "复习";
         var time = tag.Time.Kind == DateTimeKind.Utc ? tag.Time.ToLocalTime() : tag.Time;
+        var scoreLabel = attempt.UsesLegacyValue ? "记录值" : "得分";
         var lines = new List<string>
         {
-            $"第 {number} 次{kind}  {attempt.Verdict} {status}",
+            $"第 {number} 次{kind}  {scoreLabel} {Percent(attempt.Score)}",
             time.ToString("yyyy-MM-dd HH:mm:ss")
         };
-        if (attempt.IsExam)
-            lines.Add($"得分 {tag.Similarity:P0}");
         if (tag.EFValue is { } ef)
             lines.Add($"EF {ef:0.00}");
         if (tag.Stability is { } stability)
@@ -175,16 +230,12 @@ public partial class AnswerHistoryTimeline : UserControl
     private void HistoryScroll_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
     {
         if (Keyboard.Modifiers != ModifierKeys.Shift || HistoryScroll.ScrollableWidth <= 0) return;
-        HistoryScroll.ScrollToHorizontalOffset(HistoryScroll.HorizontalOffset - e.Delta / 120d * Spacing * 2);
+        HistoryScroll.ScrollToHorizontalOffset(HistoryScroll.HorizontalOffset - e.Delta / 120d * MinimumSpacing * 2);
         e.Handled = true;
     }
 
-    private static Color Tint(Color color) => Color.FromArgb(90, color.R, color.G, color.B);
-
-    private static SolidColorBrush Brush(int rgb)
+    private void HistoryScroll_ScrollChanged(object sender, ScrollChangedEventArgs e)
     {
-        var brush = new SolidColorBrush(Color.FromRgb((byte)(rgb >> 16), (byte)(rgb >> 8), (byte)rgb));
-        brush.Freeze();
-        return brush;
+        if (e.ViewportWidthChange != 0 && _attempts.Length > 0) DrawPlot();
     }
 }

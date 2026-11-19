@@ -30,7 +30,7 @@ public sealed class MultipartAnswerEditor : UserControl
             HorizontalScrollBarVisibility = ScrollBarVisibility.Disabled } : _panel;
         for (var i = 0; i < parts.Count; i++)
         {
-            var title = new TextBlock { Text = $"（{i + 1}）{parts[i].Prompt}", TextWrapping = TextWrapping.Wrap,
+            var title = new TextBlock { Text = EssayAnswerLayout.PartHeading(parts[i], i), TextWrapping = TextWrapping.Wrap,
                 Margin = new Thickness(0, i == 0 ? 0 : 20, 0, 8), FontSize = paper ? 15 : 17, LineHeight = 28 };
             _panel.Children.Add(title);
             var input = new TextBox { Text = i < answers.Count ? answers[i] : string.Empty, AcceptsReturn = true, TextWrapping = TextWrapping.Wrap,

@@ -52,6 +52,33 @@ public sealed class RuleReviewTests
         Assert.Equal(plannedCount <= 2 ? 1 : 2, chat.Prompts.Count);
     }
 
+    [Fact]
+    public async Task NumberedModelStemBecomesAnOverviewWithoutChangingTheThreeParts()
+    {
+        const string stem = "说明甘薯茎线虫病的症状、病害循环与防治措施。";
+        const string response = """
+        {
+          "questionPlan": ["甘薯茎线虫病的症状、病害循环与防治措施"],
+          "questions": [{
+            "text": "（1）说明甘薯茎线虫病的症状。（2）说明甘薯茎线虫病的病害循环。（3）说明甘薯茎线虫病的防治措施。",
+            "correct_answer": "课程评分要点",
+            "answer_parts": [
+              { "key": "signs", "prompt": "说明甘薯茎线虫病的症状。", "reference_answer": "症状要点", "weight": 0.3 },
+              { "key": "cycle", "prompt": "说明甘薯茎线虫病的病害循环。", "reference_answer": "病害循环要点", "weight": 0.4 },
+              { "key": "control", "prompt": "说明甘薯茎线虫病的防治措施。", "reference_answer": "防治措施要点", "weight": 0.3 }
+            ]
+          }]
+        }
+        """;
+        var service = new RuleReviewService(new ChatStub(response));
+        var preview = await service.PreviewAsync(new() { Name = "植物病理学", Prompt = "把症状、病害循环和防治措施三问合为一题。" });
+
+        var question = Assert.Single(preview.Questions);
+        Assert.Equal(stem, question.Text);
+        Assert.Equal(new[] { "signs", "cycle", "control" }, question.AnswerParts.Select(part => part.Key));
+        Assert.Equal(stem, Assert.Single((await service.CompleteAsync(preview)).Questions!).Text);
+    }
+
     [Theory]
     [InlineData("[]")]
     [InlineData("[\"重复范围\",\"重复范围\"]")]
@@ -150,6 +177,7 @@ public sealed class RuleReviewTests
         Assert.Single(question.ReviewTag);
         Assert.NotNull(question.Memory);
         Assert.Equal(0.55, result.Similarity);
+        Assert.Equal(0.47, result.ReviewTag.ScoreRatio);
         Assert.False(result.IsCorrect);
     }
 
@@ -275,7 +303,8 @@ public sealed class RuleReviewTests
         {
             Calls++;
             if (Fail) throw new InvalidOperationException("服务暂时不可用");
-            return Task.FromResult(new AiAnswerAssessment { UserAnswer = answer, ScoreRatio = 0.55, Annotations = [new() { Text = answer, Status = "partial" }] });
+            return Task.FromResult(new AiAnswerAssessment { UserAnswer = answer, ScoreRatio = 0.55, RawScoreRatio = 0.47,
+                Annotations = [new() { Text = answer, Status = "partial" }] });
         }
     }
 

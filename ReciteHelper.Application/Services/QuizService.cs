@@ -37,9 +37,10 @@ public class QuizService : IQuizService
         var assessment = question.RequiresAiGrading || question.IsWritten &&
             (project.TemplateType == Core.Enums.ProjectTemplateType.RuleBasedReview || ModelAccess.HasTextGeneration(config))
             ? await _aiGrader.GradeAsync(question, userAnswer) : null;
-        var (isCorrect, similarity) = assessment is not null
-            ? (assessment.IsCorrect, assessment.ScoreRatio)
-            : await EvaluateAnswerAsync(question, userAnswer);
+        var missedBlanks = new List<string>();
+        var (isCorrect, similarity, scoreRatio) = assessment is not null
+            ? (assessment.IsCorrect, assessment.ScoreRatio, assessment.RawScoreRatio ?? assessment.ScoreRatio)
+            : await EvaluateAnswerAsync(question, userAnswer, missedBlanks);
 
         var now = submittedAt;
         var responseSeconds = Math.Max(0d, (now - startTime).TotalSeconds);
@@ -61,6 +62,7 @@ public class QuizService : IQuizService
         {
             Time = now,
             Similarity = similarity,
+            ScoreRatio = scoreRatio,
             Rate = rRelative,
             QValue = isCorrect ? 4 : 1,
             Grade = (int)grade,
@@ -83,6 +85,7 @@ public class QuizService : IQuizService
         question.SubmittedAnswer = userAnswer;
         question.AnswerCleared = false;
         question.LastAiAssessment = assessment;
+        ReviewMistakes.Record(project, question, now, isCorrect, assessment, missedBlanks: missedBlanks);
         if (assessment is not null)
         {
             if (question.AnswerNature == Core.Enums.AnswerNature.None)
@@ -101,26 +104,24 @@ public class QuizService : IQuizService
         };
     }
 
-    private async Task<(bool IsCorrect, double Similarity)> EvaluateAnswerAsync(
+    private async Task<(bool IsCorrect, double Similarity, double ScoreRatio)> EvaluateAnswerAsync(
         Question question,
-        string userAnswer)
+        string userAnswer,
+        List<string> missedBlanks)
     {
         if (question.IsSingleChoice)
         {
             var correctAnswer = question.GetCorrectAnswerText();
-            return (
-                question.IsCorrectChoiceAnswer(userAnswer),
-                await _judgeService.CalculateSimilarityAsync(userAnswer, correctAnswer));
+            var correct = question.IsCorrectChoiceAnswer(userAnswer);
+            return (correct, await _judgeService.CalculateSimilarityAsync(userAnswer, correctAnswer), correct ? 1d : 0d);
         }
 
         if (question.IsTrueFalse)
         {
             var correctAnswer = question.GetCorrectAnswerText();
-            return (
-                question.IsCorrectTrueFalseAnswer(userAnswer),
-                await _judgeService.CalculateSimilarityAsync(
-                    Question.NormalizeTrueFalseAnswer(userAnswer),
-                    correctAnswer));
+            var correct = question.IsCorrectTrueFalseAnswer(userAnswer);
+            var similarity = await _judgeService.CalculateSimilarityAsync(Question.NormalizeTrueFalseAnswer(userAnswer), correctAnswer);
+            return (correct, similarity, correct ? 1d : 0d);
         }
 
         if (question.IsFillBlank)
@@ -128,22 +129,23 @@ public class QuizService : IQuizService
             var userAnswers = Question.SplitBlankAnswers(userAnswer);
             var correctAnswers = question.GetCorrectAnswers();
             if (userAnswers.Count != correctAnswers.Count || correctAnswers.Count == 0)
-                return (false, 0d);
+                return (false, 0d, 0d);
 
-            var results = new List<bool>(correctAnswers.Count);
-            var similarities = new List<double>(correctAnswers.Count);
+            var correctCount = 0;
+            var similarity = 0d;
             for (var index = 0; index < correctAnswers.Count; index++)
             {
-                results.Add(await _judgeService.JudgeAsync(userAnswers[index], correctAnswers[index]));
-                similarities.Add(await _judgeService.CalculateSimilarityAsync(userAnswers[index], correctAnswers[index]));
+                if (await _judgeService.JudgeAsync(userAnswers[index], correctAnswers[index])) correctCount++;
+                else missedBlanks.Add($"第 {index + 1} 空填写「{correctAnswers[index]}」。");
+                similarity += await _judgeService.CalculateSimilarityAsync(userAnswers[index], correctAnswers[index]);
             }
 
-            return (results.All(result => result), similarities.Average());
+            return (correctCount == correctAnswers.Count, similarity / correctAnswers.Count, (double)correctCount / correctAnswers.Count);
         }
 
         var answer = question.GetCorrectAnswerText();
-        return (
-            await _judgeService.JudgeAsync(userAnswer, answer),
-            await _judgeService.CalculateSimilarityAsync(userAnswer, answer));
+        var isCorrect = await _judgeService.JudgeAsync(userAnswer, answer);
+        var writtenSimilarity = await _judgeService.CalculateSimilarityAsync(userAnswer, answer);
+        return (isCorrect, writtenSimilarity, Math.Clamp(writtenSimilarity, 0, 1));
     }
 }

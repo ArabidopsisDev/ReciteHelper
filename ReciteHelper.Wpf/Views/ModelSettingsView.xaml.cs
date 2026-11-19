@@ -179,6 +179,7 @@ public partial class ModelSettingsView : UserControl
         {
             var config = await _configService.LoadAsync();
             var choices = new List<ModelChoice>();
+            AutoExplainBox.IsChecked = config.AutoGenerateQuestionExplanation;
             if (ModelAccess.IsConfigured(config, ModelAccessMode.DeepSeekAndQwen)) choices.Add(new(ModelAccessMode.DeepSeekAndQwen, "DeepSeek（配置文件 / 环境变量）"));
             if (ModelAccess.IsConfigured(config, ModelAccessMode.PiOAuth)) choices.Add(new(ModelAccessMode.PiOAuth, $"OAuth：{config.PiOAuthProvider} / {config.PiOAuthModel}"));
             if (ModelAccess.IsConfigured(config, ModelAccessMode.OpenRouter)) choices.Add(new(ModelAccessMode.OpenRouter, $"OpenRouter：{config.OpenRouterChatModel}"));
@@ -211,6 +212,24 @@ public partial class ModelSettingsView : UserControl
     }
 
     private sealed record ModelChoice(ModelAccessMode Mode, string Name);
+
+    private async void AutoExplain_Click(object sender, RoutedEventArgs e)
+    {
+        AutoExplainBox.IsEnabled = false;
+        try
+        {
+            var config = await _configService.LoadAsync();
+            config.AutoGenerateQuestionExplanation = AutoExplainBox.IsChecked is true;
+            await _configService.SaveAsync(config);
+            Complete("解析设置已保存。");
+        }
+        catch (Exception ex)
+        {
+            AutoExplainBox.IsChecked = AutoExplainBox.IsChecked is not true;
+            ShowError($"保存解析设置失败。{ex.Message}");
+        }
+        finally { AutoExplainBox.IsEnabled = true; }
+    }
 
     private async Task<ConfigOptions> LoadConfigAsync()
     {

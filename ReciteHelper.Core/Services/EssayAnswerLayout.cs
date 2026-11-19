@@ -5,8 +5,55 @@ using ReciteHelper.Core.Entities;
 namespace ReciteHelper.Core.Services;
 
 /// <summary>One answer field per natural subquestion, with a readable persisted answer.</summary>
-public static class EssayAnswerLayout
+public static partial class EssayAnswerLayout
 {
+    public static string Stem(Question question, IReadOnlyList<QuestionPart> parts)
+    {
+        var text = (question.Text ?? string.Empty).Trim();
+        if (!question.IsWritten || parts.Count < 2) return text;
+        var prompts = NumberedPrompts(text, out var intro);
+        if (prompts.Length == 0) return text;
+        var parallel = prompts.Select(prompt => ParallelPrompt().Match(prompt)).ToArray();
+        if (intro.Length == 0 && parallel.All(match => match.Success && match.Groups["topic"].Value == parallel[0].Groups["topic"].Value))
+        {
+            var topics = parallel.Select(match => match.Groups["scope"].Value.TrimEnd('。', '？', '?')).ToArray();
+            var end = prompts[^1].EndsWith('？') || prompts[^1].EndsWith('?') ? "？" : "。";
+            return parallel[0].Groups["topic"].Value + string.Join('、', topics[..^1]) + "与" + topics[^1] + end;
+        }
+
+        return intro + string.Concat(prompts.Select(prompt =>
+            prompt.EndsWith('。') || prompt.EndsWith('？') || prompt.EndsWith('?') || prompt.EndsWith('！') || prompt.EndsWith('!')
+                ? prompt : prompt.TrimEnd('；', ';', '，', ',') + "。"));
+    }
+
+    public static string PartHeading(QuestionPart part, int zeroBasedIndex)
+    {
+        var prompt = part.Prompt.Trim();
+        var marker = PartNumbers().Match(prompt);
+        if (marker.Success && marker.Index == 0) prompt = prompt[marker.Length..].TrimStart();
+        return $"（{zeroBasedIndex + 1}）{prompt}";
+    }
+
+    private static int Number(string value) => int.TryParse(value, out var number)
+        ? number : "一二三四五六七八九十".IndexOf(value, StringComparison.Ordinal) + 1;
+
+    private static string[] NumberedPrompts(string text, out string intro)
+    {
+        var markers = PartNumbers().Matches(text);
+        intro = string.Empty;
+        if (markers.Count < 2 || markers.Select((marker, index) => Number(marker.Groups["number"].Value) != index + 1).Any(outOfOrder => outOfOrder))
+            return [];
+        intro = text[..markers[0].Index].Trim();
+        return markers.Select((marker, index) =>
+            text[(marker.Index + marker.Length)..(index + 1 < markers.Count ? markers[index + 1].Index : text.Length)].Trim()).ToArray();
+    }
+
+    [GeneratedRegex(@"(?<![0-9a-zA-Z])(?:[（(](?<number>[1-9]\d?|[一二三四五六七八九十])[）)]|(?<number>[1-9]\d?)[、.](?!\d))")]
+    private static partial Regex PartNumbers();
+
+    [GeneratedRegex(@"^(?<topic>(?:说明|简述|概述|列出|列举|分析|解释)[^，。？！；?!;]+?的)(?<scope>[^，。？！；?!;]+)[。？?]?$")]
+    private static partial Regex ParallelPrompt();
+
     public static IReadOnlyList<QuestionPart> Parts(Question question)
     {
         if (question.IsReviewFacet) return [];
@@ -20,8 +67,7 @@ public static class EssayAnswerLayout
 
         // Earlier project files have only a stem. Recognise explicit numbered questions and common course headings.
         var text = question.Text ?? string.Empty;
-        var numbered = Regex.Matches(text, @"(?:（[一二三四五六七八九十\d]+）|\([1-9]\)|(?<!\d)[1-9][、.])\s*([^（]+?)(?=(?:（[一二三四五六七八九十\d]+）|\([1-9]\)|(?<!\d)[1-9][、.])|$)");
-        var prompts = numbered.Count > 1 ? numbered.Select(m => m.Groups[1].Value.Trim()).ToList() : [];
+        var prompts = NumberedPrompts(text, out _).ToList();
         if (prompts.Count == 0)
         {
             var sentences = Regex.Matches(text, @"[^？?]+[？?]").Select(m => m.Value.Trim()).ToList();

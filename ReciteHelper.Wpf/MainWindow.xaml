@@ -25,6 +25,42 @@
 				<Setter Property="Padding" Value="12,12" />
 				<Setter Property="FontSize" Value="{DynamicResource ArcFontBody}" />
 			</Style>
+			<Style x:Key="ToolDockTabStyle" TargetType="TabItem">
+				<Setter Property="Template">
+					<Setter.Value>
+						<ControlTemplate TargetType="TabItem">
+							<Border x:Name="TabLine" Padding="11,7" BorderThickness="0,0,0,2" BorderBrush="Transparent">
+								<ContentPresenter ContentSource="Header" />
+							</Border>
+							<ControlTemplate.Triggers>
+								<Trigger Property="IsMouseOver" Value="True">
+									<Setter TargetName="TabLine" Property="Background" Value="{DynamicResource ArcSurfaceHover}" />
+								</Trigger>
+								<Trigger Property="IsSelected" Value="True">
+									<Setter TargetName="TabLine" Property="BorderBrush" Value="{DynamicResource ArcAccent}" />
+								</Trigger>
+							</ControlTemplate.Triggers>
+						</ControlTemplate>
+					</Setter.Value>
+				</Setter>
+			</Style>
+			<Style x:Key="ToolDockGroupStyle" TargetType="TabControl">
+				<Setter Property="FontSize" Value="12" />
+				<Setter Property="ItemContainerStyle" Value="{StaticResource ToolDockTabStyle}" />
+				<Setter Property="Template">
+					<Setter.Value>
+						<ControlTemplate TargetType="TabControl">
+							<DockPanel Background="{DynamicResource ArcSurface}">
+								<Border x:Name="ToolTabs" DockPanel.Dock="Top" BorderBrush="{DynamicResource ArcBorder}"
+								        BorderThickness="0,0,0,1" Background="{DynamicResource ArcSurfaceMuted}">
+									<ItemsPresenter />
+								</Border>
+								<ContentPresenter x:Name="PART_SelectedContentHost" ContentSource="SelectedContent" />
+							</DockPanel>
+						</ControlTemplate>
+					</Setter.Value>
+				</Setter>
+			</Style>
 			<Style x:Key="WorkspaceTab" TargetType="TabItem">
 				<Setter Property="MaxWidth" Value="236" />
 				<Setter Property="Template">
@@ -118,6 +154,7 @@
 							<Grid.ColumnDefinitions>
 								<ColumnDefinition Width="*" />
 								<ColumnDefinition Width="Auto" />
+								<ColumnDefinition Width="Auto" />
 							</Grid.ColumnDefinitions>
 							<ScrollViewer
 								x:Name="TabStripScroll"
@@ -130,16 +167,18 @@
 								VerticalScrollBarVisibility="Disabled">
 								<ItemsPresenter />
 							</ScrollViewer>
+							<Button Grid.Column="1" Content="窗口" Click="WorkspaceMenu_Click"
+							        shell:WindowChrome.IsHitTestVisibleInChrome="True" Style="{StaticResource SubtleButtonStyle}"
+							        VerticalAlignment="Center" MinHeight="28" />
 							<controls:WindowTitleBar
 								x:Name="WorkspaceTitleBar"
-								Grid.Column="1"
+								Grid.Column="2"
 								ShowTitle="False" />
 						</Grid>
 					</Border>
-					<ContentPresenter
-						x:Name="PART_SelectedContentHost"
-						Grid.Row="1"
-						ContentSource="SelectedContent" />
+					<controls:WorkspacePaneManager x:Name="ToolPanes" Grid.Row="1">
+						<ContentPresenter x:Name="PART_SelectedContentHost" ContentSource="SelectedContent" />
+					</controls:WorkspacePaneManager>
 				</Grid>
 			</ControlTemplate>
 		</TabControl.Template>

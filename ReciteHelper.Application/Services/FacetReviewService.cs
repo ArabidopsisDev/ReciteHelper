@@ -71,6 +71,7 @@ public sealed class FacetReviewService(IReviewScheduler scheduler) : IFacetRevie
             var tag = new ReviewTag
             {
                 Time = reviewedAt, Similarity = point.ScoreRatio, Grade = (int)grade, QValue = point.IsCorrect ? 4 : 1,
+                ScoreRatio = point.RawScoreRatio ?? point.ScoreRatio,
                 IsCorrect = point.IsCorrect, ElapsedDays = outcome.ElapsedDays,
                 Verdict = AiGradingPolicy.GetRecordedVerdict(point.IsCorrect, point.RawScoreRatio ?? point.ScoreRatio, point.HasFallacy),
                 EFValue = facet.Question.EFValue, NextIntervalDays = outcome.NextIntervalDays,

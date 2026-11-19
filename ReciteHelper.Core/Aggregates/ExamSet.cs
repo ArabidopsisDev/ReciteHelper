@@ -32,6 +32,9 @@ public sealed class ExamSet
     [JsonPropertyName("questions")]
     public List<ExamSetQuestion> Questions { get; set; } = [];
 
+    [JsonPropertyName("review_mistakes")]
+    public List<ReviewMistake> ReviewMistakes { get; set; } = [];
+
     [JsonIgnore]
     public string DisplayName => $"{Title}（{Questions.Count}题）";
 

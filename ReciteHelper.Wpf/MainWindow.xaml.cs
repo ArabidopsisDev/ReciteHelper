@@ -390,7 +390,9 @@ public partial class MainWindow : Window
                 _ = Dispatcher.BeginInvoke(new Action(Close));
             return;
         }
-        foreach (var view in practiceViews) view.Release();
+        _panes?.SaveLayout();
+        foreach (var notebook in notebooks) notebook.Release();
+        foreach (var help in _projectHelp.Values) help.SetQuestion(null, null);
         recentProjects = (await _recentProjectService.RemoveMissingAsync()).ToList();
     }
 }

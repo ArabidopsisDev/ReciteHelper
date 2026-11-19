@@ -4,6 +4,7 @@ using System.Windows.Input;
 using System.Windows.Threading;
 using ReciteHelper.Core.Aggregates;
 using ReciteHelper.Core.Entities;
+using ReciteHelper.Wpf.Controls;
 using ReciteHelper.Wpf.Models;
 using ReciteHelper.Wpf.Views;
 
@@ -13,7 +14,10 @@ public partial class MainWindow
 {
     private readonly Dictionary<string, TabItem> _projectTabs = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<Project, TabItem> _knowledgeTabs = new(ReferenceEqualityComparer.Instance);
-    private readonly Dictionary<Project, ProjectNotesWindow> _projectNotes = new(ReferenceEqualityComparer.Instance);
+    private readonly Dictionary<Project, ProjectNotesView> _projectNotes = new(ReferenceEqualityComparer.Instance);
+    private readonly Dictionary<Project, QuestionHelpView> _projectHelp = new(ReferenceEqualityComparer.Instance);
+    private readonly Dictionary<Project, ReviewMistakesView> _projectMistakes = new(ReferenceEqualityComparer.Instance);
+    private WorkspacePaneManager? _panes;
     private readonly HashSet<string> _openingProjects = new(StringComparer.OrdinalIgnoreCase);
     private TabItem? _settingsTab;
     private bool _savingWorkspace;
@@ -74,7 +78,6 @@ public partial class MainWindow
             ReferenceEquals(view.Project, project) && ReferenceEquals(view.Chapter, chapter));
         if (chapter is null && tab?.Content is QuizView { HasQuestions: false, HasCloseWork: false } empty)
         {
-            empty.Release();
             WorkspaceTabs.Items.Remove(tab);
             tab = null;
         }
@@ -90,7 +93,7 @@ public partial class MainWindow
 
             var title = chapter is null ? "智能复习" : chapter.Name ?? "章节练习";
             var view = new QuizView(project, chapter, questions, _quizService, _projectFileService,
-                _questionHelpService, _reviewPersonalizationService, _ruleReviewService);
+                _reviewPersonalizationService, _ruleReviewService);
             tab = CreateTab(title, view, $"{project.ProjectName ?? "项目"} / {title}");
             view.RecordsChanged += (_, _) => projectView.RefreshChapters();
             view.RecordsCleared += (_, affected) =>
@@ -99,27 +102,105 @@ public partial class MainWindow
                     if (!ReferenceEquals(practice, view) && ReferenceEquals(practice.Project, project))
                         practice.RefreshRecords(affected);
             };
-            view.NotesRequested += (_, _) => ToggleProjectNotes(project);
+            view.NotesRequested += (_, _) => OpenTool(project, WorkspacePaneManager.Notes);
+            view.HelpRequested += (_, _) => OpenTool(project, WorkspacePaneManager.Sources);
+            view.HelpTargetChanged += (_, _) =>
+            {
+                if (ActiveContent == view) UpdateHelpTarget(project, view);
+            };
         }
         SelectTab(tab);
     }
 
-    private void ToggleProjectNotes(Project project)
+    private WorkspacePaneManager Panes()
     {
-        if (!_projectNotes.TryGetValue(project, out var notebook))
+        if (_panes is not null) return _panes;
+        WorkspaceTabs.ApplyTemplate();
+        _panes = (WorkspacePaneManager)WorkspaceTabs.Template.FindName("ToolPanes", WorkspaceTabs);
+        _panes.Initialize(this);
+        _panes.PaneClosed += (_, key) =>
         {
-            notebook = new ProjectNotesWindow(this, project, _projectFileService);
-            _projectNotes.Add(project, notebook);
-            notebook.Closed += (_, _) => _projectNotes.Remove(project);
-        }
-
-        if (notebook.IsVisible)
-            notebook.Close();
-        else
-            notebook.ShowBesideOwner();
+            if (key == WorkspacePaneManager.Sources && ActiveProject() is { } project && _projectHelp.TryGetValue(project, out var help))
+                help.SetQuestion(null, null);
+        };
+        return _panes;
     }
 
-    private async Task<bool> SaveWorkspaceAsync(IEnumerable<QuizView> views, IReadOnlyList<ProjectNotesWindow>? notebooks = null)
+    private void OpenTool(Project project, string key)
+    {
+        var panes = Panes();
+        EnsureTool(project, key);
+        panes.ShowPane(key);
+        UpdateHelpTarget(project, ActiveContent as QuizView);
+    }
+
+    private void EnsureTool(Project project, string key)
+    {
+        var panes = Panes();
+        switch (key)
+        {
+            case WorkspacePaneManager.Notes when !_projectNotes.ContainsKey(project):
+                var notes = new ProjectNotesView(project, _projectFileService);
+                _projectNotes.Add(project, notes);
+                panes.Register(project, key, "项目笔记", notes);
+                break;
+            case WorkspacePaneManager.Sources when !_projectHelp.ContainsKey(project):
+                var help = new QuestionHelpView(project, _questionHelpService);
+                _projectHelp.Add(project, help);
+                panes.Register(project, key, "资料与解析", help);
+                break;
+            case WorkspacePaneManager.Mistakes when !_projectMistakes.ContainsKey(project):
+                var mistakes = new ReviewMistakesView(project, _examSetRepository);
+                _projectMistakes.Add(project, mistakes);
+                panes.Register(project, key, "错误列表", mistakes);
+                break;
+        }
+    }
+
+    private void UpdateHelpTarget(Project project, QuizView? practice)
+    {
+        if (_panes?.IsOpen(WorkspacePaneManager.Sources) != true || !_projectHelp.TryGetValue(project, out var help)) return;
+        var target = practice?.HelpTarget;
+        help.SetQuestion(target?.Question, target?.UserAnswer);
+    }
+
+    private void WorkspaceMenu_Click(object sender, RoutedEventArgs e)
+    {
+        var panes = Panes();
+        var menu = new ContextMenu { PlacementTarget = (Button)sender };
+        var project = ActiveProject();
+        foreach (var (key, title) in new[] { (WorkspacePaneManager.Notes, "项目笔记"),
+            (WorkspacePaneManager.Sources, "资料与解析"), (WorkspacePaneManager.Mistakes, "错误列表") })
+        {
+            var item = new MenuItem { Header = title, IsEnabled = project is not null,
+                IsChecked = project is not null && panes.IsOpen(key) };
+            item.Click += (_, _) =>
+            {
+                if (project is null) return;
+                EnsureTool(project, key);
+                panes.TogglePane(key);
+                UpdateHelpTarget(project, ActiveContent as QuizView);
+            };
+            menu.Items.Add(item);
+        }
+        menu.Items.Add(new Separator());
+        var reset = new MenuItem { Header = "还原面板位置" };
+        reset.Click += (_, _) => panes.ResetLayout();
+        menu.Items.Add(reset);
+        menu.IsOpen = true;
+    }
+
+    private object? ActiveContent => (WorkspaceTabs.SelectedItem as TabItem)?.Content;
+
+    private Project? ActiveProject() => ActiveContent switch
+    {
+        QuizView quiz => quiz.Project,
+        ProjectView view => view.Project,
+        KnowledgePointView knowledge => knowledge.Project,
+        _ => null
+    };
+
+    private async Task<bool> SaveWorkspaceAsync(IEnumerable<QuizView> views, IReadOnlyList<ProjectNotesView>? notebooks = null)
     {
         notebooks ??= [];
         _savingWorkspace = true;
@@ -132,8 +213,7 @@ public partial class MainWindow
             foreach (var notebook in notebooks)
             {
                 if (!notebook.HasCloseWork || await notebook.SavePendingAsync()) continue;
-                if (!notebook.IsVisible) notebook.ShowBesideOwner(moveOwner: false);
-                notebook.Activate();
+                MessageBox.Show(this, "项目笔记尚未保存，请重试。", "保存项目笔记", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return false;
             }
             return true;
@@ -162,15 +242,16 @@ public partial class MainWindow
             !IsBusyTab(selected))
             practice.RefreshRecords();
 
-        var project = (WorkspaceTabs.SelectedItem as TabItem)?.Content switch
-        {
-            QuizView quiz => quiz.Project,
-            ProjectView view => view.Project,
-            KnowledgePointView knowledge => knowledge.Project,
-            _ => null
-        };
-        foreach (var notebook in _projectNotes.Values)
-            if (notebook.IsVisible && !ReferenceEquals(notebook.Project, project)) notebook.Hide();
+        if (!IsLoaded) return;
+        var project = ActiveProject();
+        var panes = Panes();
+        panes.SetProject(project);
+        foreach (var (other, help) in _projectHelp)
+            if (!ReferenceEquals(other, project)) help.SetQuestion(null, null);
+        if (project is null) return;
+        foreach (var key in new[] { WorkspacePaneManager.Notes, WorkspacePaneManager.Sources, WorkspacePaneManager.Mistakes })
+            if (panes.IsOpen(key)) EnsureTool(project, key);
+        UpdateHelpTarget(project, ActiveContent as QuizView);
     }
 
     private void Workspace_PreviewKeyDown(object sender, KeyEventArgs e)
@@ -202,7 +283,6 @@ public partial class MainWindow
                     candidate.Content is ProjectView view && ReferenceEquals(view.Project, practice.Project));
                 SelectTab(projectTab);
             }
-            practice.Release();
         }
 
         else if (tab.Content is ProjectView projectView)
@@ -218,8 +298,11 @@ public partial class MainWindow
                 (WorkspaceTabs.Items.OfType<TabItem>().Any(IsBusyTab) ||
                  !await SaveWorkspaceAsync(practiceViews, notebook is null ? [] : [notebook]))) return;
 
-            notebook?.Close();
-            foreach (var view in practiceViews) view.Release();
+            notebook?.Release();
+            _projectNotes.Remove(projectView.Project);
+            if (_projectHelp.Remove(projectView.Project, out var help)) help.SetQuestion(null, null);
+            _projectMistakes.Remove(projectView.Project);
+            _panes?.Remove(projectView.Project);
             foreach (var practiceTab in practiceTabs) WorkspaceTabs.Items.Remove(practiceTab);
             if (knowledgeTab is not null)
             {

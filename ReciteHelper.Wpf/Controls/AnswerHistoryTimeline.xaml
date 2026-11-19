@@ -8,10 +8,14 @@
                 <TextBlock x:Name="CountText" DockPanel.Dock="Right" Style="{StaticResource CaptionTextStyle}" />
                 <TextBlock Text="作答历史" Style="{StaticResource FieldLabel}" />
             </DockPanel>
-            <ScrollViewer x:Name="HistoryScroll" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled"
-                          Focusable="False" PreviewMouseWheel="HistoryScroll_PreviewMouseWheel">
-                <Canvas x:Name="Plot" />
-            </ScrollViewer>
+            <DockPanel>
+                <Canvas x:Name="ScoreAxis" DockPanel.Dock="Left" Width="43" />
+                <ScrollViewer x:Name="HistoryScroll" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled"
+                              Focusable="False" ScrollChanged="HistoryScroll_ScrollChanged"
+                              PreviewMouseWheel="HistoryScroll_PreviewMouseWheel">
+                    <Canvas x:Name="Plot" />
+                </ScrollViewer>
+            </DockPanel>
         </StackPanel>
     </Border>
 </UserControl>

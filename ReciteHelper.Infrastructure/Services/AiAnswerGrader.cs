@@ -62,6 +62,7 @@ public sealed class AiAnswerGrader(IAiChatService chat) : IAiAnswerGrader
             Explanation = string.Join("\n", facets.Select((facet, index) => $"第 {index + 1} 问：{facet.Explanation}")),
             FallacyReason = string.Join("\n", facets.Select((facet, index) => facet.HasFallacy ? $"第 {index + 1} 问：{facet.FallacyReason}" : null).Where(text => text is not null)),
             MissingPoints = results.SelectMany((result, index) => result.MissingPoints.Select(point => $"第 {index + 1} 问：{point}")).ToList(),
+            Corrections = results.SelectMany((result, index) => result.Corrections.Select(point => $"第 {index + 1} 问：{point}")).ToList(),
             Annotations = EssayAnswerLayout.MergeAnnotations(userAnswer, results)
         };
         AiGradingPolicy.Apply(assessment);
@@ -82,7 +83,7 @@ public sealed class AiAnswerGrader(IAiChatService chat) : IAiAnswerGrader
             return new()
             {
                 UserAnswer = userAnswer, RawScoreRatio = 0, AnswerNature = nature,
-                Explanation = "本问未作答。", MissingPoints = ["本问未作答。"],
+                Explanation = "本问未作答。", MissingPoints = [question.GetCorrectAnswerText()],
                 Annotations = userAnswer.Length == 0 ? [] : [new() { Text = userAnswer, Status = "partial" }]
             };
         }
@@ -127,7 +128,7 @@ public sealed class AiAnswerGrader(IAiChatService chat) : IAiAnswerGrader
             FL 优先于覆盖率，不算掌握；不能因为其他要点较多而接受关键概念错误。可选拓展内容不能列入 missingPoints。
             返回 JSON：{"answerNature":"Conceptual","isCorrect":false,"scoreRatio":0.4,"hasFallacy":false,"fallacyReason":"","explanation":"本问批改说明",
             "annotations":[{"segmentId":0,"status":"partial","comment":"此处遗漏什么以及怎样补充"}],
-            "missingPoints":["用户完全遗漏的得分要点"],
+            "missingPoints":["用户完全遗漏的得分要点"],"corrections":["必须改正的事实或表达，直接写正确的说法"],
             "facets":[{"key":"cycle","name":"病害循环","weight":0.6,"weightReason":"循环占3分，症状占2分",
             "scoreRatio":0.0,"isCorrect":false,"question":"请说明小麦叶斑病的病害循环。","referenceAnswer":"仅包含病害循环的完整答案"},
             {"key":"symptoms","name":"病症","weight":0.4,"weightReason":"病症占2分，病害循环占3分",
@@ -136,6 +137,8 @@ public sealed class AiAnswerGrader(IAiChatService chat) : IAiAnswerGrader
             换行或【第N问】标签等结构片段可标 correct，不因其没有知识内容而扣分。
             status 使用 correct 表示正确、incorrect 表示错误、partial 表示内容不全。comment 具体解释判断依据及修改建议。
             完全未提及的必答内容放入 missingPoints。isCorrect 表示按本问性质判分达到 masteryThreshold，且无关键混淆。
+            corrections 用于错题订正，只列需要改正的观点及仍需补足的关键信息。每条先写可以直接背诵的正确内容。
+            已答对或可选的内容不写入 corrections；已列入 missingPoints 的内容不重复。没有待改项时返回空数组。
             answerParts 有多问时，按其顺序逐问返回 facets，沿用各问 key 和范围。hasEstablishedRubric=true 时严格沿用 weight；
             false 表示旧题首次识别分问，占比可根据核心评分要点估算，并说明依据。未作答的一问得0，不能被另一问的丰富答案抵消。
             用户的【第N问】标签用于分隔答案，标签自身不判错。各问只评价对应回答，不能跨问调配得分内容。
@@ -154,6 +157,7 @@ public sealed class AiAnswerGrader(IAiChatService chat) : IAiAnswerGrader
             输出完整 JSON，省略其他说明。
             """);
         var assessment = AiJson.Read<AiAnswerAssessment>(response);
+        assessment.Corrections ??= [];
         if (assessment.Annotations.Any(a => a.SegmentId.HasValue))
         {
             if (!assessment.Annotations.Select(a => a.SegmentId).SequenceEqual(Enumerable.Range(0, segments.Count).Select(i => (int?)i)))

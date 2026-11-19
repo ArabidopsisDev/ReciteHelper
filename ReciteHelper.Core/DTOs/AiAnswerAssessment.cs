@@ -16,6 +16,7 @@ public sealed class AiAnswerAssessment
     public string Explanation { get; set; } = string.Empty;
     public List<AnswerAnnotation> Annotations { get; set; } = [];
     public List<string> MissingPoints { get; set; } = [];
+    public List<string> Corrections { get; set; } = [];
     public List<FacetAssessment> Facets { get; set; } = [];
 }
 

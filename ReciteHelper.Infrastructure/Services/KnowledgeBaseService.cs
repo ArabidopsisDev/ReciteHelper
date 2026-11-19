@@ -88,7 +88,10 @@ namespace ReciteHelper.Infrastructure.Services
                 return [];
 
             var cfg = await configService.LoadAsync();
-            await EnsureCompatibleEmbeddingsAsync(store, cfg, cancellationToken);
+            var storedModel = store.Entries.Select(entry => entry.EmbeddingModel).FirstOrDefault(model => !string.IsNullOrWhiteSpace(model));
+            if (storedModel is not null && !string.Equals(storedModel, ResolveEmbeddingModelId(cfg), StringComparison.OrdinalIgnoreCase) ||
+                storedModel is null && ModelAccess.ResolveEmbedding(cfg) == ModelAccessMode.OpenRouter)
+                return [];
             var queryVector = ModelAccess.ResolveEmbedding(cfg) switch
             {
                 ModelAccessMode.DeepSeekAndQwen =>
@@ -205,31 +208,6 @@ namespace ReciteHelper.Infrastructure.Services
                 options: null,
                 cancellationToken);
             return response.Value[0].ToFloats().ToArray();
-        }
-
-        private async Task EnsureCompatibleEmbeddingsAsync(
-            FileVectorStore store,
-            ConfigOptions config,
-            CancellationToken cancellationToken)
-        {
-            var currentModel = ResolveEmbeddingModelId(config);
-            var storedModel = store.Entries
-                .Select(entry => entry.EmbeddingModel)
-                .FirstOrDefault(model => !string.IsNullOrWhiteSpace(model));
-
-            var isLegacyStore = string.IsNullOrWhiteSpace(storedModel);
-            var switchingLegacyStoreToOpenRouter =
-                isLegacyStore && ModelAccess.ResolveEmbedding(config) == ModelAccessMode.OpenRouter;
-            var changedKnownModel =
-                !isLegacyStore && !string.Equals(storedModel, currentModel, StringComparison.OrdinalIgnoreCase);
-
-            if (!switchingLegacyStoreToOpenRouter && !changedKnownModel)
-                return;
-
-            var vectors = await EmbedTextsAsync(
-                store.Entries.Select(entry => entry.Text).ToList(),
-                cancellationToken);
-            store.ReplaceVectors(vectors, currentModel);
         }
 
         private static string ResolveEmbeddingModelId(ConfigOptions config)

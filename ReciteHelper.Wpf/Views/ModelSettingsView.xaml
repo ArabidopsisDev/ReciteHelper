@@ -25,6 +25,8 @@
                         <TextBlock Text="已接入的服务" Style="{StaticResource FieldLabel}" />
                         <ComboBox x:Name="ActiveModelBox" DisplayMemberPath="Name" SelectedValuePath="Mode" AutomationProperties.Name="当前使用的模型" />
                         <Button x:Name="UseSelectedModelButton" Content="使用所选模型" Click="UseSelectedModel_Click" Style="{StaticResource PrimaryButtonStyle}" HorizontalAlignment="Right" Margin="0,16,0,0" />
+                        <TextBlock Text="题目解析" Style="{StaticResource FieldLabel}" Margin="0,24,0,8" />
+                        <CheckBox x:Name="AutoExplainBox" Click="AutoExplain_Click" Content="打开资料与解析时自动生成解析" />
                     </StackPanel>
                     <StackPanel x:Name="OAuthSection" Visibility="Collapsed">
                         <TextBlock Text="账号授权" Style="{StaticResource TitleTextStyle}" />

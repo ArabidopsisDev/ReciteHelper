@@ -3,6 +3,7 @@ using ReciteHelper.Core.Aggregates;
 using ReciteHelper.Core.DTOs;
 using ReciteHelper.Core.Entities;
 using ReciteHelper.Core.Interfaces.Services;
+using ReciteHelper.Core.Services;
 using ReciteHelper.Wpf.Models;
 using ReciteHelper.Wpf.ViewModels;
 using System.ComponentModel;
@@ -75,7 +76,7 @@ public partial class ExamReviewWindow : Window, INotifyPropertyChanged
             var reviewItem = new ReviewItemViewModel
             {
                 QuestionNumber = i + 1,
-                QuestionContent = examQuestion.Question?.Text ?? "题目内容缺失",
+                QuestionContent = FormatQuestion(examQuestion.Question),
                 UserAnswer = FormatUserAnswer(examQuestion),
                 AiAssessment = examQuestion.AiAssessment,
                 HistorySource = examQuestion.HistorySource,
@@ -154,7 +155,7 @@ public partial class ExamReviewWindow : Window, INotifyPropertyChanged
             var isCorrect = IsCorrect(question);
 
             writer.WriteLine($"第{i + 1}题 {(isCorrect ? "✓" : "✗")}");
-            writer.WriteLine($"题目：{question.Question?.Text}");
+            writer.WriteLine($"题目：{FormatQuestion(question.Question)}");
             writer.WriteLine($"您的答案：{FormatUserAnswer(question)}");
             writer.WriteLine($"正确答案：{question.Question?.GetCorrectAnswerText()}");
 
@@ -318,6 +319,14 @@ public partial class ExamReviewWindow : Window, INotifyPropertyChanged
         }
 
         return costs[right.Length];
+    }
+
+    private static string FormatQuestion(Question? question)
+    {
+        if (question is null) return "题目内容缺失";
+        var parts = EssayAnswerLayout.Parts(question);
+        var stem = EssayAnswerLayout.Stem(question, parts);
+        return parts.Count > 1 ? stem + "\n" + string.Join('\n', parts.Select(EssayAnswerLayout.PartHeading)) : stem;
     }
 
     private static string FormatUserAnswer(ExamQuestionItem item)

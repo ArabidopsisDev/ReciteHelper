@@ -14,6 +14,11 @@ public class ReviewTag : Entity
     [JsonPropertyName("similarity")]
     public double Similarity { get; set; }
 
+    /// <summary>Observed score on a 0..1 scale before mastery credit is applied.</summary>
+    [JsonPropertyName("score_ratio")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public double? ScoreRatio { get; set; }
+
     /// <summary>Typing rate relative to the configured standard rate (legacy feature).</summary>
     [JsonPropertyName("rate")]
     public double Rate { get; set; }

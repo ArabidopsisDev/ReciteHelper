@@ -43,6 +43,12 @@ public static class ReviewHistory
                 affected.Add(facet.Parent);
             }
         }
+        if (!answersOnly)
+        {
+            var cleared = affected.Select(question => question.ReviewIdentity).ToHashSet();
+            project.ReviewMistakes.RemoveAll(entry => cleared.Contains(entry.QuestionId));
+            project.NotifyReviewMistakesChanged();
+        }
         return affected;
     }
 

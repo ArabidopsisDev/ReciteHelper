@@ -1,0 +1,13 @@
+<UserControl x:Class="ReciteHelper.Wpf.Views.ReviewMistakesView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <DockPanel Background="{DynamicResource ArcSurface}">
+        <Border DockPanel.Dock="Top" Padding="14,8" BorderBrush="{DynamicResource ArcBorder}" BorderThickness="0,0,0,1">
+            <DockPanel>
+                <Button x:Name="ExportButton" DockPanel.Dock="Right" Content="导出 Word" Style="{StaticResource SmallButtonStyle}" Click="Export_Click" />
+                <TextBlock x:Name="CountText" VerticalAlignment="Center" Style="{StaticResource CaptionTextStyle}" />
+            </DockPanel>
+        </Border>
+        <FlowDocumentScrollViewer x:Name="ListViewer" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" />
+    </DockPanel>
+</UserControl>

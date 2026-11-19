@@ -25,6 +25,7 @@ public class ConfigOptions
     public string? OCRAccess { get; set; }
     public string? OCRSecret { get; set; }
     public int RStandard { get; set; } = 60;
+    public bool AutoGenerateQuestionExplanation { get; set; }
     public PhonkOptions PhonkOptions { get; set; } = new();
     [XmlElement("MissingStrategy")]
     public MissingStrategy Strategy { get; set; } = MissingStrategy.Ignore;

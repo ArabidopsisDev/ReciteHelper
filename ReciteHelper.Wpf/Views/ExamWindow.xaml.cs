@@ -1,4 +1,5 @@
 using ReciteHelper.Core.Aggregates;
+using ReciteHelper.Application.Services;
 using ReciteHelper.Core.Entities;
 using ReciteHelper.Core.Enums;
 using ReciteHelper.Core.Interfaces.Services;
@@ -603,9 +604,10 @@ public partial class ExamWindow : Window
 
         await ExamHistoryWrites.WaitAsync();
         var appended = new List<(Question Question, ReviewTag Tag)>();
+        var mistakes = new List<ReviewMistake>();
+        var examSet = _importedSet;
         try
         {
-            var examSet = _importedSet;
             if (examSet is not null && _project is not null && _examSets is not null)
             {
                 examSet = (await _examSets.LoadAllAsync(_project)).FirstOrDefault(value => value.Id == examSet.Id) ?? examSet;
@@ -618,10 +620,12 @@ public partial class ExamWindow : Window
                 var source = item.HistorySource!;
                 var assessment = item.AiAssessment;
                 var correct = assessment?.IsCorrect ?? _examAnswerService.IsCorrect(item.Question!, item.UserAnswer);
+                var earnedRatio = item.Score > 0 ? item.EarnedScore / item.Score : 0;
                 var tag = new ReviewTag
                 {
                     Time = _submittedAt,
-                    Similarity = item.Score > 0 ? item.EarnedScore / item.Score : 0,
+                    Similarity = earnedRatio,
+                    ScoreRatio = assessment?.RawScoreRatio ?? assessment?.ScoreRatio ?? earnedRatio,
                     IsCorrect = correct,
                     EFValue = ReviewQuestionCatalog.HasAnswerRecord(source) ? source.EFValue : null,
                     Stability = source.Memory?.Stability,
@@ -631,10 +635,21 @@ public partial class ExamWindow : Window
                 };
                 (source.ExamHistory ??= []).Add(tag);
                 appended.Add((source, tag));
+                if (_project is not null && !_isImportedExamSet &&
+                    ReviewMistakes.Record(_project, source, _submittedAt, correct, assessment, isExam: true) is { } mistake)
+                    mistakes.Add(mistake);
+                else if (examSet is not null && ReviewMistakes.Create(source, _submittedAt, correct, assessment, isExam: true) is { } imported)
+                {
+                    examSet.ReviewMistakes.Add(imported);
+                    mistakes.Add(imported);
+                }
             }
 
             if (_project is not null && examSet is not null && _examSets is not null)
+            {
                 await _examSets.SaveAsync(_project, examSet);
+                if (mistakes.Count > 0) _project.NotifyReviewMistakesChanged(externalExam: true);
+            }
             else if (_project is not null && !_isImportedExamSet && _projectFileService is not null)
                 await _projectFileService.SaveProjectAsync(_project);
         }
@@ -642,6 +657,12 @@ public partial class ExamWindow : Window
         {
             foreach (var (question, tag) in appended)
                 question.ExamHistory?.Remove(tag);
+            if (_project is not null && mistakes.Count > 0)
+            {
+                var records = examSet?.ReviewMistakes ?? _project.ReviewMistakes;
+                foreach (var mistake in mistakes) records.Remove(mistake);
+                if (examSet is null) _project.NotifyReviewMistakesChanged();
+            }
             throw;
         }
         finally

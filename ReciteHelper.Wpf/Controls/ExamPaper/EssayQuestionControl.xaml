@@ -12,6 +12,8 @@
             <Run x:Name="ScoreRun" FontWeight="Bold" />
             <Run x:Name="QuestionRun" />
         </TextBlock>
+        <TextBlock x:Name="PreviewParts" Margin="18,6,0,0" FontFamily="{DynamicResource ArcReadingFont}"
+                   FontSize="15" LineHeight="24" TextWrapping="Wrap" Visibility="Collapsed" />
         <StackPanel x:Name="AnswerPanel">
         <Border
             x:Name="AnswerBorder"

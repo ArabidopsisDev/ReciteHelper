@@ -23,7 +23,12 @@ public partial class EssayQuestionControl : UserControl
         AnswerBorder.Visibility = Visibility.Visible;
         NumberRun.Text = $"{item.Number}. ";
         ScoreRun.Text = $"{item.ScoreLabel} ";
-        QuestionRun.Text = item.QuestionText;
+        var question = item.Question;
+        var parts = question is not null ? EssayAnswerLayout.Parts(question) : [];
+        QuestionRun.Text = question is null ? item.QuestionText : EssayAnswerLayout.Stem(question, parts);
+        PreviewParts.Visibility = !showAnswer && parts.Count > 1 ? Visibility.Visible : Visibility.Collapsed;
+        PreviewParts.Text = PreviewParts.Visibility == Visibility.Visible
+            ? string.Join('\n', parts.Select(EssayAnswerLayout.PartHeading)) : string.Empty;
         AnswerTextBox.Height = item.IsTermDefinition ? 72d : 112d;
 
         _isLoading = true;
@@ -33,7 +38,7 @@ public partial class EssayQuestionControl : UserControl
         _isLoading = false;
         if (_multipart is not null) AnswerPanel.Children.Remove(_multipart);
         _multipart = null;
-        if (showAnswer && item.Question is { } question && EssayAnswerLayout.Parts(question).Count > 1)
+        if (showAnswer && question is not null && parts.Count > 1)
         {
             AnswerBorder.Visibility = Visibility.Collapsed;
             _multipart = new MultipartAnswerEditor { Margin = new Thickness(18, 10, 0, 0) };

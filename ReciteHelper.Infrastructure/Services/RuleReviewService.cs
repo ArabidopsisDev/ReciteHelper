@@ -38,13 +38,13 @@ public sealed class RuleReviewService(IAiChatService chat) : IRuleReviewService
             每问填写 answer_nature。症状、术语和主要特征等用 "Conceptual"，防治、分析、论证或应用等用 "Expressive"，同一问兼具两种要求时用 "Conceptual, Expressive"。
             表达问的参考答案给出一组说得通的本科课程示例，避免把其它合理做法或答题思路排除在外。
             每问对应病症、循环、防治等自然内容范围，禁止将一句话拆成多个微小知识碎片。weight 之和为1。
-            用户明确指定的自然分问具有最高优先级；若指定症状、发病循环、病害特征三问，题干和 answer_parts 就只保留三问。
+            用户指定的分问数量优先。例如指定三问合成一题，questions 中写一题，answer_parts 中写三项。
             每问中的识别表现、颜色部位、侵染阶段、越冬越夏等是该问内部的评分要点，写进 reference_answer，不新增小问或输入框。
             禁止把一个自然小问再次拆成七八问。只有用户另行明确要求时才细分。
-            题干按自然分问用（1）（2）编号，不为每个得分点单独编号。例如“基本特点、操作位置”是两问；
+            text 写一个完整的总题干，交代考查对象和范围，例如“说明甘薯茎线虫病的症状、病害循环与防治措施。”这三个方面分别写入 answer_parts。
+            每项 prompt 只写对应的一问。text 和 prompt 均不写编号，界面会在总题干下逐项编号。
             “病症与病害循环”是两问，而同一种病症的颜色、形状和发生部位共同构成一问，不再细拆。
             例如小麦叶锈病的病症：答出圆形或近圆形橘红色夏孢子堆、主要在叶正面、后期叶背黑褐色冬孢子堆即可满分，未要求的大小尺寸等不列为必答点。
-            题干直接写问题，编号和分数由界面添加。
             输出 JSON：{"questionPlan":["第1题的对象与考查内容","第2题的对象与考查内容","其余题目的对象与考查内容"],
             "coverageNote":"资料不足之处，无则空字符串",
             "questions":[{"text":"题干","correct_answer":"满分所需核心要点","source_excerpts":["资料原文"],"source_material_ids":[],
@@ -104,10 +104,11 @@ public sealed class RuleReviewService(IAiChatService chat) : IRuleReviewService
             表达问的参考答案给出一组本科课程的合理示例，避免将其写成唯一作答方式。
             严格保留用户指定的自然分问数量和范围。例如症状、发病循环、病害特征只对应三个 answer_parts 项，不能扩成七八项。
             颜色和部位、各侵染阶段、各种防治手段等仅是对应问的内部评分要点，统一写入该问 reference_answer，禁止再次拆成小问。
-            题干只按这些自然范围用（1）（2）编号。例如基本特点、操作位置是两问，
+            text 用一条完整的总题干写出考查对象和各问范围，例如“说明甘薯茎线虫病的症状、病害循环与防治措施。”
+            三个小问分别写在 answer_parts 的 prompt 中，界面会自动编号。text 和 prompt 不含编号。
             病症、病害循环是两问；病症中的颜色、形状及发生部位合为一问，不能为了增加数量拆成细节题。
             小麦叶锈病病症答出夏孢子堆形状、橘红色、主要在叶正面及后期叶背黑褐色冬孢子堆即可满分，不额外要求尺寸。
-            题干直接写问题，编号和分数由界面添加。输出 JSON 数组，每项为 {"text":"题干","correct_answer":"核心参考答案",
+            输出 JSON 数组，每项为 {"text":"总题干","correct_answer":"核心参考答案",
             "source_excerpts":["资料连续原文"],"source_material_ids":[],"answer_parts":[{"key":"稳定标识","prompt":"独立的一问，写明对象","reference_answer":"该问核心要点","weight":1,"answer_nature":"Conceptual"}]}。
             输出完整 JSON，省略其他说明。
             """).WaitAsync(token);
@@ -129,6 +130,7 @@ public sealed class RuleReviewService(IAiChatService chat) : IRuleReviewService
             question.Type = QuestionType.ShortAnswer;
             question.RequiresAiGrading = true;
             question.AnswerParts = EssayAnswerLayout.Parts(question).ToList();
+            question.Text = EssayAnswerLayout.Stem(question, question.AnswerParts);
             question.AnswerNature = question.AnswerParts.Aggregate(question.AnswerNature, (nature, part) => nature | part.AnswerNature);
             if (question.AnswerParts.Count > 0 && (question.AnswerParts.Any(p => string.IsNullOrWhiteSpace(p.Key) || string.IsNullOrWhiteSpace(p.Prompt) ||
                 string.IsNullOrWhiteSpace(p.ReferenceAnswer) || !double.IsFinite(p.Weight) || p.Weight <= 0) ||
@@ -144,6 +146,7 @@ public sealed class RuleReviewService(IAiChatService chat) : IRuleReviewService
                 throw new InvalidDataException("题目缺少可核对的资料原文，请修改范围或重新生成。");
             question.SourceMaterialIds = sources.LinkExcerpts(question, question.SourceMaterialIds?.ToHashSet(StringComparer.Ordinal));
         }
+        ValidateUnique(questions, existing);
     }
 
     private static object MaterialContext(IEnumerable<ReviewMaterial> materials)

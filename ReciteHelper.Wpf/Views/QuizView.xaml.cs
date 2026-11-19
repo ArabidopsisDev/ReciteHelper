@@ -13,10 +13,8 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Runtime.CompilerServices;
-using System.Text;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Documents;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
@@ -30,7 +28,6 @@ public partial class QuizView : UserControl, INotifyPropertyChanged
     private bool _personalizationPending;
     private readonly IQuizService _quizService;
     private readonly IProjectFileService _projectFileService;
-    private readonly IQuestionHelpService _questionHelpService;
     private readonly IReviewPersonalizationService _reviewPersonalizationService;
     private readonly IRuleReviewService? _ruleReviewService;
     private readonly ObservableCollection<QuestionItem> _questions = [];
@@ -42,23 +39,6 @@ public partial class QuizView : UserControl, INotifyPropertyChanged
     private string? _selectedChoiceId;
     private string? _selectedTrueFalseAnswer;
     private List<FillBlankAnswerItem> _fillBlankAnswers = [];
-    private IReadOnlyList<KnowledgeBaseMatch> _helpMatches = [];
-    private CancellationTokenSource? _helpCancellation;
-    private static readonly Brush HighlightBackground = new SolidColorBrush(Color.FromRgb(205, 250, 224));
-
-    private sealed record HighlightedKnowledgeMatch(
-        string Title,
-        IReadOnlyList<HighlightedTextSegment> ContentSegments);
-
-    private sealed record HighlightedTextSegment(string Text, bool IsHighlighted);
-
-    private readonly record struct NormalizedChar(char Value, int OriginalIndex);
-
-    private readonly record struct HighlightSpan(int Start, int End)
-    {
-        public int Length => End - Start;
-    }
-
     internal Project Project => _project;
     internal Chapter? Chapter { get; }
     internal bool HasQuestions => _questions.Count > 0;
@@ -66,6 +46,10 @@ public partial class QuizView : UserControl, INotifyPropertyChanged
     internal event EventHandler? RecordsChanged;
     internal event EventHandler<IReadOnlySet<Question>>? RecordsCleared;
     internal event EventHandler? NotesRequested;
+    internal event EventHandler? HelpRequested;
+    internal event EventHandler? HelpTargetChanged;
+
+    internal QuestionItem? HelpTarget => _questions.ElementAtOrDefault(_currentQuestionIndex) is { Status: not AnswerStatus.NotAnswered } item ? item : null;
     public string ChoiceGroupName { get; } = Guid.NewGuid().ToString();
 
     internal QuizView(
@@ -74,14 +58,12 @@ public partial class QuizView : UserControl, INotifyPropertyChanged
         List<Question> questions,
         IQuizService quizService,
         IProjectFileService projectFileService,
-        IQuestionHelpService questionHelpService,
         IReviewPersonalizationService reviewPersonalizationService,
         IRuleReviewService? ruleReviewService = null)
     {
         _reviewPersonalizationService = reviewPersonalizationService;
         _quizService = quizService;
         _projectFileService = projectFileService;
-        _questionHelpService = questionHelpService;
         _ruleReviewService = ruleReviewService;
         _project = project;
         Chapter = chapter;
@@ -89,22 +71,22 @@ public partial class QuizView : UserControl, INotifyPropertyChanged
         InitializeComponent();
         DataContext = this;
 
-        ManageRuleQuestionsButton.Visibility = OpenNotesButton.Visibility =
+        ManageRuleQuestionsButton.Visibility = CompactManageButton.Visibility =
             project.TemplateType == ProjectTemplateType.RuleBasedReview ? Visibility.Visible : Visibility.Collapsed;
-        if (project.TemplateType == ProjectTemplateType.RuleBasedReview)
-            HelpSourceText.Text = "本题出题资料";
         _latest = LatestBuffer<bool>.Create<bool>(Config.Configure.PhonkOptions.WrongCount);
 
         foreach (var question in questions)
             AddQuestion(question);
         _totalQuestions = _questions.Count;
-        AnswerCardItemsControl.ItemsSource = _questions;
+        AnswerCardItemsControl.ItemsSource = CompactCardItems.ItemsSource = _questions;
+        SizeChanged += (_, e) => ResizeQuestionLayout(e.NewSize.Width);
         LocateCurrent();
         UpdateDisplay();
     }
 
     private void ManageRuleQuestions_Click(object sender, RoutedEventArgs e)
     {
+        CompactCardPopup.IsOpen = false;
         if (_grading || _project.TemplateType != ProjectTemplateType.RuleBasedReview || _ruleReviewService is null) return;
         new CreateRuleReviewWindow(_ruleReviewService, _projectFileService, _ => Task.CompletedTask, _project)
             { Owner = Window.GetWindow(this) }.ShowDialog();
@@ -130,10 +112,33 @@ public partial class QuizView : UserControl, INotifyPropertyChanged
 
     private void SwitchButton_Click(object sender, RoutedEventArgs e)
     {
+        CompactCardPopup.IsOpen = false;
         if (sender is Button button && button.CommandParameter is int questionNumber)
         {
             SwitchToQuestion(questionNumber);
         }
+    }
+
+    private void CompactCard_Click(object sender, RoutedEventArgs e) => CompactCardPopup.IsOpen = !CompactCardPopup.IsOpen;
+
+    private void ResizeQuestionLayout(double width)
+    {
+        var compact = width < 645;
+        AnswerCardColumn.Width = new GridLength(compact ? 0 : 176);
+        AnswerCard.Visibility = compact ? Visibility.Collapsed : Visibility.Visible;
+        CompactCardButton.Visibility = compact ? Visibility.Visible : Visibility.Collapsed;
+        if (!compact) CompactCardPopup.IsOpen = false;
+        NavigationBorder.Padding = ActionsBorder.Padding = new Thickness(compact ? 14 : 28, compact ? 6 : 12, compact ? 14 : 28, compact ? 6 : 12);
+        QuestionAnswerScroll.Padding = new Thickness(compact ? 14 : 28, compact ? 14 : 24, compact ? 14 : 28, compact ? 14 : 24);
+        SetActionRow(NavigationActions, compact && width < 455);
+        SetActionRow(SubmissionActions, compact && width < 355);
+    }
+
+    private static void SetActionRow(FrameworkElement actions, bool below)
+    {
+        Grid.SetRow(actions, below ? 1 : 0);
+        Grid.SetColumn(actions, below ? 0 : 1);
+        Grid.SetColumnSpan(actions, below ? 2 : 1);
     }
 
     private static AnswerStatus RecordedStatus(Question question) => (question.AnswerCleared ? null : question.Status) switch
@@ -213,15 +218,19 @@ public partial class QuizView : UserControl, INotifyPropertyChanged
 
     private void UpdateDisplay()
     {
-        ResetHelpPanel();
         var hasQuestions = _questions.Count != 0;
         PracticeLayout.Visibility = hasQuestions ? Visibility.Visible : Visibility.Collapsed;
         PracticeEmptyText.Visibility = hasQuestions ? Visibility.Collapsed : Visibility.Visible;
-        if (!hasQuestions) return;
+        if (!hasQuestions)
+        {
+            HelpTargetChanged?.Invoke(this, EventArgs.Empty);
+            return;
+        }
 
         var currentQuestion = _questions[_currentQuestionIndex];
 
-        QuestionTextBlock.Text = currentQuestion.Question!.Text;
+        var question = currentQuestion.Question!;
+        QuestionTextBlock.Text = EssayAnswerLayout.Stem(question, EssayAnswerLayout.Parts(question));
         var facetSource = ReviewQuestionCatalog.FindFacet(_project, currentQuestion.Question);
         FacetContextText.Visibility = facetSource is null ? Visibility.Collapsed : Visibility.Visible;
         if (facetSource is { } source)
@@ -234,8 +243,7 @@ public partial class QuizView : UserControl, INotifyPropertyChanged
         UpdateAnswerHistory(currentQuestion);
         ConfigureAnswerInput(currentQuestion);
         SubmitButton.IsEnabled = currentQuestion.Status == AnswerStatus.NotAnswered;
-        AskDeepSeekButton.IsEnabled = currentQuestion.Status != AnswerStatus.NotAnswered;
-        RuleSourcesButton.Visibility = Visibility.Collapsed;
+        HelpButton.IsEnabled = currentQuestion.Status != AnswerStatus.NotAnswered;
 
         // Hide the results area (if it's a new question)
         if (currentQuestion.Status == AnswerStatus.NotAnswered)
@@ -248,6 +256,7 @@ public partial class QuizView : UserControl, INotifyPropertyChanged
         }
 
         UpdateNavigation();
+        HelpTargetChanged?.Invoke(this, EventArgs.Empty);
     }
 
     private void UpdateNavigation()
@@ -399,9 +408,6 @@ public partial class QuizView : UserControl, INotifyPropertyChanged
     private void ShowResult(QuestionItem question)
     {
         ResultArea.Visibility = Visibility.Visible;
-        QuestionHelpButton.Visibility = Visibility.Collapsed;
-        RuleSourcesButton.Visibility = _project.TemplateType == ProjectTemplateType.RuleBasedReview &&
-            question.Question!.SourceExcerpts.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
 
         switch (question.Status)
         {
@@ -416,9 +422,6 @@ public partial class QuizView : UserControl, INotifyPropertyChanged
                 ResultTitleText.Foreground = new SolidColorBrush(Color.FromRgb(114, 28, 36));
                 ResultArea.Background = new SolidColorBrush(Color.FromRgb(248, 215, 218));
                 ResultArea.BorderBrush = new SolidColorBrush(Color.FromRgb(245, 198, 203));
-                QuestionHelpButton.Visibility = HasUsableKnowledgeBase
-                    ? Visibility.Visible
-                    : Visibility.Collapsed;
                 break;
         }
 
@@ -444,369 +447,16 @@ public partial class QuizView : UserControl, INotifyPropertyChanged
             AnswerPromptText.Text = $"您的答案：得分 {assessment.ScoreRatio:P0}" +
                 (assessment.RawScoreRatio is { } raw && Math.Abs(raw - assessment.ScoreRatio) > 0.001 ? $"（{metric} {raw:P0}）" : string.Empty);
             AiReferenceText.Text = question.Question.GetCorrectAnswerText();
-            if (question.Question.SourceExcerpts.Count > 0)
-                AiReferenceText.Text += "\n\n资料原文：\n" + string.Join("\n\n", question.Question.SourceExcerpts);
             AiReferenceExpander.Visibility = Visibility.Visible;
             ResultArea.Visibility = Visibility.Collapsed;
         }
     }
 
-    private bool HasUsableKnowledgeBase => _project.KnowledgeBase is { Entries.Count: > 0 };
-
-    private async void QuestionHelpButton_Click(object sender, RoutedEventArgs e)
-    {
-        var questionIndex = _currentQuestionIndex;
-        var currentQuestion = _questions[questionIndex];
-
-        _helpCancellation?.Cancel();
-        _helpCancellation?.Dispose();
-        _helpCancellation = new CancellationTokenSource();
-
-        OpenHelpSidebar();
-        KnowledgeMatchesItemsControl.ItemsSource = null;
-        KnowledgeLoadingText.Text = "正在查询知识库...";
-        KnowledgeLoadingText.Visibility = Visibility.Visible;
-        AskAiBanner.Visibility = Visibility.Collapsed;
-        AiAnswerPanel.Visibility = Visibility.Collapsed;
-        _helpMatches = [];
-
-        try
-        {
-            var matches = await _questionHelpService.FindMatchesAsync(
-                _project,
-                currentQuestion.Question!,
-                _helpCancellation.Token);
-
-            if (questionIndex != _currentQuestionIndex)
-                return;
-
-            _helpMatches = matches;
-            KnowledgeMatchesItemsControl.ItemsSource = BuildHighlightedMatches(matches, currentQuestion);
-            KnowledgeLoadingText.Text = matches.Count == 0
-                ? "知识库中没有找到可用的相关内容。"
-                : string.Empty;
-            KnowledgeLoadingText.Visibility = matches.Count == 0
-                ? Visibility.Visible
-                : Visibility.Collapsed;
-            AskAiBanner.Visibility = matches.Count > 0
-                ? Visibility.Visible
-                : Visibility.Collapsed;
-        }
-        catch (OperationCanceledException)
-        {
-        }
-        catch (Exception ex)
-        {
-            KnowledgeLoadingText.Text = $"知识库查询失败：{ex.Message}";
-            KnowledgeLoadingText.Visibility = Visibility.Visible;
-        }
-    }
-
-    private async void AskAiButton_Click(object sender, RoutedEventArgs e)
-    {
-        if (_helpMatches.Count == 0)
-            return;
-
-        var questionIndex = _currentQuestionIndex;
-        var currentQuestion = _questions[questionIndex];
-        AskAiBanner.Visibility = Visibility.Collapsed;
-        AiAnswerPanel.Visibility = Visibility.Visible;
-        AiAnswerText.Text = "正在生成题目解析...";
-        AskAiButton.IsEnabled = false;
-
-        try
-        {
-            var explanation = await _questionHelpService.ExplainAsync(
-                currentQuestion.Question!,
-                currentQuestion.UserAnswer ?? string.Empty,
-                _helpMatches,
-                _helpCancellation?.Token ?? CancellationToken.None);
-
-            if (questionIndex == _currentQuestionIndex)
-                AiAnswerText.Text = string.IsNullOrWhiteSpace(explanation)
-                    ? "暂未生成有效解析。"
-                    : explanation.Trim();
-        }
-        catch (OperationCanceledException)
-        {
-        }
-        catch (Exception ex)
-        {
-            AiAnswerText.Text = $"生成解析失败：{ex.Message}";
-        }
-        finally
-        {
-            AskAiButton.IsEnabled = true;
-        }
-    }
-
-    private async void AskDeepSeekButton_Click(object sender, RoutedEventArgs e)
-    {
-        var questionIndex = _currentQuestionIndex;
-        var currentQuestion = _questions[questionIndex];
-        if (currentQuestion.Status == AnswerStatus.NotAnswered)
-        {
-            MessageBox.Show("请先提交答案，再查看题目解析。", "尚未提交答案",
-                MessageBoxButton.OK, MessageBoxImage.Information);
-            return;
-        }
-
-        _helpCancellation?.Cancel();
-        _helpCancellation?.Dispose();
-        _helpCancellation = new CancellationTokenSource();
-        var cancellationToken = _helpCancellation.Token;
-
-        OpenHelpSidebar();
-        KnowledgeMatchesItemsControl.ItemsSource = null;
-        KnowledgeLoadingText.Text = "正在查询本地知识库...";
-        KnowledgeLoadingText.Visibility = Visibility.Visible;
-        AskAiBanner.Visibility = Visibility.Collapsed;
-        AiAnswerPanel.Visibility = Visibility.Visible;
-        AiAnswerText.Text = "正在生成题目解析...";
-        AskDeepSeekButton.IsEnabled = false;
-
-        try
-        {
-            var matches = await _questionHelpService.FindMatchesAsync(
-                _project,
-                currentQuestion.Question!,
-                cancellationToken);
-            if (questionIndex != _currentQuestionIndex)
-                return;
-
-            _helpMatches = matches;
-            KnowledgeMatchesItemsControl.ItemsSource = BuildHighlightedMatches(matches, currentQuestion);
-            KnowledgeLoadingText.Text = matches.Count == 0
-                ? "未匹配到本地知识点，将根据题目和答案直接生成解析。"
-                : string.Empty;
-            KnowledgeLoadingText.Visibility = matches.Count == 0
-                ? Visibility.Visible
-                : Visibility.Collapsed;
-
-            var explanation = await _questionHelpService.ExplainAsync(
-                currentQuestion.Question!,
-                currentQuestion.UserAnswer ?? string.Empty,
-                matches,
-                cancellationToken);
-            if (questionIndex == _currentQuestionIndex)
-                AiAnswerText.Text = string.IsNullOrWhiteSpace(explanation)
-                    ? "暂未生成有效解析。"
-                    : explanation.Trim();
-        }
-        catch (OperationCanceledException)
-        {
-        }
-        catch (Exception ex)
-        {
-            AiAnswerText.Text = $"生成解析失败：{ex.Message}";
-        }
-        finally
-        {
-            if (questionIndex == _currentQuestionIndex)
-                AskDeepSeekButton.IsEnabled = currentQuestion.Status != AnswerStatus.NotAnswered;
-        }
-    }
-
-    private void CloseHelpSidebar_Click(object sender, RoutedEventArgs e)
-        => ResetHelpPanel();
-
-    private void OpenHelpSidebar()
-    {
-        HelpSidebar.Visibility = Visibility.Visible;
-        HelpSidebarColumn.Width = new GridLength(288);
-    }
+    private void HelpButton_Click(object sender, RoutedEventArgs e)
+        => HelpRequested?.Invoke(this, EventArgs.Empty);
 
     private void OpenNotesButton_Click(object sender, RoutedEventArgs e)
         => NotesRequested?.Invoke(this, EventArgs.Empty);
-
-    private void KnowledgeContentText_Loaded(object sender, RoutedEventArgs e)
-    {
-        if (sender is not TextBlock textBlock)
-            return;
-
-        textBlock.Inlines.Clear();
-
-        if (textBlock.Tag is not IReadOnlyList<HighlightedTextSegment> segments)
-            return;
-
-        foreach (var segment in segments)
-        {
-            var run = new Run(segment.Text);
-            if (segment.IsHighlighted)
-            {
-                run.Background = HighlightBackground;
-                run.Foreground = new SolidColorBrush(Color.FromRgb(22, 101, 52));
-                run.FontWeight = FontWeights.Medium;
-            }
-
-            textBlock.Inlines.Add(run);
-        }
-    }
-
-    private static IReadOnlyList<HighlightedKnowledgeMatch> BuildHighlightedMatches(
-        IReadOnlyList<KnowledgeBaseMatch> matches,
-        QuestionItem currentQuestion)
-    {
-        return matches
-            .Select(match => new HighlightedKnowledgeMatch(
-                match.Title,
-                CreateHighlightSegments(match.Content, currentQuestion)))
-            .ToList();
-    }
-
-    private static IReadOnlyList<HighlightedTextSegment> CreateHighlightSegments(
-        string content,
-        QuestionItem currentQuestion)
-    {
-        if (string.IsNullOrEmpty(content))
-            return [new HighlightedTextSegment(string.Empty, false)];
-
-        var sourceText = BuildHighlightSourceText(currentQuestion);
-        var spans = FindHighlyOverlappingSpans(content, sourceText);
-        if (spans.Count == 0)
-            return [new HighlightedTextSegment(content, false)];
-
-        var segments = new List<HighlightedTextSegment>();
-        var cursor = 0;
-        foreach (var span in spans)
-        {
-            if (span.Start > cursor)
-                segments.Add(new HighlightedTextSegment(content[cursor..span.Start], false));
-
-            segments.Add(new HighlightedTextSegment(content[span.Start..span.End], true));
-            cursor = span.End;
-        }
-
-        if (cursor < content.Length)
-            segments.Add(new HighlightedTextSegment(content[cursor..], false));
-
-        return segments;
-    }
-
-    private static string BuildHighlightSourceText(QuestionItem currentQuestion)
-    {
-        var question = currentQuestion.Question!;
-        var builder = new StringBuilder();
-        builder.AppendLine(question.Text);
-        builder.AppendLine(currentQuestion.UserAnswer);
-        builder.AppendLine(question.GetCorrectAnswerText());
-
-        foreach (var option in question.Options)
-            builder.AppendLine(option.DisplayText);
-
-        return builder.ToString();
-    }
-
-    private static IReadOnlyList<HighlightSpan> FindHighlyOverlappingSpans(
-        string content,
-        string sourceText)
-    {
-        const int minMatchLength = 5;
-
-        var contentChars = NormalizeForComparison(content);
-        var sourceChars = NormalizeForComparison(sourceText);
-        if (contentChars.Count < minMatchLength || sourceChars.Count < minMatchLength)
-            return [];
-
-        var candidates = new List<HighlightSpan>();
-        var previous = new int[sourceChars.Count];
-        var current = new int[sourceChars.Count];
-
-        for (var i = 0; i < contentChars.Count; i++)
-        {
-            Array.Clear(current);
-
-            for (var j = 0; j < sourceChars.Count; j++)
-            {
-                if (contentChars[i].Value != sourceChars[j].Value)
-                    continue;
-
-                current[j] = i == 0 || j == 0 ? 1 : previous[j - 1] + 1;
-                if (current[j] < minMatchLength)
-                    continue;
-
-                var isMatchEnding =
-                    i == contentChars.Count - 1 ||
-                    j == sourceChars.Count - 1 ||
-                    contentChars[i + 1].Value != sourceChars[j + 1].Value;
-
-                if (!isMatchEnding)
-                    continue;
-
-                var startIndex = i - current[j] + 1;
-                var endIndex = i;
-                candidates.Add(new HighlightSpan(
-                    contentChars[startIndex].OriginalIndex,
-                    contentChars[endIndex].OriginalIndex + 1));
-            }
-
-            (previous, current) = (current, previous);
-        }
-
-        return SelectNonOverlappingSpans(candidates);
-    }
-
-    private static List<NormalizedChar> NormalizeForComparison(string text)
-    {
-        var result = new List<NormalizedChar>(text.Length);
-        for (var i = 0; i < text.Length; i++)
-        {
-            var value = text[i];
-            if (!char.IsLetterOrDigit(value))
-                continue;
-
-            result.Add(new NormalizedChar(char.ToLowerInvariant(value), i));
-        }
-
-        return result;
-    }
-
-    private static IReadOnlyList<HighlightSpan> SelectNonOverlappingSpans(List<HighlightSpan> candidates)
-    {
-        if (candidates.Count == 0)
-            return [];
-
-        var selected = new List<HighlightSpan>();
-        foreach (var candidate in candidates
-                     .OrderByDescending(span => span.Length)
-                     .ThenBy(span => span.Start))
-        {
-            if (selected.Any(span => candidate.Start < span.End && span.Start < candidate.End))
-                continue;
-
-            selected.Add(candidate);
-        }
-
-        selected.Sort((left, right) => left.Start.CompareTo(right.Start));
-
-        var merged = new List<HighlightSpan>();
-        foreach (var span in selected)
-        {
-            if (merged.Count == 0 || span.Start > merged[^1].End)
-            {
-                merged.Add(span);
-                continue;
-            }
-
-            var last = merged[^1];
-            merged[^1] = new HighlightSpan(last.Start, Math.Max(last.End, span.End));
-        }
-
-        return merged;
-    }
-
-    private void ResetHelpPanel()
-    {
-        _helpCancellation?.Cancel();
-        _helpCancellation?.Dispose();
-        _helpCancellation = null;
-        _helpMatches = [];
-        HelpSidebar.Visibility = Visibility.Collapsed;
-        HelpSidebarColumn.Width = new GridLength(0);
-        KnowledgeMatchesItemsControl.ItemsSource = null;
-        AskAiBanner.Visibility = Visibility.Collapsed;
-        AiAnswerPanel.Visibility = Visibility.Collapsed;
-    }
 
     private void LocateCurrent()
     {
@@ -856,7 +506,8 @@ public partial class QuizView : UserControl, INotifyPropertyChanged
             // Show result
             UpdateAnswerHistory(currentQuestion);
             ShowResult(currentQuestion);
-            AskDeepSeekButton.IsEnabled = true;
+            HelpButton.IsEnabled = true;
+            HelpTargetChanged?.Invoke(this, EventArgs.Empty);
             AnswerTextBox.IsEnabled = false;
             ChoiceOptionsItemsControl.IsEnabled = false;
             FillBlankAnswersItemsControl.IsEnabled = false;
@@ -998,8 +649,6 @@ public partial class QuizView : UserControl, INotifyPropertyChanged
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
-
-    internal void Release() => ResetHelpPanel();
 
     private async Task SaveRecordsAsync()
     {

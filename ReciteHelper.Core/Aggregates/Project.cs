@@ -30,6 +30,13 @@ public class Project : AggregateRoot
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? ReviewNote { get; set; }
 
+    [JsonPropertyName("review_mistakes")]
+    public List<ReviewMistake> ReviewMistakes { get; set; } = [];
+
+    public event EventHandler<bool>? ReviewMistakesChanged;
+
+    public void NotifyReviewMistakesChanged(bool externalExam = false) => ReviewMistakesChanged?.Invoke(this, externalExam);
+
     [JsonPropertyName("knowledge_base")]
     public string? KnowledgeBasePath { get; set; }
 
