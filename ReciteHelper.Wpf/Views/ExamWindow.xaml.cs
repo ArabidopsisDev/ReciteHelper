@@ -7,6 +7,7 @@ using ReciteHelper.Core.Scheduling;
 using ReciteHelper.Core.ValueObjects;
 using ReciteHelper.Wpf.Controls.ExamPaper;
 using ReciteHelper.Wpf.Models;
+using ReciteHelper.Wpf.Services;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Text.Json;
@@ -41,9 +42,14 @@ public partial class ExamWindow : Window
     private bool _isSubmitted;
     private bool _grading;
     private DateTime _submittedAt;
+    private readonly StudyActivityBucket _activity = new();
+    private StudyActivityTime? _submittedActivity;
     private readonly bool _isImportedExamSet;
     private readonly ExamSet? _importedSet;
     private readonly IExamSetRepository? _examSets;
+
+    internal StudyActivityContext ActivityContext => GradingReview.IsVisible ? new(GradingReview, true, true)
+        : _grading ? default : new(this, true, _isExamActive || _isSubmitted, _isExamActive ? _activity : null);
 
     public ExamWindow(
         List<Question> questions,
@@ -57,7 +63,8 @@ public partial class ExamWindow : Window
         IProjectFileService? projectFileService = null,
         bool isImportedExamSet = false,
         ExamSet? importedSet = null,
-        IExamSetRepository? examSets = null)
+        IExamSetRepository? examSets = null,
+        QuickReviewService? quickReviewService = null)
     {
         _examAnswerService = examAnswerService;
         _project = project;
@@ -74,6 +81,7 @@ public partial class ExamWindow : Window
         _examTimer.Tick += ExamTimer_Tick;
 
         InitializeComponent();
+        GradingReview.Attach(quickReviewService, project);
         InitializeExamIdentity();
         InitializeQuestions(questions, examSetQuestions);
         BuildPaperPages();
@@ -448,6 +456,7 @@ public partial class ExamWindow : Window
 
     private void StartExam()
     {
+        _activity.Total = default;
         _isExamActive = true;
         _isSubmitted = false;
         _examStartTime = DateTime.Now;
@@ -462,6 +471,8 @@ public partial class ExamWindow : Window
         UpdateAnsweredCount();
         UpdateTimeDisplay();
         _examTimer.Start();
+        GradingReview.Preload();
+        App.StudyActivity?.Checkpoint();
     }
 
     private void SetPagesActive(bool isActive)
@@ -561,21 +572,34 @@ public partial class ExamWindow : Window
     private async Task SubmitExamAsync()
     {
         if (_grading || _isSubmitted) return;
+        App.StudyActivity?.Checkpoint();
+        _submittedActivity = _activity.Total.ForegroundSeconds > 0 ? _activity.Total : null;
         _grading = true;
+        App.StudyActivity?.Checkpoint();
         _submittedAt = DateTime.Now;
-        IsEnabled = false;
+        ExamToolbar.IsEnabled = ExamBody.IsEnabled = false;
+        SubmitExamButton.Content = "正在批改…";
         _examTimer.Stop();
         _isExamActive = false;
         SetPagesActive(false);
+        var hasWait = false;
         try
         {
             foreach (var item in _questions)
             {
                 if (item.Question is null) continue;
                 if (item.AiAssessment is null || item.AiAssessment.UserAnswer != item.UserAnswer)
-                    item.AiAssessment = _project is not null && !_isImportedExamSet
-                        ? await _examAnswerService.GradeForReviewAsync(_project, item.Question, item.UserAnswer, _submittedAt)
-                        : await _examAnswerService.GradeAsync(item.Question, item.UserAnswer);
+                {
+                    var pending = _project is not null && !_isImportedExamSet
+                        ? _examAnswerService.GradeForReviewAsync(_project, item.Question, item.UserAnswer, _submittedAt)
+                        : _examAnswerService.GradeAsync(item.Question, item.UserAnswer);
+                    if (!hasWait && !pending.IsCompleted)
+                    {
+                        hasWait = true;
+                        GradingReview.Begin();
+                    }
+                    item.AiAssessment = await pending;
+                }
                 item.EarnedScore = item.AiAssessment is { } assessment
                     ? Math.Round(item.Score * assessment.ScoreRatio, 2)
                     : _examAnswerService.IsCorrect(item.Question, item.UserAnswer) ? item.Score : 0;
@@ -593,7 +617,14 @@ public partial class ExamWindow : Window
             SetPagesActive(true);
             if (_timeRemaining > TimeSpan.Zero) _examTimer.Start();
         }
-        finally { _grading = false; IsEnabled = true; }
+        finally
+        {
+            _grading = false;
+            ExamToolbar.IsEnabled = ExamBody.IsEnabled = true;
+            SubmitExamButton.Content = "交卷";
+            GradingReview.Finish(_isSubmitted);
+            App.StudyActivity?.Checkpoint();
+        }
     }
 
     private async Task SaveExamHistoryAsync()
@@ -627,6 +658,7 @@ public partial class ExamWindow : Window
                     Similarity = earnedRatio,
                     ScoreRatio = assessment?.RawScoreRatio ?? assessment?.ScoreRatio ?? earnedRatio,
                     ExamDurationSeconds = Math.Max(0, (_submittedAt - _examStartTime).TotalSeconds),
+                    StudyActivity = _submittedActivity,
                     IsCorrect = correct,
                     EFValue = ReviewQuestionCatalog.HasAnswerRecord(source) ? source.EFValue : null,
                     Stability = source.Memory?.Stability,

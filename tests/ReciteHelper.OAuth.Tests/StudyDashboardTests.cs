@@ -2,12 +2,34 @@ using ReciteHelper.Application.Services;
 using ReciteHelper.Core.Aggregates;
 using ReciteHelper.Core.DTOs;
 using ReciteHelper.Core.Entities;
+using ReciteHelper.Core.ValueObjects;
 using ReciteHelper.Infrastructure.Services;
 
 namespace ReciteHelper.OAuth.Tests;
 
 public sealed class StudyDashboardTests
 {
+    [Fact]
+    public void EfficiencyTracksGraceAndOnlyChangesMeasuredStudySessions()
+    {
+        Assert.Equal(new StudyActivityTime(2, 0), StudyActivityTime.FromInterval(2, 0));
+        Assert.Equal(new StudyActivityTime(2, 0.5), StudyActivityTime.FromInterval(2, 0.5));
+        Assert.Equal(new StudyActivityTime(2, 2), StudyActivityTime.FromInterval(2, 12));
+        Assert.Equal(default, StudyActivityTime.FromInterval(600, 0));
+
+        var now = new DateTimeOffset(2026, 1, 1, 12, 0, 0, TimeSpan.Zero);
+        var attempts = Practice(now, "复习", 0.8, 30);
+        double Rating(IEnumerable<StudyAttempt> samples) => StudyAnalytics.Summarize(samples.ToArray(), now, TimeZoneInfo.Utc).Rating.Score;
+        var baseline = Rating(attempts);
+        var shortSample = Rating(attempts.Select(attempt => attempt with { Activity = new(2, 0) }));
+        var focused = Rating(attempts.Select(attempt => attempt with { Activity = new(20, 20) }));
+        var idle = Rating(attempts.Select(attempt => attempt with { Activity = new(20, 0) }));
+        Assert.Equal(baseline, shortSample);
+        Assert.True(focused > baseline);
+        Assert.True(baseline > idle);
+        Assert.InRange(focused - idle, 0.01, 8);
+    }
+
     [Fact]
     public void RatingUsesUniqueQuestionsAndSeparateBestAndRecentWindows()
     {

@@ -4,8 +4,10 @@ using System.Windows.Input;
 using System.Windows.Threading;
 using ReciteHelper.Core.Aggregates;
 using ReciteHelper.Core.Entities;
+using ReciteHelper.Core.Scheduling;
 using ReciteHelper.Wpf.Controls;
 using ReciteHelper.Wpf.Models;
+using ReciteHelper.Wpf.Services;
 using ReciteHelper.Wpf.Views;
 
 namespace ReciteHelper.Wpf;
@@ -84,7 +86,7 @@ public partial class MainWindow
         if (tab is null)
         {
             var questions = chapter is null ? _reviewGenerator.GenerateReview(project, 30) : chapter.Questions!;
-            if (questions.Count == 0)
+            if (questions.Count == 0 && (chapter is not null || !ReviewQuestionCatalog.Archived(project).Any()))
             {
                 MessageBox.Show(this, "当前没有可安排的复习题。可以先做章节练习，或稍后再试。",
                     "复习安排", MessageBoxButton.OK, MessageBoxImage.Information);
@@ -93,10 +95,10 @@ public partial class MainWindow
 
             var title = chapter is null ? "智能复习" : chapter.Name ?? "章节练习";
             var view = new QuizView(project, chapter, questions, _quizService, _projectFileService,
-                _reviewPersonalizationService, _ruleReviewService);
+                _reviewPersonalizationService, _ruleReviewService, _quickReviewService);
             tab = CreateTab(title, view, $"{project.ProjectName ?? "项目"} / {title}");
             view.RecordsChanged += (_, _) => projectView.RefreshChapters();
-            view.RecordsCleared += (_, affected) =>
+            view.RecordsInvalidated += (_, affected) =>
             {
                 foreach (var practice in PracticeTabs().Select(candidate => (QuizView)candidate.Content))
                     if (!ReferenceEquals(practice, view) && ReferenceEquals(practice.Project, project))
@@ -192,6 +194,13 @@ public partial class MainWindow
 
     private object? ActiveContent => (WorkspaceTabs.SelectedItem as TabItem)?.Content;
 
+    internal StudyActivityContext ActivityContext => ActiveContent switch
+    {
+        QuizView quiz => quiz.ActivityContext,
+        FrameworkElement view when StudyActivityTracker.IsStudyTool(view) => new(view, true, true),
+        _ => new(this, true, false)
+    };
+
     private Project? ActiveProject() => ActiveContent switch
     {
         QuizView quiz => quiz.Project,
@@ -226,12 +235,12 @@ public partial class MainWindow
         }
     }
 
-    private static bool IsBusyTab(TabItem tab)
-        => tab.Content is FrameworkElement { IsEnabled: false };
+    private static bool IsBusyTab(TabItem tab) => tab.Content is QuizView { IsBusy: true } or FrameworkElement { IsEnabled: false };
 
     private void WorkspaceTabs_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
         if (e.Source != WorkspaceTabs) return;
+        App.StudyActivity?.Checkpoint();
         if (e.RemovedItems.Count == 1 && e.RemovedItems[0] is TabItem previous &&
             WorkspaceTabs.Items.Contains(previous) && IsBusyTab(previous))
         {

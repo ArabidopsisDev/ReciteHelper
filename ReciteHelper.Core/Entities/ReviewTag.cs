@@ -1,4 +1,5 @@
 using ReciteHelper.SharedKernel;
+using ReciteHelper.Core.ValueObjects;
 using System.Text.Json.Serialization;
 
 namespace ReciteHelper.Core.Entities;
@@ -67,6 +68,10 @@ public class ReviewTag : Entity
     [JsonPropertyName("exam_duration_seconds")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public double? ExamDurationSeconds { get; set; }
+
+    [JsonPropertyName("study_activity")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public StudyActivityTime? StudyActivity { get; set; }
 
     [JsonPropertyName("answer_length")]
     public int? AnswerLength { get; set; }

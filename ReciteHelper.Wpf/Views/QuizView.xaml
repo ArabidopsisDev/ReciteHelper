@@ -6,6 +6,17 @@
         <DataTemplate x:Key="AnswerCardItem">
             <Button Click="SwitchButton_Click" CommandParameter="{Binding Number}" Content="{Binding Number}" Style="{Binding StatusStyle}" />
         </DataTemplate>
+        <SolidColorBrush x:Key="ArchivedAnswerBrush" Color="#215A9D" />
+        <Style x:Key="ArchivedAnswerStyle" TargetType="Button" BasedOn="{StaticResource AnswerCardButtonStyle}">
+            <Setter Property="Foreground" Value="{StaticResource ArchivedAnswerBrush}" />
+            <Setter Property="Background" Value="#E9F2FF" />
+            <Setter Property="BorderBrush" Value="{StaticResource ArchivedAnswerBrush}" />
+            <Setter Property="ToolTip" Value="已归档" />
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True"><Setter Property="Background" Value="#DDEBFF" /></Trigger>
+                <Trigger Property="IsPressed" Value="True"><Setter Property="Background" Value="#CFE2FE" /></Trigger>
+            </Style.Triggers>
+        </Style>
     </UserControl.Resources>
     <Grid>
         <Grid x:Name="PracticeLayout">
@@ -40,15 +51,21 @@
                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                         <Button x:Name="CompactCardButton" Content="答题卡" Click="CompactCard_Click" Style="{StaticResource SubtleButtonStyle}"
                                 MinHeight="27" Margin="0,0,8,0" Visibility="Collapsed" />
-                        <TextBlock VerticalAlignment="Center">
-                            <Run Text="第 " /><Run x:Name="CurrentQuestionText" Text="1" FontWeight="Medium" />
-                            <Run Text=" 题 / 共 " /><Run x:Name="TotalQuestionsText" Text="20" /><Run Text=" 题" />
-                        </TextBlock>
+                        <TextBlock x:Name="QuestionPosition" VerticalAlignment="Center" />
                     </StackPanel>
                 </Grid>
             </Border>
             <ScrollViewer x:Name="QuestionAnswerScroll" Grid.Row="1" Background="{DynamicResource ReadingSurface}" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="28,24">
                 <StackPanel MaxWidth="760">
+                    <Border x:Name="ArchiveBanner" BorderBrush="{DynamicResource ArcBorder}" BorderThickness="0,0,0,1"
+                            Padding="0,0,0,9" Margin="0,0,0,15" Visibility="Collapsed">
+                        <WrapPanel>
+                            <TextBlock x:Name="ArchiveSummary" Text="已归档" Style="{StaticResource CaptionTextStyle}"
+                                       VerticalAlignment="Center" Margin="0,0,12,0" />
+                            <Button Click="RestoreCurrent_Click" Content="取消归档" Style="{StaticResource SmallButtonStyle}" Margin="0,0,6,0" />
+                            <Button x:Name="RestoreAllButton" Click="RestoreAll_Click" Content="取消本页全部归档" Style="{StaticResource SubtleButtonStyle}" />
+                        </WrapPanel>
+                    </Border>
                     <Grid Margin="0,0,0,16"><Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
                         <TextBlock x:Name="FacetContextText" Style="{StaticResource CaptionTextStyle}" Margin="0,0,0,10" Foreground="{DynamicResource ArcAccent}" Visibility="Collapsed" />
                         <TextBlock x:Name="QuestionTextBlock" Grid.Row="1" Style="{StaticResource QuestionTextStyle}" />
@@ -126,5 +143,6 @@
         <TextBlock x:Name="PracticeEmptyText" Text="本轮题目已更新。可关闭标签页后重新开始复习。"
                    Style="{StaticResource SubtitleTextStyle}" Margin="24" VerticalAlignment="Center"
                    HorizontalAlignment="Center" TextWrapping="Wrap" Visibility="Collapsed" />
+        <controls:QuickReviewCard x:Name="GradingReview" />
     </Grid>
 </UserControl>

@@ -16,6 +16,17 @@ public static class ReviewQuestionCatalog
         => Roots(project).SelectMany(question => new[] { question }.Concat(question.ReviewFacets.Select(f => f.Question)))
             .Distinct<Question>(ReferenceEqualityComparer.Instance);
 
+    public static IEnumerable<ReviewFacet> ActiveFacets(Question parent)
+        => parent.IsArchived ? [] : parent.ReviewFacets.Where(facet => !facet.Question.IsArchived);
+
+    public static IEnumerable<Question> Archived(Project project) => ArchiveHeads(project)
+        .SelectMany(question => question.ReviewFacets.Select(facet => facet.Question).Prepend(question));
+
+    // A root archive represents all its facets, including ones previously archived on their own.
+    public static IEnumerable<Question> ArchiveHeads(Project project) => Roots(project).SelectMany(parent =>
+        parent.IsArchived ? Enumerable.Repeat(parent, 1)
+            : parent.ReviewFacets.Select(facet => facet.Question).Where(question => question.IsArchived));
+
     public static Question? FindOriginal(Project project, Question question)
         => Roots(project).FirstOrDefault(root => ReferenceEquals(root, question) ||
             question.ReviewIdentity != Guid.Empty && root.ReviewIdentity == question.ReviewIdentity);

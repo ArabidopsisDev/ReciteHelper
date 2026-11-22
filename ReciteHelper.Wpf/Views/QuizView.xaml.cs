@@ -1,4 +1,5 @@
 using ReciteHelper.Core.Interfaces.Services;
+using ReciteHelper.Application.Services;
 using ReciteHelper.Core.Aggregates;
 using ReciteHelper.Core.Entities;
 using ReciteHelper.Core.Enums;
@@ -8,6 +9,7 @@ using ReciteHelper.Core.Services;
 using ReciteHelper.Core.Scheduling;
 using ReciteHelper.Wpf.Models;
 using ReciteHelper.Wpf.Utilities;
+using ReciteHelper.Wpf.Services;
 using ReciteHelper.Wpf.ViewModels;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -32,9 +34,10 @@ public partial class QuizView : UserControl, INotifyPropertyChanged
     private readonly IReviewPersonalizationService _reviewPersonalizationService;
     private readonly IRuleReviewService? _ruleReviewService;
     private readonly ObservableCollection<QuestionItem> _questions = [];
+    private int _nextQuestionOrder;
     private readonly LatestBuffer<bool> _latest;
     private int _currentQuestionIndex = 0;
-    private int _totalQuestions = 0;
+    private int _activeQuestionCount;
     private readonly Project _project;
     private readonly Stopwatch _answerClock = new();
     private string? _selectedChoiceId;
@@ -44,8 +47,20 @@ public partial class QuizView : UserControl, INotifyPropertyChanged
     internal Chapter? Chapter { get; }
     internal bool HasQuestions => _questions.Count > 0;
     internal bool HasCloseWork => _recordsNeedSave || _personalizationPending;
+    internal bool IsBusy => _grading || !IsEnabled;
+    internal StudyActivityContext ActivityContext
+    {
+        get
+        {
+            if (GradingReview.IsVisible) return new(GradingReview, true, true);
+            if (IsBusy) return default;
+            var current = _questions.ElementAtOrDefault(_currentQuestionIndex);
+            var bucket = current is { IsArchived: false, Status: AnswerStatus.NotAnswered } ? current.Activity : null;
+            return new(this, true, HasQuestions, bucket);
+        }
+    }
     internal event EventHandler? RecordsChanged;
-    internal event EventHandler<IReadOnlySet<Question>>? RecordsCleared;
+    internal event EventHandler<IReadOnlySet<Question>?>? RecordsInvalidated;
     internal event EventHandler? NotesRequested;
     internal event EventHandler? HelpRequested;
     internal event EventHandler? HelpTargetChanged;
@@ -60,7 +75,8 @@ public partial class QuizView : UserControl, INotifyPropertyChanged
         IQuizService quizService,
         IProjectFileService projectFileService,
         IReviewPersonalizationService reviewPersonalizationService,
-        IRuleReviewService? ruleReviewService = null)
+        IRuleReviewService? ruleReviewService = null,
+        QuickReviewService? quickReviewService = null)
     {
         _reviewPersonalizationService = reviewPersonalizationService;
         _quizService = quizService;
@@ -71,6 +87,8 @@ public partial class QuizView : UserControl, INotifyPropertyChanged
 
         InitializeComponent();
         DataContext = this;
+        GradingReview.Attach(quickReviewService, project);
+        Loaded += (_, _) => PreloadQuickReview();
 
         ManageRuleQuestionsButton.Visibility = CompactManageButton.Visibility =
             project.TemplateType == ProjectTemplateType.RuleBasedReview ? Visibility.Visible : Visibility.Collapsed;
@@ -78,7 +96,8 @@ public partial class QuizView : UserControl, INotifyPropertyChanged
 
         foreach (var question in questions)
             AddQuestion(question);
-        _totalQuestions = _questions.Count;
+        AddSmartArchives();
+        OrderQuestions();
         AnswerCardItemsControl.ItemsSource = CompactCardItems.ItemsSource = _questions;
         SizeChanged += (_, e) => ResizeQuestionLayout(e.NewSize.Width);
         IsVisibleChanged += (_, _) => UpdateAnswerClock();
@@ -100,7 +119,7 @@ public partial class QuizView : UserControl, INotifyPropertyChanged
     private void SwitchToQuestion(int questionNumber)
     {
         if (_grading) return;
-        if (questionNumber < 1 || questionNumber > _totalQuestions)
+        if (questionNumber < 1 || questionNumber > _questions.Count)
             return;
 
         int targetIndex = questionNumber - 1;
@@ -153,16 +172,38 @@ public partial class QuizView : UserControl, INotifyPropertyChanged
 
     private void AddQuestion(Question question)
     {
-        var status = Chapter is null ? AnswerStatus.NotAnswered : RecordedStatus(question);
+        var status = Chapter is null && !question.IsArchived ? AnswerStatus.NotAnswered : RecordedStatus(question);
         var assessment = status == AnswerStatus.NotAnswered ? null : question.LastAiAssessment;
         _questions.Add(new QuestionItem
         {
             Number = _questions.Count + 1,
             Question = question,
+            OriginalOrder = _nextQuestionOrder++,
+            IsArchived = question.IsArchived,
             UserAnswer = status == AnswerStatus.NotAnswered ? null : question.SubmittedAnswer ?? assessment?.UserAnswer,
             Status = status,
             Assessment = assessment
         });
+    }
+
+    private void AddSmartArchives()
+    {
+        if (Chapter is not null) return;
+        var listed = _questions.Select(item => item.Question).ToHashSet();
+        foreach (var question in ReviewQuestionCatalog.ArchiveHeads(_project))
+            if (listed.Add(question)) AddQuestion(question);
+    }
+
+    private void OrderQuestions()
+    {
+        var ordered = _questions.OrderBy(item => item.IsArchived).ThenBy(item => item.OriginalOrder).ToArray();
+        _activeQuestionCount = ordered.Count(item => !item.IsArchived);
+        for (var index = 0; index < ordered.Length; index++)
+        {
+            var item = ordered[index];
+            if (!ReferenceEquals(_questions[index], item)) _questions.Move(_questions.IndexOf(item), index);
+            item.Number = index + 1;
+        }
     }
 
     internal void RefreshRecords(IReadOnlySet<Question>? cleared = null)
@@ -179,26 +220,36 @@ public partial class QuizView : UserControl, INotifyPropertyChanged
         {
             // A full answer in another tab can replace the facets in this plan.
             var available = new HashSet<Question>(ReviewQuestionCatalog.All(_project), ReferenceEqualityComparer.Instance);
-            foreach (var item in _questions.Where(item =>
-                         !available.Contains(item.Question!) ||
-                         !ReviewQuestionCatalog.HasAnswerRecord(item.Question!) ||
-                         item.Status == AnswerStatus.NotAnswered && item.Question!.ReviewFacets.Count > 0).ToArray())
+            var archivedDescendants = ReviewQuestionCatalog.Roots(_project).Where(question => question.IsArchived)
+                .SelectMany(question => question.ReviewFacets.Select(facet => facet.Question)).ToHashSet();
+            foreach (var item in _questions.Where(item => !available.Contains(item.Question!) ||
+                         archivedDescendants.Contains(item.Question!) || !item.Question!.IsArchived && (
+                         !ReviewQuestionCatalog.HasAnswerRecord(item.Question) ||
+                         item.Status == AnswerStatus.NotAnswered && item.Question.ReviewFacets.Count > 0)).ToArray())
                 _questions.Remove(item);
+            AddSmartArchives();
         }
 
         foreach (var item in _questions)
         {
-            var status = RecordedStatus(item.Question!);
-            if (Chapter is null && status != AnswerStatus.NotAnswered) continue;
-            var assessment = status == AnswerStatus.NotAnswered ? null : item.Question!.LastAiAssessment;
-            if (cleared?.Contains(item.Question!) == true)
+            var question = item.Question!;
+            var archiveChanged = question.IsArchived != item.IsArchived;
+            item.IsArchived = question.IsArchived;
+            currentChanged |= archiveChanged && ReferenceEquals(item, current);
+            var status = RecordedStatus(question);
+            var wasCleared = cleared?.Contains(question) == true;
+            if (Chapter is null && !archiveChanged && !item.IsArchived && !wasCleared && status != AnswerStatus.NotAnswered)
+                continue;
+            var assessment = status == AnswerStatus.NotAnswered ? null : question.LastAiAssessment;
+            if (wasCleared)
             {
                 item.DraftText = null;
                 item.DraftParts = null;
                 item.AnswerElapsed = TimeSpan.Zero;
+                item.Activity.Total = default;
                 currentChanged |= ReferenceEquals(item, current);
             }
-            var answer = status == AnswerStatus.NotAnswered ? null : item.Question!.SubmittedAnswer ?? assessment?.UserAnswer;
+            var answer = status == AnswerStatus.NotAnswered ? null : question.SubmittedAnswer ?? assessment?.UserAnswer;
             if (status == item.Status && ReferenceEquals(assessment, item.Assessment) && answer == item.UserAnswer) continue;
             item.Status = status;
             item.Assessment = assessment;
@@ -206,9 +257,7 @@ public partial class QuizView : UserControl, INotifyPropertyChanged
             currentChanged |= ReferenceEquals(item, current);
         }
 
-        _totalQuestions = _questions.Count;
-        for (int i = 0; i < _questions.Count; i++)
-            _questions[i].Number = i + 1;
+        OrderQuestions();
         var index = current is null ? -1 : _questions.IndexOf(current);
         _currentQuestionIndex = index < 0 ? 0 : index;
         if (index < 0 || currentChanged)
@@ -222,6 +271,7 @@ public partial class QuizView : UserControl, INotifyPropertyChanged
 
     private void UpdateDisplay()
     {
+        if (IsLoaded) App.StudyActivity?.Checkpoint();
         _answerClock.Reset();
         var hasQuestions = _questions.Count != 0;
         PracticeLayout.Visibility = hasQuestions ? Visibility.Visible : Visibility.Collapsed;
@@ -247,7 +297,7 @@ public partial class QuizView : UserControl, INotifyPropertyChanged
 
         UpdateAnswerHistory(currentQuestion);
         ConfigureAnswerInput(currentQuestion);
-        SubmitButton.IsEnabled = currentQuestion.Status == AnswerStatus.NotAnswered;
+        SubmitButton.IsEnabled = !currentQuestion.IsArchived && currentQuestion.Status == AnswerStatus.NotAnswered;
         HelpButton.IsEnabled = currentQuestion.Status != AnswerStatus.NotAnswered;
 
         // Hide the results area (if it's a new question)
@@ -262,14 +312,41 @@ public partial class QuizView : UserControl, INotifyPropertyChanged
 
         UpdateNavigation();
         HelpTargetChanged?.Invoke(this, EventArgs.Empty);
+        if (IsLoaded) PreloadQuickReview();
+    }
+
+    private Guid TopicOf(Question question) => ReviewQuestionCatalog.FindFacet(_project, question)?.Parent.ReviewIdentity
+        ?? question.ReviewIdentity;
+
+    private void PreloadQuickReview()
+    {
+        var item = _questions.ElementAtOrDefault(_currentQuestionIndex);
+        if (item is not { IsArchived: false, Status: AnswerStatus.NotAnswered })
+            item = _questions.FirstOrDefault(question => !question.IsArchived && question.Status == AnswerStatus.NotAnswered);
+        if (item?.Question is { } question)
+            GradingReview.Preload(TopicOf(question));
     }
 
     private void UpdateNavigation()
     {
-        CurrentQuestionText.Text = (_currentQuestionIndex + 1).ToString();
-        TotalQuestionsText.Text = _totalQuestions.ToString();
+        var current = _questions[_currentQuestionIndex];
+        var isArchived = current.IsArchived;
+        var archivedCount = _questions.Count - _activeQuestionCount;
+        QuestionPosition.Text = isArchived
+            ? $"归档 {_currentQuestionIndex + 1 - _activeQuestionCount} / {archivedCount}"
+            : $"第 {_currentQuestionIndex + 1} 题 / 共 {_activeQuestionCount} 题";
+        ArchiveBanner.Visibility = isArchived ? Visibility.Visible : Visibility.Collapsed;
+        if (isArchived)
+        {
+            var facets = current.Question!.ReviewFacets;
+            ArchiveSummary.Text = facets.Count == 0 ? "已归档" : $"已归档，包含 {facets.Count} 个切面";
+            ArchiveSummary.ToolTip = facets.Count == 0 ? null : string.Join("\n", facets.Select(facet => facet.Name));
+        }
+        RestoreAllButton.Visibility = archivedCount > 1 ? Visibility.Visible : Visibility.Collapsed;
+        ClearButton.IsEnabled = _activeQuestionCount > 0;
         PrevButton.IsEnabled = _currentQuestionIndex > 0;
-        NextButton.IsEnabled = SkipButton.IsEnabled = _currentQuestionIndex < _totalQuestions - 1;
+        NextButton.IsEnabled = _currentQuestionIndex < _questions.Count - 1;
+        SkipButton.IsEnabled = !isArchived && _currentQuestionIndex < _activeQuestionCount - 1;
         UpdateAnswerCardStyles();
     }
 
@@ -280,7 +357,7 @@ public partial class QuizView : UserControl, INotifyPropertyChanged
         AiReferenceExpander.Visibility = Visibility.Collapsed;
         AiReferenceExpander.IsExpanded = false;
         var question = currentQuestion.Question!;
-        var isEnabled = currentQuestion.Status == AnswerStatus.NotAnswered;
+        var isEnabled = !currentQuestion.IsArchived && currentQuestion.Status == AnswerStatus.NotAnswered;
         var answer = isEnabled ? currentQuestion.DraftText : currentQuestion.UserAnswer;
         var draftParts = isEnabled ? currentQuestion.DraftParts : null;
 
@@ -351,7 +428,7 @@ public partial class QuizView : UserControl, INotifyPropertyChanged
     private void UpdateAnswerClock()
     {
         if (IsVisible && IsEnabled && !_grading &&
-            _questions.ElementAtOrDefault(_currentQuestionIndex)?.Status == AnswerStatus.NotAnswered)
+            _questions.ElementAtOrDefault(_currentQuestionIndex) is { IsArchived: false, Status: AnswerStatus.NotAnswered })
             _answerClock.Start();
         else
             _answerClock.Stop();
@@ -359,22 +436,20 @@ public partial class QuizView : UserControl, INotifyPropertyChanged
 
     private void UpdateAnswerCardStyles()
     {
-        StatsTextBlock.Text = $"已作答 {_questions.Count(item => item.Status != AnswerStatus.NotAnswered)} / {_totalQuestions}";
+        var answered = _questions.Count(item => !item.IsArchived && item.Status != AnswerStatus.NotAnswered);
+        var archives = _questions.Count - _activeQuestionCount;
+        StatsTextBlock.Text = $"已作答 {answered} / {_activeQuestionCount}" +
+            (archives > 0 ? $"\n已归档 {archives} 道" : string.Empty);
         foreach (var question in _questions)
         {
             // Reset to basic style
-            question.StatusStyle = (Style)FindResource("AnswerCardButtonStyle");
-
-            // Apply styles based on status
-            switch (question.Status)
+            var style = question.IsArchived ? "ArchivedAnswerStyle" : question.Status switch
             {
-                case AnswerStatus.Correct:
-                    question.StatusStyle = (Style)FindResource("CorrectAnswerStyle");
-                    break;
-                case AnswerStatus.Wrong:
-                    question.StatusStyle = (Style)FindResource("WrongAnswerStyle");
-                    break;
-            }
+                AnswerStatus.Correct => "CorrectAnswerStyle",
+                AnswerStatus.Wrong => "WrongAnswerStyle",
+                _ => "AnswerCardButtonStyle"
+            };
+            question.StatusStyle = (Style)FindResource(style);
 
             // If this is the current question, add a border style
             if (question.Number == _currentQuestionIndex + 1)
@@ -389,19 +464,46 @@ public partial class QuizView : UserControl, INotifyPropertyChanged
 
     private async void ClearButton_Click(object sender, RoutedEventArgs e)
     {
-        if (_grading || _questions.Count == 0) return;
-        var dialog = new ClearReviewRecordsWindow(_questions) { Owner = Window.GetWindow(this) };
+        if (_grading || _activeQuestionCount == 0) return;
+        var dialog = new ClearReviewRecordsWindow(_questions.Where(item => !item.IsArchived)) { Owner = Window.GetWindow(this) };
         _answerClock.Stop();
         var confirmed = dialog.ShowDialog() is true;
         UpdateAnswerClock();
         if (!confirmed) return;
 
         CaptureCurrentDraft();
-        var affected = ReciteHelper.Application.Services.ReviewHistory.Clear(_project,
-            dialog.QuestionsToClear, dialog.AnswersOnly);
+        var affected = dialog.QuestionsToClear.Count > 0
+            ? ReviewHistory.Clear(_project, dialog.QuestionsToClear, dialog.AnswersOnly)
+            : null;
+        if (dialog.QuestionsToArchive.Count > 0)
+            SetArchiveState(dialog.QuestionsToArchive, archived: true);
+        await PersistPracticeChangesAsync(affected);
+    }
+
+    private async void RestoreCurrent_Click(object sender, RoutedEventArgs e)
+        => await SetArchiveAsync([_questions[_currentQuestionIndex].Question!], archived: false);
+
+    private async void RestoreAll_Click(object sender, RoutedEventArgs e)
+        => await SetArchiveAsync(_questions.Where(item => item.IsArchived).Select(item => item.Question!), archived: false);
+
+    private async Task SetArchiveAsync(IEnumerable<Question> questions, bool archived)
+    {
+        SetArchiveState(questions, archived);
+        await PersistPracticeChangesAsync(null);
+    }
+
+    private void SetArchiveState(IEnumerable<Question> questions, bool archived)
+    {
+        foreach (var question in questions)
+            question.IsArchived = archived;
+        _project.NotifyPracticeArchiveChanged();
+    }
+
+    private async Task PersistPracticeChangesAsync(IReadOnlySet<Question>? cleared)
+    {
         _recordsNeedSave = true;
-        RefreshRecords(affected);
-        RecordsCleared?.Invoke(this, affected);
+        RefreshRecords(cleared);
+        RecordsInvalidated?.Invoke(this, cleared);
         IsEnabled = false;
         try
         {
@@ -476,7 +578,7 @@ public partial class QuizView : UserControl, INotifyPropertyChanged
 
     private void LocateCurrent()
     {
-        for (int i = 0; i < _questions.Count(); i++)
+        for (int i = 0; i < _activeQuestionCount; i++)
         {
             if (_questions[i].Status == AnswerStatus.NotAnswered)
             {
@@ -490,6 +592,7 @@ public partial class QuizView : UserControl, INotifyPropertyChanged
     {
         if (_grading || _questions.Count == 0) return;
         var currentQuestion = _questions[_currentQuestionIndex];
+        if (currentQuestion.IsArchived || currentQuestion.Status != AnswerStatus.NotAnswered) return;
         var answerText = GetCurrentAnswerText(currentQuestion);
 
         if (string.IsNullOrWhiteSpace(answerText))
@@ -498,24 +601,33 @@ public partial class QuizView : UserControl, INotifyPropertyChanged
             return;
         }
 
+        App.StudyActivity?.Checkpoint();
+        var activity = currentQuestion.Activity.Total;
         _grading = true;
-        IsEnabled = false;
+        PracticeLayout.IsEnabled = false;
+        App.StudyActivity?.Checkpoint();
+        _answerClock.Stop();
         var startedAt = DateTime.Now - currentQuestion.AnswerElapsed - _answerClock.Elapsed;
         SubmitButton.Content = "正在批改…";
+        var succeeded = false;
         try
         {
             currentQuestion.UserAnswer = answerText;
 
-            var answerResult = await _quizService.ProcessAnswerAsync(
+            var pendingGrade = _quizService.ProcessAnswerAsync(
                 _project,
                 currentQuestion.Question!,
                 currentQuestion.UserAnswer,
                 startedAt);
+            if (!pendingGrade.IsCompleted) GradingReview.Begin(TopicOf(currentQuestion.Question!));
+            var answerResult = await pendingGrade;
 
+            if (activity.ForegroundSeconds > 0) answerResult.ReviewTag.StudyActivity = activity;
             currentQuestion.Status = answerResult.IsCorrect ? AnswerStatus.Correct : AnswerStatus.Wrong;
             currentQuestion.DraftText = null;
             currentQuestion.DraftParts = null;
             currentQuestion.AnswerElapsed = TimeSpan.Zero;
+            currentQuestion.Activity.Total = default;
             _answerClock.Reset();
             currentQuestion.Assessment = answerResult.AiAssessment;
             currentQuestion.Question!.Status = answerResult.IsCorrect;
@@ -536,6 +648,7 @@ public partial class QuizView : UserControl, INotifyPropertyChanged
             QDisplayLabel.Content = MemoryHintFormatter.Format(answerResult);
 
             await SaveRecordsAsync();
+            succeeded = true;
 
             // Play phonk effect
             _latest.Add(answerResult.IsCorrect);
@@ -549,9 +662,13 @@ public partial class QuizView : UserControl, INotifyPropertyChanged
         finally
         {
             _grading = false;
-            IsEnabled = true;
+            PracticeLayout.IsEnabled = true;
+            GradingReview.Finish(succeeded);
+            App.StudyActivity?.Checkpoint();
+            UpdateAnswerClock();
             SubmitButton.Content = "提交答案";
             SubmitButton.IsEnabled = currentQuestion.Status == AnswerStatus.NotAnswered;
+            if (succeeded) PreloadQuickReview();
         }
     }
 
@@ -629,7 +746,7 @@ public partial class QuizView : UserControl, INotifyPropertyChanged
     private void CaptureCurrentDraft()
     {
         var item = _questions[_currentQuestionIndex];
-        if (item.Status != AnswerStatus.NotAnswered) return;
+        if (item.IsArchived || item.Status != AnswerStatus.NotAnswered) return;
 
         item.AnswerElapsed += _answerClock.Elapsed;
         _answerClock.Reset();

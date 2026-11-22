@@ -15,6 +15,7 @@
         <Geometry x:Key="BookIcon">M8,5 C6,3 4,3 2.5,3.5 V12 C4,11.5 6,11.5 8,13 M8,5 C10,3 12,3 13.5,3.5 V12 C12,11.5 10,11.5 8,13 Z</Geometry>
         <Geometry x:Key="LayersIcon">M8,2 L14,5.5 L8,9 L2,5.5 Z M2,8.5 L8,12 L14,8.5 M2,11 L8,14.5 L14,11</Geometry>
         <Geometry x:Key="ClockIcon">M8,2 A6,6 0 1 1 7.99,2 Z M8,5 V8 L10.5,9.5</Geometry>
+        <Geometry x:Key="EfficiencyIcon">M2.5,13.5 H13.5 M4,10 L7,7 L9.5,9 L13,5 M10,5 H13 V8</Geometry>
         <Geometry x:Key="PracticeIcon">M3,10 L10,3 L13,6 L6,13 H3 Z M9,4 L12,7</Geometry>
         <Geometry x:Key="ExamIcon">M3.5,3 H12.5 V14 H3.5 Z M6,2 H10 V5 H6 Z M6,8 H10 M6,11 H10</Geometry>
         <Geometry x:Key="RefreshIcon">M12.6,6 A5,5 0 1 0 12.5,10.5 M12.8,2.5 V6.4 H9</Geometry>

@@ -1,4 +1,5 @@
 using ReciteHelper.Core.Interfaces.Services;
+using ReciteHelper.Application.Services;
 using ReciteHelper.Core.Aggregates;
 using ReciteHelper.Core.Entities;
 using ReciteHelper.Core.ValueObjects;
@@ -17,6 +18,7 @@ namespace ReciteHelper.Wpf.Views {
         private readonly IExamSetRepository _examSetRepository;
         private readonly IProjectCreationService _projectCreationService;
         private readonly IProjectFileService _projectFileService;
+        private readonly QuickReviewService? _quickReviewService;
         private Project _project;
         private List<ChapterWeightSetting> _chapterWeights;
         private IReadOnlyList<ExamSet> _examSets = [];
@@ -28,7 +30,8 @@ namespace ReciteHelper.Wpf.Views {
             IExamSettingsService examSettingsService,
             IExamSetRepository examSetRepository,
             IProjectCreationService projectCreationService,
-            IProjectFileService projectFileService)
+            IProjectFileService projectFileService,
+            QuickReviewService? quickReviewService = null)
         {
             _examAnswerService = examAnswerService;
             _examPaperService = examPaperService;
@@ -36,6 +39,7 @@ namespace ReciteHelper.Wpf.Views {
             _examSetRepository = examSetRepository;
             _projectCreationService = projectCreationService;
             _projectFileService = projectFileService;
+            _quickReviewService = quickReviewService;
 
             InitializeComponent();
             _project = project;
@@ -307,7 +311,8 @@ namespace ReciteHelper.Wpf.Views {
                 _examAnswerService,
                 project: _project,
                 projectCreationService: _projectCreationService,
-                projectFileService: _projectFileService);
+                projectFileService: _projectFileService,
+                quickReviewService: _quickReviewService);
             examWindow.Show();
 
             Close();
@@ -339,7 +344,8 @@ namespace ReciteHelper.Wpf.Views {
                 _projectFileService,
                 isImportedExamSet: true,
                 importedSet: examSet,
-                examSets: _examSetRepository);
+                examSets: _examSetRepository,
+                quickReviewService: _quickReviewService);
             examWindow.Show();
             Close();
         }

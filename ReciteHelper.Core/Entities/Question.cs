@@ -27,6 +27,10 @@ public class Question : Entity
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public bool AnswerCleared { get; set; }
 
+    [JsonPropertyName("practice_archived")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public bool IsArchived { get; set; }
+
     [JsonPropertyName("text")]
     public string? Text { get; set; }
 

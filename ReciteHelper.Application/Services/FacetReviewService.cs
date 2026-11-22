@@ -96,7 +96,7 @@ public sealed class FacetReviewService(IReviewScheduler scheduler) : IFacetRevie
 
     private static FacetReviewUpdate Update(Question parent, string? name, double? weight, double before, double after)
         => new(parent.Text ?? string.Empty, name, weight, before, after,
-            parent.ReviewFacets.Where(f => f.NeedsReview).Select(f => f.Name).ToList());
+            ReviewQuestionCatalog.ActiveFacets(parent).Where(f => f.NeedsReview).Select(f => f.Name).ToList());
 
     private static void SeedKnownSuccesses(Question parent, Question facet, DateTime createdAt)
     {

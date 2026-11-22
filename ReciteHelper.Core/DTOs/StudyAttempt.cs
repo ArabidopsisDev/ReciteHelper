@@ -1,3 +1,5 @@
+using ReciteHelper.Core.ValueObjects;
+
 namespace ReciteHelper.Core.DTOs;
 
 public sealed record StudyAttempt(
@@ -6,4 +8,5 @@ public sealed record StudyAttempt(
     double ExpectedSeconds)
 {
     public bool HasFallacy { get; init; }
+    public StudyActivityTime? Activity { get; init; }
 }

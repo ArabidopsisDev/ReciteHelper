@@ -1,0 +1,37 @@
+<UserControl x:Class="ReciteHelper.Wpf.Controls.QuickReviewCard"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="{DynamicResource ReadingSurface}" Visibility="Collapsed">
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel MaxWidth="650" Margin="24,24,24,28">
+            <TextBlock x:Name="GradingStatus" Style="{StaticResource CaptionTextStyle}" Margin="0,0,0,5"
+                       AutomationProperties.LiveSetting="Polite" />
+            <TextBlock Text="快速复习" Style="{StaticResource TitleTextStyle}" />
+            <ProgressBar x:Name="WaitingProgress" IsIndeterminate="True" Height="3" Margin="0,14,0,16"
+                         Style="{StaticResource ArcSlimProgress}" />
+            <TextBlock x:Name="PromptText" Style="{StaticResource ReadingTextStyle}" Margin="0,6,0,12" />
+            <ItemsControl x:Name="Choices" Margin="0,0,0,6">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Button Content="{Binding}" Click="Choice_Click" Margin="0,0,0,6"
+                                Style="{StaticResource WorkspaceRowStyle}" HorizontalContentAlignment="Stretch">
+                            <Button.ContentTemplate>
+                                <DataTemplate><TextBlock Text="{Binding}" TextWrapping="Wrap" /></DataTemplate>
+                            </Button.ContentTemplate>
+                        </Button>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <DockPanel x:Name="FillRow" LastChildFill="True" MaxWidth="436" HorizontalAlignment="Left">
+                <Button x:Name="CheckButton" DockPanel.Dock="Right" Content="提交" Click="Check_Click"
+                        Style="{StaticResource SmallButtonStyle}" Margin="8,0,0,0" />
+                <TextBox x:Name="BlankAnswer" MinWidth="155" MaxLength="80" KeyDown="BlankAnswer_KeyDown"
+                         AutomationProperties.Name="填空答案" />
+            </DockPanel>
+            <TextBlock x:Name="Feedback" Style="{StaticResource BodyTextStyle}" Margin="0,12,0,0"
+                       AutomationProperties.LiveSetting="Polite" Visibility="Collapsed" />
+            <Button x:Name="DismissButton" Click="Dismiss_Click" Style="{StaticResource SubtleButtonStyle}"
+                    HorizontalAlignment="Right" Margin="0,14,0,0" />
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

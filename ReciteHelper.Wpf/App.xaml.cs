@@ -6,6 +6,7 @@ using ReciteHelper.Application.Services;
 using ReciteHelper.Infrastructure.Configuration;
 using ReciteHelper.Infrastructure.Services;
 using ReciteHelper.Wpf.Views;
+using ReciteHelper.Wpf.Services;
 using ReciteHelper.Core.Configuration;
 using System.IO;
 using System.Threading.Tasks;
@@ -17,6 +18,8 @@ namespace ReciteHelper.Wpf;
 public partial class App : System.Windows.Application
 {
     private IServiceProvider? _serviceProvider;
+    private StudyActivityTracker? _studyActivity;
+    internal static StudyActivityTracker? StudyActivity => (Current as App)?._studyActivity;
 
     private async void Application_Startup(object sender, StartupEventArgs e)
     {
@@ -75,6 +78,7 @@ public partial class App : System.Windows.Application
         services.AddSingleton<IPromptProvider, PromptProvider>();
         services.AddSingleton<IPhonkService, PhonkService>();
         services.AddSingleton<IReviewScheduler, FsrsReviewScheduler>();
+        services.AddSingleton<QuickReviewService>();
         services.AddSingleton<IReviewPersonalizationService, ReviewPersonalizationService>();
 
         services.AddTransient<ActivationWindow>();
@@ -94,7 +98,14 @@ public partial class App : System.Windows.Application
         var mainWindow = _serviceProvider.GetRequiredService<MainWindow>();
         MainWindow = mainWindow;
         ShutdownMode = ShutdownMode.OnMainWindowClose;
+        _studyActivity = new StudyActivityTracker(this);
         mainWindow.Show();
+    }
+
+    protected override void OnExit(ExitEventArgs e)
+    {
+        _studyActivity?.Dispose();
+        base.OnExit(e);
     }
 
     private async Task<bool> EnsureModelAccessAsync(

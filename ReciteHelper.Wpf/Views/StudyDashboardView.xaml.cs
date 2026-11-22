@@ -1,4 +1,5 @@
 using ReciteHelper.Application.Services;
+using ReciteHelper.Core.ValueObjects;
 using ReciteHelper.Infrastructure.Services;
 using System.Globalization;
 using System.IO;
@@ -22,6 +23,7 @@ public partial class StudyDashboardView : UserControl
     private StudyProfile? _profile;
     private StudySummary? _summary;
     private Dictionary<DateOnly, StudyDay> _days = [];
+    private IReadOnlyDictionary<DateOnly, StudyActivityTime> _activityDays = new Dictionary<DateOnly, StudyActivityTime>();
     private readonly Dictionary<DateOnly, Button> _dateButtons = [];
     private readonly Dictionary<DateOnly, (Button Mark, Border Bar)> _trendMarks = [];
     private DateOnly _month;
@@ -108,17 +110,19 @@ public partial class StudyDashboardView : UserControl
     {
         _summary = summary;
         _days = summary.Days.ToDictionary(day => day.Date);
+        _activityDays = App.StudyActivity?.Snapshot() ?? new Dictionary<DateOnly, StudyActivityTime>();
         var totals = summary.Totals;
+        var activity = _activityDays.Values.Aggregate(default(StudyActivityTime), (total, day) => total + day);
         DrawRating(summary.Rating);
         OverviewMetrics.ItemsSource = new[]
         {
             Metric("CalendarIcon", "学习天数", $"{summary.Days.Count:N0} 天",
                 $"当前连续 {summary.CurrentStreak} 天\n最长连续 {summary.LongestStreak} 天"),
+            EfficiencyMetric(activity),
             Metric("TargetIcon", "正确率", Percent(totals.Accuracy), AccuracyDetails(totals)),
             Metric("ListIcon", "作答次数", totals.Attempts.ToString("N0"),
                 $"练习 {totals.PracticeAttempts:N0} 次\n考试 {totals.Exams:N0} 场"),
-            Metric("BookIcon", "学习科目", summary.Subjects.Count.ToString("N0")),
-            Metric("LayersIcon", "已练原题", totals.Topics.ToString("N0")),
+            Metric("BookIcon", "学习科目", summary.Subjects.Count.ToString("N0"), $"已练 {totals.Topics:N0} 道不同原题"),
             Metric("ClockIcon", "累计计时", ElapsedValue(totals, compact: true), DurationDetails(totals))
         };
         HistoryRange.Text = summary.Days.Count > 0
@@ -129,7 +133,7 @@ public partial class StudyDashboardView : UserControl
 
         if (_date == default)
         {
-            _date = summary.Days.LastOrDefault()?.Date ?? Today();
+            _date = _days.Keys.Concat(_activityDays.Keys).DefaultIfEmpty(Today()).Max();
             _month = FirstOfMonth(_date);
         }
         DrawMonth();
@@ -142,7 +146,8 @@ public partial class StudyDashboardView : UserControl
     private void SetMonth(DateOnly month)
     {
         _month = month;
-        var mostRecent = _days.Keys.Where(day => FirstOfMonth(day) == month).DefaultIfEmpty(month).Max();
+        var mostRecent = _days.Keys.Concat(_activityDays.Keys).Where(day => FirstOfMonth(day) == month)
+            .DefaultIfEmpty(month).Max();
         DrawMonth();
         SelectDate(mostRecent);
     }
@@ -153,13 +158,15 @@ public partial class StudyDashboardView : UserControl
         _date = date;
         HighlightDate(date, true);
         var day = _days.GetValueOrDefault(date);
+        var activity = _activityDays.GetValueOrDefault(date);
         SelectedDay.Text = date.ToString("M 月 d 日  dddd", CultureInfo.GetCultureInfo("zh-CN"));
         DayMetrics.ItemsSource = day is { Totals: var totals } ? new[]
         {
             Metric("ListIcon", "作答", $"{totals.Attempts:N0} 次"),
             Metric("TargetIcon", "正确率", Percent(totals.Accuracy), AccuracyDetails(totals)),
-            Metric("ClockIcon", "计时", ElapsedValue(totals), DurationDetails(totals))
-        } : [Metric("ListIcon", "作答", "0 次")];
+            Metric("ClockIcon", "计时", ElapsedValue(totals), DurationDetails(totals)),
+            EfficiencyMetric(activity)
+        } : [Metric("ListIcon", "作答", "0 次"), EfficiencyMetric(activity)];
         DaySubjects.ItemsSource = day?.Subjects.Select(ToSubjectRow).ToArray();
         var sessions = _summary?.Sessions.Where(session => session.Date == date).Select(ToSessionRow).ToArray() ?? [];
         DaySessions.ItemsSource = sessions;
@@ -182,7 +189,8 @@ public partial class StudyDashboardView : UserControl
     {
         var today = Today();
         MonthLabel.Text = $"{_month:yyyy 年 M 月}";
-        PreviousMonth.IsEnabled = _summary is { Days.Count: > 0 } && _month > FirstOfMonth(_summary.Days[0].Date);
+        var earliest = _days.Keys.Concat(_activityDays.Keys).DefaultIfEmpty(today).Min();
+        PreviousMonth.IsEnabled = _month > FirstOfMonth(earliest);
         NextMonth.IsEnabled = _month < FirstOfMonth(today);
         CalendarDays.Children.Clear();
         _dateButtons.Clear();
@@ -284,6 +292,14 @@ public partial class StudyDashboardView : UserControl
 
     private MetricItem Metric(string icon, string label, string value, string? details = null)
         => new((Geometry)FindResource(icon), label, value, details);
+
+    private MetricItem EfficiencyMetric(StudyActivityTime activity)
+    {
+        var details = activity.Efficiency is null ? "暂无前台使用记录。"
+            : $"有效学习 {Duration(activity.ActiveSeconds)}\n前台使用 {Duration(activity.ForegroundSeconds)}\n" +
+              "根据输入、点击和滚动估算。长时间无操作会降低效率。";
+        return Metric("EfficiencyIcon", "学习效率", Percent(activity.Efficiency), details);
+    }
 
     private Brush BrushResource(string key) => (Brush)FindResource(key);
 

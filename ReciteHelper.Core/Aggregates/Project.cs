@@ -41,8 +41,10 @@ public class Project : AggregateRoot
         => ReviewMistakesClearedAt is not { } clearedAt || attemptedAt.ToUniversalTime() > clearedAt.ToUniversalTime();
 
     public event EventHandler<bool>? ReviewMistakesChanged;
+    public event EventHandler? PracticeArchiveChanged;
 
     public void NotifyReviewMistakesChanged(bool externalExam = false) => ReviewMistakesChanged?.Invoke(this, externalExam);
+    public void NotifyPracticeArchiveChanged() => PracticeArchiveChanged?.Invoke(this, System.EventArgs.Empty);
 
     [JsonPropertyName("knowledge_base")]
     public string? KnowledgeBasePath { get; set; }

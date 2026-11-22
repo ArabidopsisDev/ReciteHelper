@@ -8,7 +8,7 @@ public class ChapterViewModel : INotifyPropertyChanged
 {
     public Chapter Chapter { get; }
 
-    public int QuestionCount => Chapter.Questions?.Count ?? 0;
+    public int QuestionCount => Chapter.Questions?.Count(question => !question.IsArchived) ?? 0;
 
     private double _masteryLevel;
     public double MasteryLevel

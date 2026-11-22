@@ -15,7 +15,7 @@ public static class MemoryHintFormatter
             ? $"原题掌握度 {update.MasteryBefore:P0} → {update.MasteryAfter:P0}，本切面占 {update.Weight:P0}。"
             : update.WeakFacets.Count > 0
                 ? $"薄弱切面：{string.Join("、", update.WeakFacets)}。cFSRS 将在 10 分钟后安排切面重练。"
-                : $"原题掌握度 {update.MasteryAfter:P0}，后续按切面安排复习。";
+                : $"原题掌握度 {update.MasteryAfter:P0}。";
         return text + "\n" + message;
     }
 

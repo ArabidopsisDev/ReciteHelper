@@ -16,11 +16,14 @@ public static class CfsrsPolicy
     }
 
     public static bool IsAvailable(ReviewFacet facet, DateTime now, double? recall, double desiredRetention)
-        => facet.NeedsReview ? facet.ReviewAvailableAt is null || facet.ReviewAvailableAt <= now
-            : recall is null || recall < desiredRetention;
+        => !facet.Question.IsArchived && (facet.NeedsReview ? facet.ReviewAvailableAt is null || facet.ReviewAvailableAt <= now
+            : recall is null || recall < desiredRetention);
 
     public static double NextReviewInterval(Question parent, DateTime now, double desiredRetention, SchedulerParameters parameters)
-        => parent.ReviewFacets.Any(f => f.NeedsReview)
-            ? Math.Max(0, parent.ReviewFacets.Where(f => f.NeedsReview).Min(f => ((f.ReviewAvailableAt ?? now) - now).TotalDays))
+    {
+        var nextWeak = ReviewQuestionCatalog.ActiveFacets(parent).Where(facet => facet.NeedsReview)
+            .Select(facet => (double?)((facet.ReviewAvailableAt ?? now) - now).TotalDays).Min();
+        return nextWeak is { } days ? Math.Max(0, days)
             : FacetMemoryProjection.IntervalForRetention(parent, now, desiredRetention, parameters);
+    }
 }

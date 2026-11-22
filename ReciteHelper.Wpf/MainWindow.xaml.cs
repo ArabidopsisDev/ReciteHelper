@@ -1,4 +1,5 @@
 using Microsoft.Win32;
+using ReciteHelper.Application.Services;
 using ReciteHelper.Core.Interfaces.Services;
 using ReciteHelper.Core.Interfaces.Configuration;
 using ReciteHelper.Infrastructure.Services;
@@ -32,6 +33,7 @@ public partial class MainWindow : Window
     private readonly IPiModelService _piModelService;
     private readonly HostedModelService _hostedModelService;
     private readonly IRuleReviewService _ruleReviewService;
+    private readonly QuickReviewService? _quickReviewService;
     private List<RecentProject> recentProjects = new();
 
     public MainWindow(
@@ -53,7 +55,8 @@ public partial class MainWindow : Window
         IConfigService configService,
         IPiModelService piModelService,
         HostedModelService hostedModelService,
-        IRuleReviewService ruleReviewService)
+        IRuleReviewService ruleReviewService,
+        QuickReviewService? quickReviewService = null)
     {
         _reviewPersonalizationService = reviewPersonalizationService;
         _projectFileService = projectFileService;
@@ -74,6 +77,7 @@ public partial class MainWindow : Window
         _piModelService = piModelService;
         _hostedModelService = hostedModelService;
         _ruleReviewService = ruleReviewService;
+        _quickReviewService = quickReviewService;
 
         _startupCompatibilityService.Initialize();
 
@@ -350,7 +354,8 @@ public partial class MainWindow : Window
                 _examSetImportService,
                 _examSetRepository,
                 _projectCreationService,
-                _ruleReviewService);
+                _ruleReviewService,
+                _quickReviewService);
             view.HomeRequested += (_, _) => SelectTab(HomeTab);
             view.KnowledgeRequested += (_, _) => OpenKnowledgeTab(project);
             view.ChapterPracticeRequested += (_, chapter) => OpenPracticeTab(view, chapter);

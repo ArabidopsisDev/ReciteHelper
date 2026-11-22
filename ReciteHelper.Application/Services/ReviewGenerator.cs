@@ -53,6 +53,7 @@ public class ReviewGenerator : IReviewGenerator
         var ranked = new List<Ranked>();
         foreach (var question in ReviewQuestionCatalog.Roots(project))
         {
+            if (question.IsArchived) continue;
             if (question.ReviewFacets.Count == 0)
             {
                 if (!ReviewQuestionCatalog.HasAnswerRecord(question)) continue;
@@ -67,7 +68,7 @@ public class ReviewGenerator : IReviewGenerator
                 continue;
             }
             // A decomposed parent is never reintroduced, including during top-up.
-            foreach (var facet in question.ReviewFacets)
+            foreach (var facet in ReviewQuestionCatalog.ActiveFacets(question))
             {
                 if (!ReviewQuestionCatalog.HasAnswerRecord(facet.Question)) continue;
                 var recall = _scheduler.PredictRecall(project, facet.Question, now);

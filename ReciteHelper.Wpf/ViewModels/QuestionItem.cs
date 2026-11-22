@@ -2,6 +2,7 @@ using ReciteHelper.Core.DTOs;
 using ReciteHelper.Core.Entities;
 using ReciteHelper.Core.Enums;
 using ReciteHelper.Wpf.Models;
+using ReciteHelper.Wpf.Services;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows;
@@ -21,11 +22,14 @@ public class QuestionItem : INotifyPropertyChanged
         }
     }
     public Question? Question { get; set; }
+    internal int OriginalOrder { get; init; }
+    internal bool IsArchived { get; set; }
     public AnswerStatus Status { get; set; }
     public string? UserAnswer { get; set; }
     internal string? DraftText { get; set; }
     internal IReadOnlyList<string>? DraftParts { get; set; }
     internal TimeSpan AnswerElapsed { get; set; }
+    internal StudyActivityBucket Activity { get; } = new();
     public AiAnswerAssessment? Assessment { get; set; }
     public List<ReviewTag> ReviewTag { get; set; } = [];
 

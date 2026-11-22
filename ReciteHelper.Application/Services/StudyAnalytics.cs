@@ -1,4 +1,5 @@
 using ReciteHelper.Core.DTOs;
+using ReciteHelper.Core.ValueObjects;
 
 namespace ReciteHelper.Application.Services;
 
@@ -111,7 +112,18 @@ public static class StudyAnalytics
                 attempt.ResponseSeconds is double seconds && seconds > 0
                 ? Math.Min(1, attempt.ExpectedSeconds / seconds) : 0);
             var volume = 1 - Math.Exp(-scored.Length / 12d);
-            var points = 100 * quality * (0.90 + 0.08 * volume + 0.02 * pace);
+            var factor = 0.90 + 0.08 * volume + 0.02 * pace;
+            var measured = (batch[0].IsExam ? batch.AsEnumerable() : scored)
+                .Select(attempt => attempt.Activity).OfType<StudyActivityTime>()
+                .Where(activity => activity.ForegroundSeconds > 0).ToArray();
+            var activity = batch[0].IsExam ? measured.FirstOrDefault()
+                : measured.Aggregate(default(StudyActivityTime), (total, sample) => total + sample);
+            if (activity.ForegroundSeconds >= 15 && activity.Efficiency is { } efficiency)
+            {
+                var share = batch[0].IsExam ? 1d : (double)measured.Length / scored.Length;
+                factor += 0.08 * share * (efficiency - factor);
+            }
+            var points = 100 * quality * factor;
             performance = new(points, quality, pace, volume);
         }
         var first = batch[0];

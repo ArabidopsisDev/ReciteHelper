@@ -73,7 +73,8 @@ public static class StudyHistoryReader
                         correct, QualityRatio(quality), PositiveDuration(tag.ResponseSeconds),
                         PositiveDuration(tag.ExamDurationSeconds), expectedSeconds)
                     {
-                        HasFallacy = tag.Verdict is "FL" or "FA"
+                        HasFallacy = tag.Verdict is "FL" or "FA",
+                        Activity = tag.StudyActivity
                     });
                 }
             }

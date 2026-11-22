@@ -1,4 +1,5 @@
 using ReciteHelper.Core.Interfaces.Services;
+using ReciteHelper.Application.Services;
 using ReciteHelper.Core.Aggregates;
 using ReciteHelper.Core.Entities;
 using ReciteHelper.Core.DTOs;
@@ -23,6 +24,7 @@ public partial class ProjectView : UserControl
     private readonly IExamSetRepository _examSetRepository;
     private readonly IProjectCreationService _projectCreationService;
     private readonly IRuleReviewService? _ruleReviewService;
+    private readonly QuickReviewService? _quickReviewService;
     private readonly Project _currentProject;
     private List<ChapterViewModel> _chapters = [];
 
@@ -42,7 +44,8 @@ public partial class ProjectView : UserControl
         IExamSetImportService examSetImportService,
         IExamSetRepository examSetRepository,
         IProjectCreationService projectCreationService,
-        IRuleReviewService? ruleReviewService = null)
+        IRuleReviewService? ruleReviewService = null,
+        QuickReviewService? quickReviewService = null)
     {
         _projectFileService = projectFileService;
         _examAnswerService = examAnswerService;
@@ -52,6 +55,7 @@ public partial class ProjectView : UserControl
         _examSetRepository = examSetRepository;
         _projectCreationService = projectCreationService;
         _ruleReviewService = ruleReviewService;
+        _quickReviewService = quickReviewService;
 
         InitializeComponent();
         _currentProject = project;
@@ -115,7 +119,9 @@ public partial class ProjectView : UserControl
         // Update statistics
         var chapterCount = _chapters?.Count ?? 0;
         var totalQuestions = _chapters?.Sum(c => c.QuestionCount) ?? 0;
-        ChapterStatsText.Text = $"共 {chapterCount} 个章节，{totalQuestions} 道题目";
+        var archivedQuestions = ReviewQuestionCatalog.Roots(_currentProject).Count(question => question.IsArchived);
+        ChapterStatsText.Text = archivedQuestions == 0 ? $"共 {chapterCount} 个章节，{totalQuestions} 道题目"
+            : $"共 {chapterCount} 个章节，{totalQuestions} 道题目，已归档 {archivedQuestions} 道";
 
         // Show/hide empty state
         EmptyStatePanel.Visibility = chapterCount == 0 ? Visibility.Visible : Visibility.Collapsed;
@@ -149,7 +155,8 @@ public partial class ProjectView : UserControl
             _examSettingsService,
             _examSetRepository,
             _projectCreationService,
-            _projectFileService)
+            _projectFileService,
+            _quickReviewService)
         { Owner = Window.GetWindow(this) };
 
         examWindow.Show();
