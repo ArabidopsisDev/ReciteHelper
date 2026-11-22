@@ -74,6 +74,7 @@
                             <StackPanel>
                                 <TextBlock Text="🌐 生态协同，价值跃迁！" Style="{StaticResource AiHeading}" />
                                 <Button x:Name="ResourceCenterButton" Content="🌈 资源中心，探索无限可能" Style="{StaticResource AiAction}" />
+                                <Button x:Name="StudyDashboardButton" Content="📈 学习看板，数据赋能" Style="{StaticResource AiAction}" />
                                 <Border Style="{StaticResource AiCard}" Padding="4" Background="#EFF6FF"><StackPanel><TextBlock Text="底层逻辑 × 核心引擎 × 智能基座" Style="{StaticResource AiTiny}" Margin="8,2" /><Button x:Name="ModelSettingsButton" Content="⚡ 模型设置，构建智能底座" Style="{StaticResource AiAction}" /></StackPanel></Border>
                             </StackPanel>
                         </Border>

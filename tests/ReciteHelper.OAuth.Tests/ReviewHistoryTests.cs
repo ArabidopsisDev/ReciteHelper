@@ -62,6 +62,7 @@ public sealed class ReviewHistoryTests
         question.ExamHistory = [new() { Verdict = "PC" }];
         var memory = question.Memory;
         var project = new Project { Chapters = [new() { Questions = [question] }] };
+        var mistake = ReviewMistakes.Record(project, question, DateTime.Now, false, null, "原答案");
 
         ReviewHistory.Clear(project, [question], answersOnly: true);
 
@@ -77,6 +78,57 @@ public sealed class ReviewHistoryTests
         Assert.Single(question.ReviewTag);
         Assert.Equal("PC", Assert.Single(question.ExamHistory).Verdict);
         Assert.True(Assert.Single(question.ReviewFacets).NeedsReview);
+        var keptMistake = Assert.Single(project.ReviewMistakes);
+        Assert.Empty(keptMistake.Answer!);
+        Assert.Same(mistake!.Corrections, keptMistake.Corrections);
+    }
+
+    [Fact]
+    public async Task ClearingMistakesKeepsReviewDataAndHidesEarlierPracticeAndImportedExamEntries()
+    {
+        var oldTime = DateTime.Now.AddMinutes(-5);
+        var question = LearnedQuestion();
+        question.ReviewTag[0].Time = oldTime;
+        var assessment = question.LastAiAssessment!;
+        assessment.UserAnswer = "正确的内容。写错的内容。";
+        assessment.Annotations = [new() { Text = "正确的内容。", Status = "correct" },
+            new() { Text = "写错的内容。", Status = "incorrect" }];
+        assessment.Corrections = ["应当更正的内容。"];
+        var directory = Path.Combine(Path.GetTempPath(), "ReciteHelperResetTests", Guid.NewGuid().ToString("N"));
+        var project = new Project { ProjectName = "测试项目", StoragePath = directory,
+            Chapters = [new() { Questions = [question] }] };
+        var files = new ProjectFileService();
+        var exams = new JsonExamSetRepository();
+        try
+        {
+            var legacy = Assert.Single(ReviewMistakes.Read(project));
+            var original = legacy.Answer!;
+            Assert.Equal(new[] { "correct", "incorrect" }, original.Select(span => span.Status));
+            Assert.Equal(assessment.UserAnswer, string.Concat(original.Select(span => span.Text)));
+            var stored = ReviewMistakes.Record(project, question, oldTime, false, assessment, assessment.UserAnswer)!;
+            Assert.Equal(original, stored.Answer);
+            var exam = new ExamSet { Title = "期末试卷", Questions = [new() { Question = question, Score = 4 }],
+                ReviewMistakes = [stored with { IsExam = true }] };
+            await exams.SaveAsync(project, exam);
+
+            await ReviewMistakes.ClearAsync(project, files);
+
+            var reopened = (await files.OpenProjectAsync(Path.Combine(directory, "测试项目", "测试项目.rhproj")))!;
+            Assert.Empty(ReviewMistakes.Read(reopened));
+            Assert.Empty(Assert.Single(await exams.LoadAllAsync(reopened)).ReviewMistakes);
+            var loaded = reopened.Chapters![0].Questions![0];
+            Assert.Equal(assessment.UserAnswer, loaded.LastAiAssessment!.UserAnswer);
+            Assert.Single(loaded.ReviewTag);
+            Assert.NotNull(loaded.Memory);
+            Assert.Null(ReviewMistakes.Record(reopened, loaded, oldTime, false, assessment, assessment.UserAnswer));
+            var next = reopened.ReviewMistakesClearedAt!.Value.AddSeconds(1);
+            ReviewMistakes.Record(reopened, loaded, next, false, assessment, assessment.UserAnswer);
+            Assert.Equal(next, Assert.Single(ReviewMistakes.Read(reopened)).Time);
+        }
+        finally
+        {
+            if (Directory.Exists(directory)) Directory.Delete(directory, true);
+        }
     }
 
     [Fact]

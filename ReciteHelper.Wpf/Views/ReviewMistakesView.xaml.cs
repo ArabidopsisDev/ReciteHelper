@@ -18,6 +18,7 @@ namespace ReciteHelper.Wpf.Views;
 public partial class ReviewMistakesView : UserControl, IWorkspacePaneLayout
 {
     private readonly Project _project;
+    private readonly IProjectFileService _files;
     private readonly IExamSetRepository? _examSets;
     private IReadOnlyList<ReviewMistake> _entries = [];
     private IReadOnlyList<ReviewMistake> _externalEntries = [];
@@ -28,10 +29,11 @@ public partial class ReviewMistakesView : UserControl, IWorkspacePaneLayout
     private static readonly Brush MissingBackground = TextBrush(MistakeParagraph.MissingBackground);
     private static readonly Brush IncorrectForeground = TextBrush(MistakeParagraph.IncorrectForeground);
 
-    internal ReviewMistakesView(Project project, IExamSetRepository? examSets)
+    internal ReviewMistakesView(Project project, IProjectFileService files, IExamSetRepository? examSets)
     {
         InitializeComponent();
         _project = project;
+        _files = files;
         _examSets = examSets;
         ListViewer.SizeChanged += (_, _) => UpdateColumns();
         Loaded += (_, _) =>
@@ -81,7 +83,8 @@ public partial class ReviewMistakesView : UserControl, IWorkspacePaneLayout
 
     internal void Refresh()
     {
-        var entries = ReviewMistakes.Read(_project).Concat(_externalEntries).OrderByDescending(entry => entry.Time).ToArray();
+        var entries = ReviewMistakes.Read(_project).Concat(_externalEntries.Where(entry => _project.IncludesMistakeAt(entry.Time)))
+            .OrderByDescending(entry => entry.Time).ToArray();
         if (ListViewer.Document is not null && entries.SequenceEqual(_entries)) return;
         _entries = entries;
         RenderEntries();
@@ -105,7 +108,7 @@ public partial class ReviewMistakesView : UserControl, IWorkspacePaneLayout
     private void RenderEntries()
     {
         CountText.Text = $"{_entries.Count} 条作答记录";
-        ExportButton.IsEnabled = _entries.Count > 0;
+        ClearButton.IsEnabled = ExportButton.IsEnabled = _entries.Count > 0;
         var document = new FlowDocument { FontFamily = AppFonts.Serif, FontSize = 15, PagePadding = new Thickness(16, 6, 16, 18) };
         document.SetResourceReference(FlowDocument.ForegroundProperty, "ArcForeground");
         if (_entries.Count == 0)
@@ -115,7 +118,7 @@ public partial class ReviewMistakesView : UserControl, IWorkspacePaneLayout
             {
                 FontSize = 12,
                 Margin = new Thickness(0, 7, 0, 3),
-                Inlines = { StyledRun(new MistakeTextRun("遗漏", MistakeTextStyle.Missing)),
+                Inlines = { StyledRun(new MistakeTextRun("遗漏或不全", MistakeTextStyle.Missing)),
                     new Run("  "), StyledRun(new MistakeTextRun("需订正", MistakeTextStyle.Incorrect)) }
             });
 
@@ -139,10 +142,17 @@ public partial class ReviewMistakesView : UserControl, IWorkspacePaneLayout
                 { FontSize = 11, Margin = new Thickness(0, 0, 0, 8) };
             metadata.SetResourceReference(Block.ForegroundProperty, "ArcTextSecondary");
             var heading = new Section { Blocks = { question, metadata } };
-            var details = new Paragraph { Margin = new Thickness(0, 0, 0, 9), LineHeight = 25 };
-            foreach (var run in MistakeParagraph.Format(entry.Corrections))
-                details.Inlines.Add(StyledRun(run));
-            heading.Blocks.Add(details);
+            if (entry.Answer is { Count: > 0 } answer)
+                heading.Blocks.Add(AnnotatedParagraph("原作答", MistakeParagraph.FormatAnswer(answer)));
+            else
+            {
+                var unavailable = new Paragraph(new Run(entry.Answer is null ? "原作答未保存" : "原作答已清空"))
+                    { FontSize = 12, Margin = new Thickness(0, 0, 0, 5) };
+                unavailable.SetResourceReference(Block.ForegroundProperty, "ArcTextSecondary");
+                heading.Blocks.Add(unavailable);
+            }
+            if (entry.Corrections.Count > 0)
+                heading.Blocks.Add(AnnotatedParagraph("订正要点", MistakeParagraph.Format(entry.Corrections)));
             if (rows is null)
                 document.Blocks.Add(heading);
             else
@@ -156,6 +166,16 @@ public partial class ReviewMistakesView : UserControl, IWorkspacePaneLayout
             }
         }
         ListViewer.Document = document;
+    }
+
+    private static Paragraph AnnotatedParagraph(string label, IEnumerable<MistakeTextRun> runs)
+    {
+        var paragraph = new Paragraph { Margin = new Thickness(0, 0, 0, 8), LineHeight = 25 };
+        var caption = new Run(label + "  ") { FontSize = 12 };
+        caption.SetResourceReference(TextElement.ForegroundProperty, "ArcTextSecondary");
+        paragraph.Inlines.Add(caption);
+        foreach (var run in runs) paragraph.Inlines.Add(StyledRun(run));
+        return paragraph;
     }
 
     private static Run StyledRun(MistakeTextRun entry)
@@ -176,6 +196,27 @@ public partial class ReviewMistakesView : UserControl, IWorkspacePaneLayout
         var brush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#" + hex));
         brush.Freeze();
         return brush;
+    }
+
+    private async void Clear_Click(object sender, RoutedEventArgs e)
+    {
+        if (!IsEnabled || _entries.Count == 0) return;
+        var owner = Window.GetWindow(this);
+        if (MessageBox.Show(owner, "清空当前项目错误列表中的全部条目？答题历史和复习进度会保留。",
+                "清空错误列表", MessageBoxButton.YesNo, MessageBoxImage.Warning, MessageBoxResult.No) != MessageBoxResult.Yes)
+            return;
+
+        IsEnabled = false;
+        try
+        {
+            await ReviewMistakes.ClearAsync(_project, _files);
+            Refresh();
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(owner, ex.Message, "无法清空错误列表", MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
+        finally { IsEnabled = true; }
     }
 
     private void Export_Click(object sender, RoutedEventArgs e)

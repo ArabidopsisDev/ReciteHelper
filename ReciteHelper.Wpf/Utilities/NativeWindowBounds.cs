@@ -6,6 +6,15 @@ namespace ReciteHelper.Wpf.Utilities;
 
 internal static class NativeWindowBounds
 {
+    internal static void PreferSmallCorners(Window window)
+    {
+        if (!OperatingSystem.IsWindowsVersionAtLeast(10, 0, 22000)) return;
+        const int cornerPreference = 33;
+        const int roundSmall = 3;
+        var handle = new WindowInteropHelper(window).Handle;
+        DwmSetWindowAttribute(handle, cornerPreference, roundSmall, sizeof(int));
+    }
+
     internal static bool TryGet(Window window, out Rect bounds, out Rect workArea)
     {
         var handle = new WindowInteropHelper(window).Handle;
@@ -61,4 +70,7 @@ internal static class NativeWindowBounds
     [DllImport("user32.dll", ExactSpelling = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
     private static extern bool SetWindowPos(IntPtr window, IntPtr insertAfter, int x, int y, int width, int height, uint flags);
+
+    [DllImport("dwmapi.dll", ExactSpelling = true)]
+    private static extern int DwmSetWindowAttribute(IntPtr window, int attribute, in int value, int size);
 }

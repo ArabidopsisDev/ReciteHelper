@@ -225,7 +225,7 @@
 											FontSize="20"
 											FontStyle="Italic"
 											Style="{StaticResource CaptionTextStyle}"
-											Text="Balsamine" />
+											Text="Iris" />
 									</StackPanel>
 								</Border>
 
@@ -245,6 +245,13 @@
 										Text="我的项目" />
 								</StackPanel>
 							</Border>
+							<Button Click="StudyDashboard_Click" Style="{StaticResource SidebarButtonStyle}">
+								<StackPanel Orientation="Horizontal">
+									<Path Data="M3,4 V20 H21 M7,16 V12 M12,16 V7 M17,16 V10"
+									      Style="{StaticResource ArcLineIcon}" />
+									<TextBlock VerticalAlignment="Center" Text="学习看板" />
+								</StackPanel>
+							</Button>
 							<Button Click="LoadProject_Click" Style="{StaticResource SidebarButtonStyle}">
 								<StackPanel Orientation="Horizontal">
 									<Path Data="{StaticResource ArcFolderIcon}" Style="{StaticResource ArcLineIcon}" />

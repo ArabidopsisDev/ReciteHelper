@@ -11,6 +11,7 @@ using ReciteHelper.Wpf.Utilities;
 using ReciteHelper.Wpf.ViewModels;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Windows;
@@ -35,7 +36,7 @@ public partial class QuizView : UserControl, INotifyPropertyChanged
     private int _currentQuestionIndex = 0;
     private int _totalQuestions = 0;
     private readonly Project _project;
-    private DateTime _startTime = DateTime.Now;
+    private readonly Stopwatch _answerClock = new();
     private string? _selectedChoiceId;
     private string? _selectedTrueFalseAnswer;
     private List<FillBlankAnswerItem> _fillBlankAnswers = [];
@@ -80,6 +81,8 @@ public partial class QuizView : UserControl, INotifyPropertyChanged
         _totalQuestions = _questions.Count;
         AnswerCardItemsControl.ItemsSource = CompactCardItems.ItemsSource = _questions;
         SizeChanged += (_, e) => ResizeQuestionLayout(e.NewSize.Width);
+        IsVisibleChanged += (_, _) => UpdateAnswerClock();
+        IsEnabledChanged += (_, _) => UpdateAnswerClock();
         LocateCurrent();
         UpdateDisplay();
     }
@@ -192,6 +195,7 @@ public partial class QuizView : UserControl, INotifyPropertyChanged
             {
                 item.DraftText = null;
                 item.DraftParts = null;
+                item.AnswerElapsed = TimeSpan.Zero;
                 currentChanged |= ReferenceEquals(item, current);
             }
             var answer = status == AnswerStatus.NotAnswered ? null : item.Question!.SubmittedAnswer ?? assessment?.UserAnswer;
@@ -218,6 +222,7 @@ public partial class QuizView : UserControl, INotifyPropertyChanged
 
     private void UpdateDisplay()
     {
+        _answerClock.Reset();
         var hasQuestions = _questions.Count != 0;
         PracticeLayout.Visibility = hasQuestions ? Visibility.Visible : Visibility.Collapsed;
         PracticeEmptyText.Visibility = hasQuestions ? Visibility.Collapsed : Visibility.Visible;
@@ -340,8 +345,16 @@ public partial class QuizView : UserControl, INotifyPropertyChanged
             AnswerTextBox.IsEnabled = isEnabled;
         }
 
-        if (isEnabled)
-            _startTime = DateTime.Now;
+        UpdateAnswerClock();
+    }
+
+    private void UpdateAnswerClock()
+    {
+        if (IsVisible && IsEnabled && !_grading &&
+            _questions.ElementAtOrDefault(_currentQuestionIndex)?.Status == AnswerStatus.NotAnswered)
+            _answerClock.Start();
+        else
+            _answerClock.Stop();
     }
 
     private void UpdateAnswerCardStyles()
@@ -377,13 +390,16 @@ public partial class QuizView : UserControl, INotifyPropertyChanged
     private async void ClearButton_Click(object sender, RoutedEventArgs e)
     {
         if (_grading || _questions.Count == 0) return;
-        var dialog = new ClearReviewRecordsWindow(_questions.Count) { Owner = Window.GetWindow(this) };
-        if (dialog.ShowDialog() is not true) return;
+        var dialog = new ClearReviewRecordsWindow(_questions) { Owner = Window.GetWindow(this) };
+        _answerClock.Stop();
+        var confirmed = dialog.ShowDialog() is true;
+        UpdateAnswerClock();
+        if (!confirmed) return;
 
+        CaptureCurrentDraft();
         var affected = ReciteHelper.Application.Services.ReviewHistory.Clear(_project,
-            _questions.Select(item => item.Question!), dialog.AnswersOnly);
+            dialog.QuestionsToClear, dialog.AnswersOnly);
         _recordsNeedSave = true;
-        _currentQuestionIndex = 0;
         RefreshRecords(affected);
         RecordsCleared?.Invoke(this, affected);
         IsEnabled = false;
@@ -484,6 +500,7 @@ public partial class QuizView : UserControl, INotifyPropertyChanged
 
         _grading = true;
         IsEnabled = false;
+        var startedAt = DateTime.Now - currentQuestion.AnswerElapsed - _answerClock.Elapsed;
         SubmitButton.Content = "正在批改…";
         try
         {
@@ -493,11 +510,13 @@ public partial class QuizView : UserControl, INotifyPropertyChanged
                 _project,
                 currentQuestion.Question!,
                 currentQuestion.UserAnswer,
-                _startTime);
+                startedAt);
 
             currentQuestion.Status = answerResult.IsCorrect ? AnswerStatus.Correct : AnswerStatus.Wrong;
             currentQuestion.DraftText = null;
             currentQuestion.DraftParts = null;
+            currentQuestion.AnswerElapsed = TimeSpan.Zero;
+            _answerClock.Reset();
             currentQuestion.Assessment = answerResult.AiAssessment;
             currentQuestion.Question!.Status = answerResult.IsCorrect;
             _recordsNeedSave = true;
@@ -612,6 +631,9 @@ public partial class QuizView : UserControl, INotifyPropertyChanged
         var item = _questions[_currentQuestionIndex];
         if (item.Status != AnswerStatus.NotAnswered) return;
 
+        item.AnswerElapsed += _answerClock.Elapsed;
+        _answerClock.Reset();
+        UpdateAnswerClock();
         var question = item.Question!;
         if (question.IsFillBlank)
             item.DraftParts = _fillBlankAnswers.Select(answer => answer.Text).ToArray();

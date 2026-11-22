@@ -80,7 +80,7 @@ public partial class MainWindow : Window
         InitializeComponent();
         LoadSlogan();
         if (Random.Shared.Next(100) == 0) ShowAiHomeEasterEgg();
-        Loaded += async (_, _) => await LoadRecentProjectsAsync();
+        Loaded += (_, _) => _homeInitialization = InitializeHomeAsync();
     }
 
     private void LoadSlogan()
@@ -184,8 +184,12 @@ public partial class MainWindow : Window
         RecentProjectsPanel.Children.Add(button);
     }
 
-    public async Task AddRecentProjectAsync(string projectPath, string? projectName = null)
+    public Task AddRecentProjectAsync(string projectPath, string? projectName = null)
+        => AddRecentProjectAsync(projectPath, projectName, null);
+
+    private async Task AddRecentProjectAsync(string projectPath, string? projectName, DateTimeOffset? importedAt)
     {
+        await RegisterStudyProjectsAsync([new(projectPath, importedAt)]);
         try
         {
             recentProjects = (await _recentProjectService.AddOrUpdateAsync(projectPath, projectName)).ToList();
@@ -254,11 +258,7 @@ public partial class MainWindow : Window
         };
 
         if (openFileDialog.ShowDialog() == true)
-        {
-            var projectPath = openFileDialog.FileName;
-            await OpenProjectAsync(projectPath);
-            await AddRecentProjectAsync(projectPath);
-        }
+            await OpenProjectAsync(openFileDialog.FileName);
     }
 
     private async void OpenFolder_Click(object sender, RoutedEventArgs e)
@@ -286,7 +286,7 @@ public partial class MainWindow : Window
             var importedProject = await _projectFileService.ImportProjectArchiveAsync(
                 dialog.FileName,
                 folderDialog.FolderName);
-            await AddRecentProjectAsync(importedProject.ProjectPath, importedProject.ProjectName);
+            await AddRecentProjectAsync(importedProject.ProjectPath, importedProject.ProjectName, DateTimeOffset.UtcNow);
 
             MessageBox.Show(
                 $"项目导入成功：\n{importedProject.ProjectPath}",
@@ -306,7 +306,7 @@ public partial class MainWindow : Window
         var window = new ResourceCenterWindow(
             Config.Configure.ResourceCenterServerUrl,
             _projectFileService,
-            AddRecentProjectAsync)
+            (path, name) => AddRecentProjectAsync(path, name, DateTimeOffset.UtcNow))
         {
             Owner = this
         };
@@ -364,7 +364,7 @@ public partial class MainWindow : Window
             _projectTabs.Add(projectPath, tab);
             SelectTab(tab);
 
-            PopulateRecentProjectsUI();
+            await AddRecentProjectAsync(projectPath, project.ProjectName);
         }
         catch (Exception ex)
         {

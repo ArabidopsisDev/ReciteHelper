@@ -626,6 +626,7 @@ public partial class ExamWindow : Window
                     Time = _submittedAt,
                     Similarity = earnedRatio,
                     ScoreRatio = assessment?.RawScoreRatio ?? assessment?.ScoreRatio ?? earnedRatio,
+                    ExamDurationSeconds = Math.Max(0, (_submittedAt - _examStartTime).TotalSeconds),
                     IsCorrect = correct,
                     EFValue = ReviewQuestionCatalog.HasAnswerRecord(source) ? source.EFValue : null,
                     Stability = source.Memory?.Stability,
@@ -635,10 +636,15 @@ public partial class ExamWindow : Window
                 };
                 (source.ExamHistory ??= []).Add(tag);
                 appended.Add((source, tag));
+                var missedBlanks = assessment is null && item.Question!.IsFillBlank
+                    ? _examAnswerService.FindMissedBlanks(item.Question, item.UserAnswer) : null;
                 if (_project is not null && !_isImportedExamSet &&
-                    ReviewMistakes.Record(_project, source, _submittedAt, correct, assessment, isExam: true) is { } mistake)
+                    ReviewMistakes.Record(_project, source, _submittedAt, correct, assessment, item.UserAnswer, isExam: true,
+                        missedBlanks: missedBlanks) is { } mistake)
                     mistakes.Add(mistake);
-                else if (examSet is not null && ReviewMistakes.Create(source, _submittedAt, correct, assessment, isExam: true) is { } imported)
+                else if (examSet is not null && (_project?.IncludesMistakeAt(_submittedAt) ?? true) &&
+                    ReviewMistakes.Create(source, _submittedAt, correct, assessment, item.UserAnswer, isExam: true,
+                        missedBlanks: missedBlanks) is { } imported)
                 {
                     examSet.ReviewMistakes.Add(imported);
                     mistakes.Add(imported);

@@ -9,4 +9,5 @@ public interface IExamAnswerService
         => GradeAsync(question, userAnswer);
     /// <summary>Checks objective answers. AI answers use the assessment returned by grading.</summary>
     bool IsCorrect(Question question, string? userAnswer);
+    IReadOnlyList<int> FindMissedBlanks(Question question, string? userAnswer) => [];
 }

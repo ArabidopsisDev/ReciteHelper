@@ -43,12 +43,18 @@ public static class ReviewHistory
                 affected.Add(facet.Parent);
             }
         }
-        if (!answersOnly)
+        var cleared = affected.Select(question => question.ReviewIdentity).ToHashSet();
+        if (answersOnly)
         {
-            var cleared = affected.Select(question => question.ReviewIdentity).ToHashSet();
-            project.ReviewMistakes.RemoveAll(entry => cleared.Contains(entry.QuestionId));
-            project.NotifyReviewMistakesChanged();
+            for (var index = 0; index < project.ReviewMistakes.Count; index++)
+                if (cleared.Contains(project.ReviewMistakes[index].QuestionId))
+                    project.ReviewMistakes[index] = project.ReviewMistakes[index] with { Answer = [] };
         }
+        else
+        {
+            project.ReviewMistakes.RemoveAll(entry => cleared.Contains(entry.QuestionId));
+        }
+        project.NotifyReviewMistakesChanged();
         return affected;
     }
 

@@ -37,7 +37,7 @@ public class QuizService : IQuizService
         var assessment = question.RequiresAiGrading || question.IsWritten &&
             (project.TemplateType == Core.Enums.ProjectTemplateType.RuleBasedReview || ModelAccess.HasTextGeneration(config))
             ? await _aiGrader.GradeAsync(question, userAnswer) : null;
-        var missedBlanks = new List<string>();
+        var missedBlanks = new List<int>();
         var (isCorrect, similarity, scoreRatio) = assessment is not null
             ? (assessment.IsCorrect, assessment.ScoreRatio, assessment.RawScoreRatio ?? assessment.ScoreRatio)
             : await EvaluateAnswerAsync(question, userAnswer, missedBlanks);
@@ -85,7 +85,7 @@ public class QuizService : IQuizService
         question.SubmittedAnswer = userAnswer;
         question.AnswerCleared = false;
         question.LastAiAssessment = assessment;
-        ReviewMistakes.Record(project, question, now, isCorrect, assessment, missedBlanks: missedBlanks);
+        ReviewMistakes.Record(project, question, now, isCorrect, assessment, userAnswer, missedBlanks: missedBlanks);
         if (assessment is not null)
         {
             if (question.AnswerNature == Core.Enums.AnswerNature.None)
@@ -107,7 +107,7 @@ public class QuizService : IQuizService
     private async Task<(bool IsCorrect, double Similarity, double ScoreRatio)> EvaluateAnswerAsync(
         Question question,
         string userAnswer,
-        List<string> missedBlanks)
+        List<int> missedBlanks)
     {
         if (question.IsSingleChoice)
         {
@@ -136,7 +136,7 @@ public class QuizService : IQuizService
             for (var index = 0; index < correctAnswers.Count; index++)
             {
                 if (await _judgeService.JudgeAsync(userAnswers[index], correctAnswers[index])) correctCount++;
-                else missedBlanks.Add($"第 {index + 1} 空填写「{correctAnswers[index]}」。");
+                else missedBlanks.Add(index);
                 similarity += await _judgeService.CalculateSimilarityAsync(userAnswers[index], correctAnswers[index]);
             }
 

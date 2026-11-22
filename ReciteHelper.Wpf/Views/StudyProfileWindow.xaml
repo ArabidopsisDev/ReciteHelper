@@ -1,0 +1,30 @@
+<Window x:Class="ReciteHelper.Wpf.Views.StudyProfileWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="编辑资料" Width="420" SizeToContent="Height" ResizeMode="NoResize"
+        Style="{StaticResource AppWindowStyle}" WindowStartupLocation="CenterOwner">
+    <StackPanel Margin="26,22">
+        <TextBlock Text="编辑资料" Style="{StaticResource TitleTextStyle}" />
+        <StackPanel Orientation="Horizontal" Margin="0,20,0,18">
+            <Grid Width="62" Height="62" Margin="0,0,16,0">
+                <Ellipse Fill="#E8F0EB" />
+                <Path Data="M5,17 C5,10 10,5 18,5 C18,12 15,17 8,17 M5,20 L14,10"
+                      Width="29" Height="29" Stretch="Uniform" Stroke="#356853" StrokeThickness="1.5" />
+                <Ellipse x:Name="AvatarPreview" />
+            </Grid>
+            <WrapPanel VerticalAlignment="Center">
+                <Button Content="选择头像" Click="ChooseAvatar_Click" />
+                <Button x:Name="ResetAvatar" Content="恢复默认" Click="ResetAvatar_Click" Style="{StaticResource SubtleButtonStyle}"
+                        Margin="6,0,0,0" />
+            </WrapPanel>
+        </StackPanel>
+        <TextBlock Text="用户名" Style="{StaticResource FieldLabel}" />
+        <TextBox x:Name="Username" MaxLength="32" AutomationProperties.Name="用户名" />
+        <TextBlock x:Name="EditStatus" Style="{StaticResource CaptionTextStyle}" Margin="0,8,0,0"
+                   Foreground="{DynamicResource ArcDanger}" AutomationProperties.LiveSetting="Polite" />
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,14,0,0">
+            <Button Content="取消" IsCancel="True" Margin="0,0,8,0" />
+            <Button Content="保存" Click="Save_Click" IsDefault="True" Style="{StaticResource PrimaryButtonStyle}" />
+        </StackPanel>
+    </StackPanel>
+</Window>

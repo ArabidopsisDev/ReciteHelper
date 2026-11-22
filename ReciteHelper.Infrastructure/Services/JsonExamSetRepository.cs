@@ -23,17 +23,21 @@ public sealed class JsonExamSetRepository : IExamSetRepository
         var fileName = $"{SanitizeFileName(examSet.Title)}_{examSet.Id[..Math.Min(8, examSet.Id.Length)]}.rhexam.json";
         var filePath = Path.Combine(examsDirectory, fileName);
         var temporaryPath = $"{filePath}.tmp";
+        examSet.ReviewMistakes.RemoveAll(entry => !project.IncludesMistakeAt(entry.Time));
         var json = JsonSerializer.Serialize(examSet, JsonOptions);
 
         await File.WriteAllTextAsync(temporaryPath, json, cancellationToken);
         File.Move(temporaryPath, filePath, true);
     }
 
-    public async Task<IReadOnlyList<ExamSet>> LoadAllAsync(
+    public Task<IReadOnlyList<ExamSet>> LoadAllAsync(
         Project project,
         CancellationToken cancellationToken = default)
+        => LoadFromDirectoryAsync(project, GetExamsDirectory(project), cancellationToken);
+
+    internal static async Task<IReadOnlyList<ExamSet>> LoadFromDirectoryAsync(
+        Project project, string examsDirectory, CancellationToken cancellationToken)
     {
-        var examsDirectory = GetExamsDirectory(project);
         if (!Directory.Exists(examsDirectory))
             return [];
 
@@ -43,10 +47,11 @@ public sealed class JsonExamSetRepository : IExamSetRepository
             cancellationToken.ThrowIfCancellationRequested();
             try
             {
-                await using var stream = File.OpenRead(filePath);
+                await using var stream = File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete);
                 var examSet = await JsonSerializer.DeserializeAsync<ExamSet>(stream, JsonOptions, cancellationToken);
                 if (examSet is { Questions.Count: > 0 })
                 {
+                    examSet.ReviewMistakes.RemoveAll(entry => !project.IncludesMistakeAt(entry.Time));
                     foreach (var question in examSet.Questions)
                     {
                         if (question.Score <= 0)

@@ -3,10 +3,14 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     <DockPanel Background="{DynamicResource ArcSurface}">
         <Border DockPanel.Dock="Top" Padding="14,8" BorderBrush="{DynamicResource ArcBorder}" BorderThickness="0,0,0,1">
-            <DockPanel>
-                <Button x:Name="ExportButton" DockPanel.Dock="Right" Content="导出 Word" Style="{StaticResource SmallButtonStyle}" Click="Export_Click" />
-                <TextBlock x:Name="CountText" VerticalAlignment="Center" Style="{StaticResource CaptionTextStyle}" />
-            </DockPanel>
+            <WrapPanel>
+                <TextBlock x:Name="CountText" VerticalAlignment="Center" Margin="0,0,12,0" Style="{StaticResource CaptionTextStyle}" />
+                <StackPanel Orientation="Horizontal">
+                    <Button x:Name="ClearButton" Content="清空" AutomationProperties.Name="清空错误列表"
+                            Style="{StaticResource SubtleButtonStyle}" Margin="0,0,4,0" Click="Clear_Click" />
+                    <Button x:Name="ExportButton" Content="导出 Word" Style="{StaticResource SmallButtonStyle}" Click="Export_Click" />
+                </StackPanel>
+            </WrapPanel>
         </Border>
         <FlowDocumentScrollViewer x:Name="ListViewer" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" />
     </DockPanel>

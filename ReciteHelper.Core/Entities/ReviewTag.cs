@@ -64,6 +64,10 @@ public class ReviewTag : Entity
     [JsonPropertyName("response_seconds")]
     public double? ResponseSeconds { get; set; }
 
+    [JsonPropertyName("exam_duration_seconds")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public double? ExamDurationSeconds { get; set; }
+
     [JsonPropertyName("answer_length")]
     public int? AnswerLength { get; set; }
 

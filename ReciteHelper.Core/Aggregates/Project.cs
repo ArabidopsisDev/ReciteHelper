@@ -33,6 +33,13 @@ public class Project : AggregateRoot
     [JsonPropertyName("review_mistakes")]
     public List<ReviewMistake> ReviewMistakes { get; set; } = [];
 
+    [JsonPropertyName("review_mistakes_cleared_at")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public DateTime? ReviewMistakesClearedAt { get; set; }
+
+    public bool IncludesMistakeAt(DateTime attemptedAt)
+        => ReviewMistakesClearedAt is not { } clearedAt || attemptedAt.ToUniversalTime() > clearedAt.ToUniversalTime();
+
     public event EventHandler<bool>? ReviewMistakesChanged;
 
     public void NotifyReviewMistakesChanged(bool externalExam = false) => ReviewMistakesChanged?.Invoke(this, externalExam);

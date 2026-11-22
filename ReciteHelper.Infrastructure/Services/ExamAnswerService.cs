@@ -21,6 +21,14 @@ public sealed class ExamAnswerService(IAiAnswerGrader aiGrader, IConfigService? 
         return !question.RequiresAiGrading && JudgeAnswer.Run(question, userAnswer);
     }
 
+    public IReadOnlyList<int> FindMissedBlanks(Question question, string? userAnswer)
+    {
+        var expected = question.GetCorrectAnswers();
+        var answers = Question.SplitBlankAnswers(userAnswer);
+        return Enumerable.Range(0, expected.Count)
+            .Where(index => index >= answers.Count || !JudgeAnswer.Run(answers[index], expected[index])).ToArray();
+    }
+
     public Task<Core.DTOs.AiAnswerAssessment?> GradeForReviewAsync(Core.Aggregates.Project project, Question question,
         string? userAnswer, DateTime reviewedAt)
     {

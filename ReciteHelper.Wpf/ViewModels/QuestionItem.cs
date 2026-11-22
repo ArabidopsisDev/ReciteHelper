@@ -25,6 +25,7 @@ public class QuestionItem : INotifyPropertyChanged
     public string? UserAnswer { get; set; }
     internal string? DraftText { get; set; }
     internal IReadOnlyList<string>? DraftParts { get; set; }
+    internal TimeSpan AnswerElapsed { get; set; }
     public AiAnswerAssessment? Assessment { get; set; }
     public List<ReviewTag> ReviewTag { get; set; } = [];
 

@@ -5,20 +5,6 @@
     <ResourceDictionary.MergedDictionaries>
         <ResourceDictionary Source="/ReciteHelper.Wpf;component/Themes/Arc/ArcTokens.xaml" />
     </ResourceDictionary.MergedDictionaries>
-    <Style x:Key="WindowSurfaceStyle" TargetType="Border">
-        <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="BorderBrush" Value="{DynamicResource ArcBorder}" />
-        <Setter Property="CornerRadius" Value="10" />
-        <Style.Triggers>
-            <DataTrigger Binding="{Binding IsActive, RelativeSource={RelativeSource AncestorType=Window}}" Value="True">
-                <Setter Property="BorderBrush" Value="{DynamicResource ArcBorderStrong}" />
-            </DataTrigger>
-            <DataTrigger Binding="{Binding WindowState, RelativeSource={RelativeSource AncestorType=Window}}" Value="Maximized">
-                <Setter Property="BorderThickness" Value="0" />
-                <Setter Property="CornerRadius" Value="0" />
-            </DataTrigger>
-        </Style.Triggers>
-    </Style>
     <Style x:Key="AppWindowStyle" TargetType="Window">
         <Setter Property="Background" Value="{DynamicResource ArcSurface}" /><Setter Property="Foreground" Value="{DynamicResource ArcForeground}" />
         <Setter Property="FontFamily" Value="{DynamicResource ArcBodyFont}" /><Setter Property="FontSize" Value="{StaticResource ArcFontBody}" />
@@ -28,13 +14,13 @@
         <Setter Property="SnapsToDevicePixels" Value="True" />
         <Setter Property="shell:WindowChrome.WindowChrome">
             <Setter.Value>
-                <shell:WindowChrome CaptionHeight="38" ResizeBorderThickness="6" GlassFrameThickness="0" CornerRadius="10" UseAeroCaptionButtons="False" />
+                <shell:WindowChrome CaptionHeight="38" ResizeBorderThickness="6" GlassFrameThickness="1" CornerRadius="0" UseAeroCaptionButtons="False" />
             </Setter.Value>
         </Setter>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Window">
-                    <Border x:Name="WindowSurface" Style="{StaticResource WindowSurfaceStyle}" Background="{TemplateBinding Background}"
+                    <Border x:Name="WindowSurface" Background="{TemplateBinding Background}"
                             Padding="{Binding Path=(controls:WindowTitleBar.FrameInsets), RelativeSource={RelativeSource TemplatedParent}}">
                         <AdornerDecorator>
                             <Grid ClipToBounds="True">
@@ -57,14 +43,14 @@
             <Trigger Property="ResizeMode" Value="NoResize">
                 <Setter Property="shell:WindowChrome.WindowChrome">
                     <Setter.Value>
-                        <shell:WindowChrome CaptionHeight="45" ResizeBorderThickness="0" GlassFrameThickness="0" CornerRadius="10" UseAeroCaptionButtons="False" />
+                        <shell:WindowChrome CaptionHeight="44" ResizeBorderThickness="0" GlassFrameThickness="1" CornerRadius="0" UseAeroCaptionButtons="False" />
                     </Setter.Value>
                 </Setter>
             </Trigger>
             <Trigger Property="ResizeMode" Value="CanMinimize">
                 <Setter Property="shell:WindowChrome.WindowChrome">
                     <Setter.Value>
-                        <shell:WindowChrome CaptionHeight="45" ResizeBorderThickness="0" GlassFrameThickness="0" CornerRadius="10" UseAeroCaptionButtons="False" />
+                        <shell:WindowChrome CaptionHeight="44" ResizeBorderThickness="0" GlassFrameThickness="1" CornerRadius="0" UseAeroCaptionButtons="False" />
                     </Setter.Value>
                 </Setter>
             </Trigger>
@@ -74,7 +60,7 @@
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Window">
-                    <Border x:Name="WindowSurface" Style="{StaticResource WindowSurfaceStyle}" Background="{TemplateBinding Background}"
+                    <Border x:Name="WindowSurface" Background="{TemplateBinding Background}"
                             Padding="{Binding Path=(controls:WindowTitleBar.FrameInsets), RelativeSource={RelativeSource TemplatedParent}}">
                         <AdornerDecorator>
                             <ContentPresenter ContentSource="Content" />

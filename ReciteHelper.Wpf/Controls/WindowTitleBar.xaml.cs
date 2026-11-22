@@ -35,6 +35,7 @@ public partial class WindowTitleBar : UserControl
     private void BindFrame(object sender, RoutedEventArgs e)
     {
         _window = Window.GetWindow(this);
+        NativeWindowBounds.PreferSmallCorners(_window);
         _window.StateChanged += UpdateFrame;
         _window.SizeChanged += UpdateFrame;
         _window.LocationChanged += UpdateFrame;
@@ -81,7 +82,7 @@ public partial class WindowTitleBar : UserControl
             {
                 CaptionHeight = captionHeight,
                 ResizeBorderThickness = new Thickness(0),
-                GlassFrameThickness = new Thickness(0),
+                GlassFrameThickness = new Thickness(1),
                 CornerRadius = new CornerRadius(0),
                 UseAeroCaptionButtons = false
             };

@@ -1,154 +1,126 @@
-<p align="center">
-  <img src="docs/Resources/readme-hero.png" alt="ReciteHelper 5.0 Lotus" width="100%" />
-</p>
+# ReciteHelper
 
-<p align="center">
-  <a href="README.md">简体中文</a> · <strong>English</strong>
-</p>
+[简体中文](README.md) · **English**
 
-<h1 align="center">ReciteHelper</h1>
+[![Windows build](https://github.com/ArabidopsisDev/ReciteHelper/actions/workflows/dotnet.yml/badge.svg?branch=primary)](https://github.com/ArabidopsisDev/ReciteHelper/actions/workflows/dotnet.yml) [![AGPL-3.0-or-later](https://img.shields.io/badge/license-AGPL--3.0--or--later-blue)](LICENSE)
 
-<p align="center">
-  <strong>Turn course materials into projects you can practise, search, and remember.</strong>
-</p>
+ReciteHelper is an open-source Windows app for studying course material and preparing for exams. Turn textbooks and lecture notes into a question bank and chapter study material, or import an existing paper for timed practice. After answering, you can read the feedback and check it against your course material. ReciteHelper uses your practice history to schedule what to review next.
 
-<p align="center">
-  <a href="https://github.com/OpenRecite/ReciteHelper/actions/workflows/dotnet.yml"><img src="https://img.shields.io/github/actions/workflow/status/OpenRecite/ReciteHelper/dotnet.yml?branch=primary&style=flat-square&label=build" alt="Build" /></a>
-  <a href="LICENSE"><img src="https://img.shields.io/github/license/OpenRecite/ReciteHelper?style=flat-square" alt="License" /></a>
-  <img src="https://img.shields.io/badge/platform-Windows-0078D4?style=flat-square&logo=windows" alt="Windows" />
-  <img src="https://img.shields.io/badge/.NET-10.0-512BD4?style=flat-square&logo=dotnet" alt=".NET 10" />
-  <img src="https://img.shields.io/badge/version-5.0%20Lotus-C9A35B?style=flat-square" alt="5.0 Lotus" />
-</p>
+**[Download for Windows](https://github.com/ArabidopsisDev/ReciteHelper/releases/latest)** · [6.0 Balsamine release notes](https://github.com/ArabidopsisDev/ReciteHelper/releases/tag/v6) · [User manual](docs/manual-en.md) · [Report an issue](https://github.com/ArabidopsisDev/ReciteHelper/issues)
 
-<p align="center">
-  <a href="https://github.com/OpenRecite/ReciteHelper/releases"><strong>Download ReciteHelper</strong></a>
-  · <a href="docs/manual-en.md">User Guide</a>
-  · <a href="https://github.com/OpenRecite/ReciteHelper/issues">Report an Issue</a>
-</p>
+[Quick start](#quick-start) · [Features](#features) · [Screenshots](#screenshots) · [Model services](#model-services) · [Documentation](#documentation) · [Build from source](#build-from-source)
 
-ReciteHelper is an open-source Windows desktop application for exam preparation, course learning, and knowledge organisation. It uses AI to read study materials, extract knowledge, and generate questions. A local knowledge base, automatic grading, mistake explanations, and personalised FSRS-6 scheduling then turn those materials into a complete learning loop.
+## Quick start
 
-AI is not an isolated chat box in ReciteHelper. It participates in document analysis, question generation, retrieval, and mistake assistance, while chapters, questions, learning records, and the vector knowledge base stay with the local project.
+1. Download the **Windows x64 ZIP** from Releases. It includes the .NET 10 Desktop Runtime. Extract the full archive and run `ReciteHelper.Wpf.exe`.
+2. Configure a [model service](#model-services) on first launch. ReciteHelper uses the selected text model to generate questions and grade short answers.
+3. Select **Create Project** on the home screen and choose a project type based on the material you have.
 
-## 5.0 Lotus
+| Project type | When to use it |
+| --- | --- |
+| **Classic review** | You have a textbook or lecture notes and want a chapter-based question bank and study material. Import a PDF with selectable text, or combine Word, PowerPoint, PDF, and TXT files into a `.meg` file using the file merge tool. Convert scanned pages to text first. |
+| **Rule-based review** | You have a list of topics and want short-answer questions on a specific scope. Define the requirements for each category and optionally attach course materials or paste notes. Review the preview questions before generating the rest of the category. |
 
-Version 5.0 reorganises the experience around the path from source material to durable knowledge:
+Once the project is ready, open a chapter to start practicing. If you already have an exam paper, use **Import and Export** on the project page to import it, then select it in **Mock Exam**. Import steps are in the [user manual](docs/manual-en.md).
 
-- **FSRS-6 review scheduling** predicts recall from difficulty, memory stability, and elapsed time, prioritising questions that are about to be forgotten. Personal parameters can be fitted after enough review history is available.
-- **Five question types** provide dedicated interactions and grading for single-choice, fill-in-the-blank, true/false, term-definition, and essay questions.
-- **Paper import and an end-to-end exam flow** recognise exam sets from PDF, TXT, HTML, or MHTML and support chapter-weighted generation, timed exams, automatic grading, and mistake review.
-- **A project-local knowledge base** retrieves relevant knowledge for each mistake and can request a grounded AI explanation when needed.
-- **Flexible model access** supports direct DeepSeek + Qwen access, a single OpenRouter key, a ReciteHelper hosted-service activation code, or native C# model-account OAuth based on pi's protocols.
+## Features
 
-## Workflow
-
-```text
-Import course material → Extract knowledge and generate questions → Practise / take exams
-       → Retrieve and explain mistakes → Schedule the next review with FSRS-6
-```
+- **Chapter practice and study material.** Read the key points for each chapter and record which ones you have learned. Practice and exams cover multiple-choice, fill-in-the-blank, true/false, term-definition, and written questions. For a multipart written question, answer each part separately and read the feedback alongside your original response.
+- **Exam generation and timed practice.** Set the time limit, question count, and chapter weights to generate a paper from your question bank. Import one or more existing papers from PDF, TXT, HTML, or MHTML. After submitting, review answers, scores, and explanations question by question and export the exam report.
+- **Source lookup and corrections.** Classic projects can build a local, file-based vector index. Open **Sources and Explanations** to find relevant passages and request an explanation. The mistake list collects material to correct or add, and you can export it to Word.
+- **Smart Review.** FSRS-6 uses your practice history to estimate recall and schedule due material. In rule-based projects, parts of a written question can have their own memory records so you can revisit the parts you missed. Once a project has enough review history, ReciteHelper can fit personalized scheduling parameters. [Scheduling and experiments (Chinese)](docs/facet-review.md)
+- **Project notes and workspace.** Switch between projects, practice, and model settings in tabs. Notes are saved with the project. Panels for sources, notes, and mistakes can dock or float, and their layout is saved for next time.
 
 ## Screenshots
 
 <table>
   <tr>
-    <td width="62%">
-      <img src="docs/Resources/12-run-quiz.jpg" alt="Quiz and knowledge-base assistant" />
-      <br /><strong>Quiz and knowledge-base assistant</strong><br />Practice, automatic grading, relevant knowledge retrieval, and optional AI explanations in one view.
+    <td width="50%" valign="top">
+      <strong>Question preview</strong><br />
+      Check the scoring criteria and source passages before accepting the preview.<br />
+      <a href="docs/design/screenshots/cfsrs-preview.png"><img src="docs/design/screenshots/cfsrs-preview.png" alt="Question preview in a rule-based review project" width="100%" /></a>
     </td>
-    <td width="38%">
-      <img src="docs/Resources/08-exam-setting.png" alt="Exam settings" />
-      <br /><strong>Exam settings</strong><br />Configure duration, question count, score, and chapter weights.
+    <td width="50%" valign="top">
+      <strong>Chapter practice and grading</strong><br />
+      This saved answer from an agricultural entomology course shows what the learner missed in the second part.<br />
+      <a href="docs/Resources/readme/01-subquestion-grading.jpg"><img src="docs/Resources/readme/01-subquestion-grading.jpg" alt="A two-part entomology question with feedback on the original answer" width="100%" /></a>
     </td>
   </tr>
   <tr>
-    <td>
-      <img src="docs/Resources/03-knowledge-point.png" alt="Knowledge-point study" />
-      <br /><strong>Knowledge-point study</strong><br />Browse knowledge by chapter and keep track of mastery.
+    <td width="50%" valign="top">
+      <strong>Timed mock exam</strong><br />
+      Answer on the exam paper and check your progress and remaining time at the top.<br />
+      <a href="docs/design/screenshots/exam-current.png"><img src="docs/design/screenshots/exam-current.png" alt="Two-page mock exam with a timer" width="100%" /></a>
     </td>
-    <td>
-      <img src="docs/Resources/07-simulate-review.png" alt="Exam review" />
-      <br /><strong>Exam review</strong><br />Review answers and mistakes, then bring selected questions back into the learning project.
+    <td width="50%" valign="top">
+      <strong>Smart Review</strong><br />
+      When the second part of the question above is due, it appears on its own in the review session.<br />
+      <a href="docs/Resources/readme/02-focused-review.jpg"><img src="docs/Resources/readme/02-focused-review.jpg" alt="A standalone subquestion and its answer history in Smart Review" width="100%" /></a>
     </td>
   </tr>
 </table>
 
-## Model Services
+## Model services
 
-When no valid model configuration is found, ReciteHelper opens a service-selection window on startup.
+Configure a model on first launch. You can change the text service later in **Model Service Settings** on the home screen. Building a vector index for a classic project also requires an embedding service.
 
-| Option | What you need | Characteristics |
+| Service | What you need | How ReciteHelper uses it |
 | --- | --- | --- |
-| DeepSeek + Qwen | A DeepSeek key and a Qwen key | Direct text-generation and embedding access; usually faster |
-| OpenRouter | One OpenRouter key | Simpler setup; chat and embeddings share one gateway, but may be slower |
-| Hosted service | A ReciteHelper activation code | No third-party API keys to manage; model access is provided by the server |
-| Model-account OAuth | An eligible provider account | Native C# authorization, automatic browser return, model selection, and refresh; embeddings use a separate service |
+| **DeepSeek + Qwen** | A DeepSeek API key, plus a Qwen key for embeddings | DeepSeek generates text. Qwen creates embeddings and supports semantic search. |
+| **OpenRouter** | One OpenRouter API key | Choose text and embedding models from the same service. |
+| **Hosted service** | A ReciteHelper activation code | The hosted service provides text generation and embeddings. |
+| **Model account OAuth** | An account with model access | Authorize a text model in the browser or with a device code. Embeddings can use Qwen, OpenRouter, or the hosted service. |
 
-Choose “使用已有模型账号授权（OAuth）” in the service-selection window, or reopen it using “模型服务” on the main screen. Supported providers are Anthropic, OpenAI, OpenAI Codex, GitHub Copilot, Kimi Code, Meta, OpenRouter, Radius, and xAI. OAuth credentials are encrypted with Windows DPAPI in the current user's local application data; only provider/model IDs are recorded in `Config.xml`. See the [OAuth integration guide](docs/pi-oauth.md).
+OAuth supports Anthropic, OpenAI, OpenAI Codex, GitHub Copilot, Kimi Code, Meta, OpenRouter, Radius, and xAI. Authorization and refresh follow each provider’s protocol. ReciteHelper encrypts the credentials with Windows DPAPI and saves them in the current user’s local app data. [OAuth setup](docs/pi-oauth.md)
 
-API keys are stored in the local `Config.xml` by default and may also reference environment variables. Text required by an AI feature is sent to the model provider you select; project files and the vector knowledge base remain local.
+API keys can be stored in the local `Config.xml` or supplied through `DEEPSEEK_API_KEY`, `QWEN_API_KEY`, and `OPENROUTER_API_KEY`. Question generation, AI grading, embedding, and explanation requests send the relevant passages, questions, or answers to the configured service.
 
-## Quick Start
+## Project files and sharing
 
-1. Download the latest build from [Releases](https://github.com/OpenRecite/ReciteHelper/releases).
-2. Extract it and run `ReciteHelper.exe`.
-3. Choose and configure a model service in the first-run window.
-4. Import a text-based PDF, or merge DOCX, PPTX, PDF, and TXT material into a `.meg` file, then create a `.rhproj` learning project.
+Chapters, questions, practice history, and notes are saved in the local `.rhproj` file. Knowledge base files and imported papers are stored in the project folder. Keep the whole folder when moving a project so the app can still find those files.
 
-See the [English user guide](docs/manual-en.md) for complete setup and usage instructions.
-
-## Build from Source
-
-Install the [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) and Visual Studio or JetBrains Rider with WPF support. OAuth is implemented natively in C#: neither building nor running it needs Node.js, npm, or a bridge. The MIT notice for the pi-derived protocols and model catalog is included in the published application.
-
-```powershell
-git clone --recurse-submodules https://github.com/OpenRecite/ReciteHelper.git
-cd ReciteHelper
-dotnet restore src/ReciteHelper.slnx
-dotnet build src/ReciteHelper.slnx --configuration Release
-dotnet run --project ReciteHelper.Wpf/ReciteHelper.Wpf.csproj
-```
-
-If the repository was cloned without its submodules, run:
-
-```powershell
-git submodule update --init --recursive
-```
+Use **Import and Export** on the project page to package the project and its files as an `.rhp` archive. The package includes saved practice records and notes. The recipient can open it with **Import Shared Project** on the home screen.
 
 ## Documentation
 
-| Document | Description |
+| Guide | What it covers |
 | --- | --- |
-| [Chinese user guide](docs/manual-cn.md) | Installation, configuration, and full feature guide |
-| [English user guide](docs/manual-en.md) | English setup and usage instructions |
-| [OAuth integration guide](docs/pi-oauth.md) | Account authorization, embeddings, implementation, and tests |
+| [English user manual](docs/manual-en.md) · [中文用户手册](docs/manual-cn.md) | Setup, preparing material, study, practice, and exams |
+| [Rule-based review (Chinese)](docs/rule-review.md) | Defining topics, previewing questions, adding to a project, and grading |
+| [cFSRS scheduling (Chinese)](docs/facet-review.md) | Memory records for subquestions, scheduling, and experiments |
+| [OAuth setup (Chinese)](docs/pi-oauth.md) | Supported accounts, authorization, credentials, and embeddings |
 
-## Contributing
+## Build from source
 
-Issues, feature proposals, code, tests, and translations are all welcome:
+Install the [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) on Windows and run the following commands in PowerShell. You can also open `src/ReciteHelper.slnx` in an edition of Visual Studio or JetBrains Rider that supports WPF.
 
-1. Fork the repository and create a branch from `primary`.
-2. Follow the existing code style and document behavioural changes.
-3. Confirm that the Release build passes before submitting.
-4. Open a Pull Request and link the relevant issue or include UI screenshots.
+```powershell
+git clone https://github.com/ArabidopsisDev/ReciteHelper.git
+cd ReciteHelper
+dotnet restore src/ReciteHelper.slnx
+dotnet build src/ReciteHelper.slnx --configuration Release --no-restore
+dotnet test src/ReciteHelper.slnx --configuration Release --no-build
+dotnet run --project ReciteHelper.Wpf/ReciteHelper.Wpf.csproj --configuration Release --no-build
+```
 
-Please read the [Code of Conduct](CODE_OF_CONDUCT.md) before contributing. Use [GitHub Issues](https://github.com/OpenRecite/ReciteHelper/issues) for discussion and bug reports, or email `arab@methodbox.top`. QQ group: `1053379975`.
+OAuth is implemented in C# and uses the .NET toolchain for build and runtime. The MIT license for the pi protocol and model catalog is distributed with the app. [Third-party license](ReciteHelper.Infrastructure/OAuth/PI-LICENSE.txt)
 
-## License
+## Feedback and contributions
 
-ReciteHelper is distributed under the [GNU AGPL v3.0 or later](LICENSE). If you distribute a derivative work or provide a network service based on this project, follow the licence's corresponding source requirements.
+- Use [GitHub Issues](https://github.com/ArabidopsisDev/ReciteHelper/issues) for bugs and proposals. For an interface issue, include the version, steps to reproduce it, and a screenshot where helpful.
+- You can also email [arab@methodbox.top](mailto:arab@methodbox.top) or join QQ group `1053379975`.
+- For code, tests, or translations, fork the repository and branch from `primary`. Run the Release build and tests, then describe the change in your pull request and link the relevant issue or attach screenshots. Read the [Code of Conduct](CODE_OF_CONDUCT.md) before contributing.
 
-## Acknowledgements
+## License and acknowledgements
 
-Thanks to Sati, Mrwhite3142, oife, AcE77505, and every contributor who has helped improve file handling, compatibility, and stability.
+ReciteHelper is licensed under the [GNU AGPL v3.0 or later](LICENSE). If you distribute a derivative work or provide a network service based on this project, follow the license’s source code requirements.
 
-<p align="center">
-  <img src="docs/Resources/Logos/clublogo.png" alt="Club logo" height="48" />
-  &nbsp;&nbsp;&nbsp;
-  <img src="docs/Resources/Logos/caylogo.png" alt="CAY logo" height="48" />
+Thanks to Sati, Mrwhite3142, oife, AcE77505, and everyone who helped improve file handling, compatibility, and stability.
+
+<p>
+  <img src="docs/Resources/Logos/clublogo.png" alt="Club logo" height="36" />
+  &nbsp;
+  <img src="docs/Resources/Logos/caylogo.png" alt="CAY logo" height="36" />
 </p>
 
-<p align="center">
-  If ReciteHelper helps you, consider giving the project a Star.
-</p>
-
-[![Star History Chart](https://api.star-history.com/svg?repos=OpenRecite/ReciteHelper&type=date&legend=top-left)](https://www.star-history.com/#OpenRecite/ReciteHelper&type=date)
+[Star history](https://star-history.com/#ArabidopsisDev/ReciteHelper&Date)

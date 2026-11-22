@@ -1,0 +1,343 @@
+<UserControl x:Class="ReciteHelper.Wpf.Views.StudyDashboardView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             UseLayoutRounding="True">
+    <UserControl.Resources>
+        <SolidColorBrush x:Key="StudyGreen" Color="#3F705A" />
+        <SolidColorBrush x:Key="StudyMist" Color="#EAF2ED" />
+        <SolidColorBrush x:Key="StudyLine" Color="#E4EBE6" />
+        <SolidColorBrush x:Key="StudyBar" Color="#8FBAA2" />
+        <SolidColorBrush x:Key="StudyGold" Color="#B08140" />
+        <Geometry x:Key="CalendarIcon">M3,4 H13 V14 H3 Z M3,7 H13 M5.5,2.5 V5.5 M10.5,2.5 V5.5 M5.5,10 H7 M9,10 H10.5</Geometry>
+        <Geometry x:Key="ChartIcon">M2,2 V14 H14 M5,11 V8 M8,11 V5 M11,11 V3</Geometry>
+        <Geometry x:Key="TargetIcon">M8,2 A6,6 0 1 1 7.99,2 Z M5.1,8 L7.2,10 L11,6</Geometry>
+        <Geometry x:Key="ListIcon">M3,3 H13 V13 H3 Z M5.5,6 H10.5 M5.5,8 H10.5 M5.5,10 H8.5</Geometry>
+        <Geometry x:Key="BookIcon">M8,5 C6,3 4,3 2.5,3.5 V12 C4,11.5 6,11.5 8,13 M8,5 C10,3 12,3 13.5,3.5 V12 C12,11.5 10,11.5 8,13 Z</Geometry>
+        <Geometry x:Key="LayersIcon">M8,2 L14,5.5 L8,9 L2,5.5 Z M2,8.5 L8,12 L14,8.5 M2,11 L8,14.5 L14,11</Geometry>
+        <Geometry x:Key="ClockIcon">M8,2 A6,6 0 1 1 7.99,2 Z M8,5 V8 L10.5,9.5</Geometry>
+        <Geometry x:Key="PracticeIcon">M3,10 L10,3 L13,6 L6,13 H3 Z M9,4 L12,7</Geometry>
+        <Geometry x:Key="ExamIcon">M3.5,3 H12.5 V14 H3.5 Z M6,2 H10 V5 H6 Z M6,8 H10 M6,11 H10</Geometry>
+        <Geometry x:Key="RefreshIcon">M12.6,6 A5,5 0 1 0 12.5,10.5 M12.8,2.5 V6.4 H9</Geometry>
+        <Geometry x:Key="PreviousIcon">M10,4 L6,8 L10,12</Geometry>
+        <Geometry x:Key="NextIcon">M6,4 L10,8 L6,12</Geometry>
+        <Style x:Key="StudyIcon" TargetType="Path">
+            <Setter Property="Width" Value="17" /><Setter Property="Height" Value="17" />
+            <Setter Property="Stretch" Value="Uniform" /><Setter Property="StrokeThickness" Value="1.4" />
+            <Setter Property="Stroke" Value="{StaticResource StudyGreen}" />
+            <Setter Property="StrokeStartLineCap" Value="Round" /><Setter Property="StrokeEndLineCap" Value="Round" />
+            <Setter Property="StrokeLineJoin" Value="Round" />
+        </Style>
+        <Style x:Key="StudyCaption" TargetType="TextBlock" BasedOn="{StaticResource CaptionTextStyle}">
+            <Setter Property="FontSize" Value="12" />
+        </Style>
+        <Style x:Key="StudyTrack" TargetType="ProgressBar" BasedOn="{StaticResource ArcSlimProgress}">
+            <Setter Property="Height" Value="6" /><Setter Property="Maximum" Value="100" />
+            <Setter Property="Foreground" Value="{StaticResource StudyGreen}" />
+            <Setter Property="Background" Value="{StaticResource StudyLine}" />
+            <Setter Property="IsHitTestVisible" Value="False" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+        </Style>
+        <Style x:Key="CalendarMark" TargetType="Button" BasedOn="{StaticResource BaseButtonStyle}">
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Square" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="4">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Square" Property="BorderBrush" Value="{StaticResource StudyGreen}" />
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False"><Setter TargetName="Square" Property="Opacity" Value="0.4" /></Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="TrendMark" TargetType="Button">
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Focusable" Value="False" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="MarkSurface" Background="{TemplateBinding Background}">
+                            <ContentPresenter HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="MarkSurface" Property="Background" Value="{StaticResource StudyMist}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <Style x:Key="StudyDetailTab" TargetType="TabItem">
+            <Setter Property="FocusVisualStyle" Value="{StaticResource ArcFocusVisual}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TabItem">
+                        <Border x:Name="Line" Padding="12,9" Margin="0,0,5,0" BorderThickness="0,0,0,2"
+                                Background="Transparent" BorderBrush="Transparent">
+                            <ContentPresenter ContentSource="Header" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Line" Property="Background" Value="{StaticResource StudyMist}" />
+                            </Trigger>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter TargetName="Line" Property="BorderBrush" Value="{StaticResource StudyGreen}" />
+                                <Setter TargetName="Line" Property="Background" Value="{StaticResource StudyMist}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <DataTemplate x:Key="OverviewMetric">
+            <Border Padding="11,9" ToolTip="{Binding Details}" AutomationProperties.HelpText="{Binding Details}">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal">
+                        <Path Data="{Binding Icon}" Style="{StaticResource StudyIcon}" Margin="0,0,8,0" />
+                        <TextBlock Text="{Binding Label}" Style="{StaticResource StudyCaption}" VerticalAlignment="Center" />
+                    </StackPanel>
+                    <TextBlock Text="{Binding Value}" FontSize="23" LineHeight="28" Margin="0,2,0,0"
+                               FontFamily="{DynamicResource ArcReadingFont}" TextTrimming="CharacterEllipsis" />
+                </StackPanel>
+            </Border>
+        </DataTemplate>
+        <DataTemplate x:Key="DailyMetric">
+            <StackPanel Orientation="Horizontal" Margin="0,0,18,0" ToolTip="{Binding Details}" AutomationProperties.HelpText="{Binding Details}">
+                <Path Data="{Binding Icon}" Style="{StaticResource StudyIcon}" Width="14" Height="14" Margin="0,0,7,0" />
+                <TextBlock Text="{Binding Label}" Style="{StaticResource StudyCaption}" VerticalAlignment="Center" Margin="0,0,6,0" />
+                <TextBlock Text="{Binding Value}" FontSize="14" FontWeight="Medium" VerticalAlignment="Center" />
+            </StackPanel>
+        </DataTemplate>
+        <DataTemplate x:Key="SubjectStudyRow">
+            <Border Padding="8,10" BorderBrush="{StaticResource StudyLine}" BorderThickness="0,0,0,1"
+                    ToolTip="{Binding Details}" AutomationProperties.HelpText="{Binding Details}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="29" /><ColumnDefinition Width="4*" /><ColumnDefinition Width="88" />
+                        <ColumnDefinition Width="3*" /><ColumnDefinition Width="54" /><ColumnDefinition Width="78" />
+                    </Grid.ColumnDefinitions>
+                    <Path Style="{StaticResource StudyIcon}" Data="{StaticResource BookIcon}" HorizontalAlignment="Left" />
+                    <TextBlock Grid.Column="1" Text="{Binding Name}" Margin="0,0,10,0" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="2" Text="{Binding Attempts}" VerticalAlignment="Center" TextAlignment="Right" Margin="0,0,15,0" />
+                    <ProgressBar Grid.Column="3" Style="{StaticResource StudyTrack}" Value="{Binding AccuracyValue}" />
+                    <TextBlock Grid.Column="4" Text="{Binding Accuracy}" Style="{StaticResource StudyCaption}" TextAlignment="Right" VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="5" Text="{Binding Quality}" Style="{StaticResource StudyCaption}" TextAlignment="Right" VerticalAlignment="Center" />
+                </Grid>
+            </Border>
+        </DataTemplate>
+        <DataTemplate x:Key="SubjectStudyHead">
+            <Grid Margin="8,2,8,3">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="29" /><ColumnDefinition Width="4*" /><ColumnDefinition Width="88" />
+                    <ColumnDefinition Width="3*" /><ColumnDefinition Width="54" /><ColumnDefinition Width="78" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="1" Text="科目" Style="{StaticResource StudyCaption}" />
+                <TextBlock Grid.Column="2" Text="作答" Style="{StaticResource StudyCaption}" TextAlignment="Right" Margin="0,0,15,0" />
+                <TextBlock Grid.Column="4" Text="正确率" Style="{StaticResource StudyCaption}" TextAlignment="Right" />
+                <TextBlock Grid.Column="5" Text="平均得分" Style="{StaticResource StudyCaption}" TextAlignment="Right" />
+            </Grid>
+        </DataTemplate>
+        <Style x:Key="SubjectSummary" TargetType="ItemsControl">
+            <Setter Property="ItemTemplate" Value="{StaticResource SubjectStudyRow}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ItemsControl">
+                        <StackPanel>
+                            <ContentControl x:Name="Head" ContentTemplate="{StaticResource SubjectStudyHead}" Content="科目概况"
+                                            HorizontalContentAlignment="Stretch" />
+                            <ItemsPresenter />
+                        </StackPanel>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="HasItems" Value="False"><Setter TargetName="Head" Property="Visibility" Value="Collapsed" /></Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+        <DataTemplate x:Key="StudySessionRow">
+            <Border Padding="8,8" BorderBrush="{StaticResource StudyLine}" BorderThickness="0,0,0,1"
+                    ToolTip="{Binding Details}" AutomationProperties.HelpText="{Binding Details}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="29" /><ColumnDefinition Width="62" />
+                        <ColumnDefinition Width="*" /><ColumnDefinition Width="76" /><ColumnDefinition Width="80" />
+                    </Grid.ColumnDefinitions>
+                    <Path Style="{StaticResource StudyIcon}" Data="{Binding Icon}" Width="15" Height="15" HorizontalAlignment="Left" />
+                    <TextBlock Grid.Column="1" Text="{Binding Time}" Style="{StaticResource StudyCaption}" VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="2" Text="{Binding Subject}" Margin="0,0,12,0" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="3" Text="{Binding Mode}" Style="{StaticResource StudyCaption}" TextAlignment="Right" VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="4" Text="{Binding Attempts}" TextAlignment="Right" VerticalAlignment="Center" />
+                </Grid>
+            </Border>
+        </DataTemplate>
+        <ControlTemplate x:Key="DetailsTemplate" TargetType="TabControl">
+            <StackPanel>
+                <Border BorderBrush="{StaticResource StudyLine}" BorderThickness="0,0,0,1">
+                    <TabPanel IsItemsHost="True" />
+                </Border>
+                <ContentPresenter ContentSource="SelectedContent" Margin="0,9,0,0" />
+            </StackPanel>
+        </ControlTemplate>
+    </UserControl.Resources>
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel MaxWidth="1160" Margin="33,25,33,32">
+            <DockPanel Margin="0,0,0,17">
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button Click="Refresh_Click" Style="{StaticResource IconButtonStyle}" Margin="0,0,7,0"
+                            ToolTip="刷新学习记录" AutomationProperties.Name="刷新学习记录">
+                        <Path Data="{StaticResource RefreshIcon}" Style="{StaticResource StudyIcon}" />
+                    </Button>
+                    <Button x:Name="ProfileButton" IsEnabled="False" Click="EditProfile_Click" Style="{StaticResource SidebarButtonStyle}"
+                            ToolTip="编辑资料" AutomationProperties.Name="编辑用户资料">
+                        <StackPanel Orientation="Horizontal">
+                            <Grid x:Name="ProfileMedallion" Width="54" Height="54" Margin="0,0,11,0">
+                                <Ellipse Margin="2" Stroke="#DCE7DF" StrokeThickness="3.5" />
+                                <Path x:Name="BestRing" Stroke="{StaticResource StudyGreen}" StrokeThickness="3.5"
+                                      StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
+                                <Path x:Name="RecentRing" Stroke="{StaticResource StudyGold}" StrokeThickness="3.5"
+                                      StrokeStartLineCap="Round" StrokeEndLineCap="Round" />
+                                <Grid Width="38" Height="38">
+                                    <Ellipse Fill="{StaticResource StudyMist}" />
+                                    <Path Data="M5,17 C5,10 10,5 18,5 C18,12 15,17 8,17 M5,20 L14,10"
+                                          Width="16" Height="16" Stretch="Uniform" Stroke="{StaticResource StudyGreen}" StrokeThickness="1.25" />
+                                    <Ellipse x:Name="ProfileAvatar" />
+                                </Grid>
+                            </Grid>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock x:Name="ProfileName" Text="个人资料" MaxWidth="150" TextTrimming="CharacterEllipsis"
+                                           Foreground="{DynamicResource ArcForeground}" />
+                                <StackPanel x:Name="ProfileRating" Orientation="Horizontal" Margin="0,2,0,0">
+                                    <TextBlock Text="学习评分" Style="{StaticResource StudyCaption}" VerticalAlignment="Center" />
+                                    <TextBlock x:Name="RatingValue" Text="—" Foreground="{StaticResource StudyGreen}"
+                                               FontSize="16" FontWeight="Medium" Margin="7,0,0,0" VerticalAlignment="Center" />
+                                    <TextBlock x:Name="RatingScale" Text="/ 100" Style="{StaticResource StudyCaption}"
+                                               Margin="4,0,0,0" VerticalAlignment="Center" Visibility="Collapsed" />
+                                </StackPanel>
+                            </StackPanel>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+                <StackPanel VerticalAlignment="Center">
+                    <TextBlock Text="学习看板" Style="{StaticResource TitleTextStyle}" FontSize="29" />
+                    <TextBlock x:Name="HistoryRange" Style="{StaticResource StudyCaption}" Margin="0,4,0,0" />
+                </StackPanel>
+            </DockPanel>
+            <TextBlock x:Name="StatusText" Style="{StaticResource StudyCaption}" Margin="0,0,0,9"
+                       AutomationProperties.LiveSetting="Polite" Visibility="Collapsed" />
+
+            <Border Background="#F3F7F4" CornerRadius="8" Padding="8,5">
+                <ItemsControl x:Name="OverviewMetrics" ItemTemplate="{StaticResource OverviewMetric}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate><UniformGrid Columns="6" Rows="1" /></ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                </ItemsControl>
+            </Border>
+
+            <Border Margin="0,22,0,0" Padding="0,16,0,0" BorderThickness="0,1,0,0" BorderBrush="{StaticResource StudyLine}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="274" /><ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel>
+                        <DockPanel LastChildFill="False">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <Path Data="{StaticResource CalendarIcon}" Style="{StaticResource StudyIcon}" Margin="0,0,8,0" />
+                                <TextBlock Text="学习日历" Style="{StaticResource SectionLabelTextStyle}" />
+                            </StackPanel>
+                        </DockPanel>
+                        <DockPanel Margin="0,2,0,3">
+                            <Button x:Name="PreviousMonth" DockPanel.Dock="Left" Click="PreviousMonth_Click" IsEnabled="False"
+                                    Style="{StaticResource IconButtonStyle}" Width="29" Height="29" ToolTip="上个月" AutomationProperties.Name="上个月">
+                                <Path Style="{StaticResource StudyIcon}" Data="{StaticResource PreviousIcon}" Width="12" Height="12" />
+                            </Button>
+                            <Button x:Name="NextMonth" DockPanel.Dock="Right" Click="NextMonth_Click" IsEnabled="False"
+                                    Style="{StaticResource IconButtonStyle}" Width="29" Height="29" ToolTip="下个月" AutomationProperties.Name="下个月">
+                                <Path Style="{StaticResource StudyIcon}" Data="{StaticResource NextIcon}" Width="12" Height="12" />
+                            </Button>
+                            <TextBlock x:Name="MonthLabel" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="14" />
+                        </DockPanel>
+                        <UniformGrid x:Name="CalendarLabels" Columns="7" Rows="1" Margin="0,0,0,3" />
+                        <UniformGrid x:Name="CalendarDays" Columns="7" Rows="6" />
+                        <StackPanel x:Name="HeatLegend" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,5,2,0"
+                                    ToolTip="颜色表示当天作答次数">
+                            <TextBlock Text="少" Style="{StaticResource StudyCaption}" Margin="0,0,5,0" />
+                        </StackPanel>
+                    </StackPanel>
+                    <Border Grid.Column="1" Margin="23,0,0,0" Padding="22,0,0,0" BorderBrush="{StaticResource StudyLine}" BorderThickness="1,0,0,0">
+                        <StackPanel>
+                            <DockPanel>
+                                <TextBlock Text="次" DockPanel.Dock="Right" Style="{StaticResource StudyCaption}" VerticalAlignment="Center" />
+                                <StackPanel Orientation="Horizontal">
+                                    <Path Data="{StaticResource ChartIcon}" Style="{StaticResource StudyIcon}" Margin="0,0,8,0" />
+                                    <TextBlock Text="本月作答" Style="{StaticResource SectionLabelTextStyle}" />
+                                </StackPanel>
+                            </DockPanel>
+                            <Grid Margin="0,14,0,0">
+                                <Grid.ColumnDefinitions><ColumnDefinition Width="36" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions><RowDefinition Height="126" /><RowDefinition Height="23" /></Grid.RowDefinitions>
+                                <Grid Grid.Column="1">
+                                    <UniformGrid Rows="2" Columns="1" IsHitTestVisible="False">
+                                        <Border BorderBrush="{StaticResource StudyLine}" BorderThickness="0,1,0,0" />
+                                        <Border BorderBrush="{StaticResource StudyLine}" BorderThickness="0,1,0,1" />
+                                    </UniformGrid>
+                                    <UniformGrid x:Name="TrendBars" Rows="1" />
+                                </Grid>
+                                <TextBlock x:Name="TrendHigh" Style="{StaticResource StudyCaption}" VerticalAlignment="Top" Margin="0,-9,8,0" TextAlignment="Right" />
+                                <TextBlock x:Name="TrendMid" Style="{StaticResource StudyCaption}" VerticalAlignment="Center" Margin="0,0,8,0" TextAlignment="Right" />
+                                <TextBlock Text="0" Style="{StaticResource StudyCaption}" VerticalAlignment="Bottom" Margin="0,0,8,-8" TextAlignment="Right" />
+                                <UniformGrid x:Name="TrendDates" Grid.Row="1" Grid.Column="1" Rows="1" Margin="0,2,0,0" />
+                            </Grid>
+                            <Border BorderBrush="{StaticResource StudyLine}" BorderThickness="0,1,0,0" Padding="0,8,0,0" Margin="0,9,0,0">
+                                <StackPanel>
+                                    <TextBlock x:Name="SelectedDay" Style="{StaticResource SectionLabelTextStyle}" FontSize="15" />
+                                    <ItemsControl x:Name="DayMetrics" Margin="0,5,0,0" ItemTemplate="{StaticResource DailyMetric}">
+                                        <ItemsControl.ItemsPanel><ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+                                    </ItemsControl>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </Border>
+
+            <TabControl x:Name="DetailTabs" Template="{StaticResource DetailsTemplate}" ItemContainerStyle="{StaticResource StudyDetailTab}" Margin="0,22,0,0">
+                <TabItem>
+                    <TabItem.Header>
+                        <StackPanel Orientation="Horizontal"><Path Style="{StaticResource StudyIcon}" Data="{StaticResource BookIcon}" Margin="0,0,7,0" /><TextBlock Text="当日科目" /></StackPanel>
+                    </TabItem.Header>
+                    <StackPanel>
+                        <TextBlock x:Name="EmptyDay" Text="当天没有作答记录。" Style="{StaticResource StudyCaption}" Margin="8,8,0,0" Visibility="Collapsed" />
+                        <ItemsControl x:Name="DaySubjects" Style="{StaticResource SubjectSummary}" />
+                    </StackPanel>
+                </TabItem>
+                <TabItem>
+                    <TabItem.Header>
+                        <StackPanel Orientation="Horizontal"><Path Style="{StaticResource StudyIcon}" Data="{StaticResource ClockIcon}" Margin="0,0,7,0" /><TextBlock Text="学习场次" /></StackPanel>
+                    </TabItem.Header>
+                    <StackPanel>
+                        <TextBlock x:Name="EmptySessions" Text="当天没有学习场次。" Style="{StaticResource StudyCaption}" Margin="8,8,0,0" Visibility="Collapsed" />
+                        <ItemsControl x:Name="DaySessions" ItemTemplate="{StaticResource StudySessionRow}" />
+                    </StackPanel>
+                </TabItem>
+                <TabItem>
+                    <TabItem.Header>
+                        <StackPanel Orientation="Horizontal"><Path Style="{StaticResource StudyIcon}" Data="{StaticResource LayersIcon}" Margin="0,0,7,0" /><TextBlock Text="全部科目" /></StackPanel>
+                    </TabItem.Header>
+                    <StackPanel>
+                        <TextBlock x:Name="EmptySubjects" Text="还没有科目记录。" Style="{StaticResource StudyCaption}" Margin="8,8,0,0" Visibility="Collapsed" />
+                        <ItemsControl x:Name="AllSubjects" Style="{StaticResource SubjectSummary}" />
+                    </StackPanel>
+                </TabItem>
+            </TabControl>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>
+

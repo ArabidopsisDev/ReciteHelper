@@ -18,6 +18,14 @@ public static partial class MistakeParagraph
     public const string MissingBackground = "FFF1B8";
     public const string IncorrectForeground = "A32638";
 
+    public static IEnumerable<MistakeTextRun> FormatAnswer(IReadOnlyList<MistakeAnswerSpan> answer)
+        => answer.Select(span => new MistakeTextRun(span.Text, span.Status switch
+        {
+            "incorrect" => MistakeTextStyle.Incorrect,
+            "partial" => MistakeTextStyle.Missing,
+            _ => MistakeTextStyle.Plain
+        }));
+
     public static IEnumerable<MistakeTextRun> Format(IReadOnlyList<MistakeCorrection> corrections)
     {
         foreach (var group in corrections.GroupBy(correction => correction.Part).OrderBy(group => PartOrder(group.Key)))

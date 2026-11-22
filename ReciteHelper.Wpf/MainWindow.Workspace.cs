@@ -150,7 +150,7 @@ public partial class MainWindow
                 panes.Register(project, key, "资料与解析", help);
                 break;
             case WorkspacePaneManager.Mistakes when !_projectMistakes.ContainsKey(project):
-                var mistakes = new ReviewMistakesView(project, _examSetRepository);
+                var mistakes = new ReviewMistakesView(project, _projectFileService, _examSetRepository);
                 _projectMistakes.Add(project, mistakes);
                 panes.Register(project, key, "错误列表", mistakes);
                 break;
@@ -325,6 +325,10 @@ public partial class MainWindow
         else if (tab == _settingsTab)
         {
             _settingsTab = null;
+        }
+        else if (tab == _studyDashboardTab)
+        {
+            _studyDashboardTab = null;
         }
 
         WorkspaceTabs.Items.Remove(tab);

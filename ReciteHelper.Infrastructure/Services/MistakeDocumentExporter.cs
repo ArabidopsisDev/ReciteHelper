@@ -27,17 +27,23 @@ public static class MistakeDocumentExporter
             Style("Title", "Title", 44, 220),
             Style("Question", "Question", 26, 90, bold: true, before: 220),
             Style("Metadata", "Metadata", 20, 75),
+            Style("OriginalAnswer", "Original answer", 23, 100),
             Style("Correction", "Correction", 23, 65)));
 
         var body = new XElement(W + "body",
             Paragraph("Title", Run($"{projectName} 错误列表")),
             Paragraph("Metadata", Run($"共 {entries.Count} 条作答记录，按作答时间倒序排列。")),
-            Paragraph("Metadata", Run("遗漏", MistakeTextStyle.Missing), Run("  "), Run("需订正", MistakeTextStyle.Incorrect)));
+            Paragraph("Metadata", Run("遗漏或不全", MistakeTextStyle.Missing), Run("  "), Run("需订正", MistakeTextStyle.Incorrect)));
         foreach (var entry in entries)
         {
             body.Add(Paragraph("Question", Run(entry.Question)));
             body.Add(Paragraph("Metadata", Run($"{entry.Time.ToLocalTime():yyyy-MM-dd HH:mm}  {(entry.IsExam ? "考试" : "练习")}")));
-            body.Add(Paragraph("Correction", MistakeParagraph.Format(entry.Corrections).Select(run => Run(run.Text, run.Style)).ToArray()));
+            if (entry.Answer is { Count: > 0 } answer)
+                body.Add(AnnotatedParagraph("OriginalAnswer", "原作答", MistakeParagraph.FormatAnswer(answer)));
+            else
+                body.Add(Paragraph("OriginalAnswer", Run(entry.Answer is null ? "原作答未保存" : "原作答已清空")));
+            if (entry.Corrections.Count > 0)
+                body.Add(AnnotatedParagraph("Correction", "订正要点", MistakeParagraph.Format(entry.Corrections)));
         }
         body.Add(Element("sectPr", Element("pgSz", Attribute("w", 12240), Attribute("h", 15840)),
             Element("pgMar", Attribute("top", 1080), Attribute("right", 1260), Attribute("bottom", 1080), Attribute("left", 1260),
@@ -49,7 +55,8 @@ public static class MistakeDocumentExporter
         => Element("style", Attribute("type", "paragraph"), Attribute("styleId", id),
             Element("name", Attribute("val", name)),
             id == "Normal" ? null : Element("basedOn", Attribute("val", "Normal")),
-            Element("pPr", id is "Question" or "Metadata" or "Title" ? Element("keepNext") : null, Element("keepLines"),
+            Element("pPr", id is "Question" or "Metadata" or "Title" ? Element("keepNext") : null,
+                id == "OriginalAnswer" ? null : Element("keepLines"),
                 Element("spacing", Attribute("before", before), Attribute("after", after), Attribute("line", 295), Attribute("lineRule", "auto"))),
             Element("rPr", Element("rFonts", Attribute("ascii", "Calibri"), Attribute("hAnsi", "Calibri"),
                 Attribute("eastAsia", "Microsoft YaHei")), Element("sz", Attribute("val", size)),
@@ -58,6 +65,9 @@ public static class MistakeDocumentExporter
 
     private static XElement Paragraph(string style, params XElement[] runs)
         => Element("p", Element("pPr", Element("pStyle", Attribute("val", style))), runs);
+
+    private static XElement AnnotatedParagraph(string style, string label, IEnumerable<MistakeTextRun> runs)
+        => Paragraph(style, [Run(label + "  "), .. runs.Select(run => Run(run.Text, run.Style))]);
 
     private static XElement Run(string text, MistakeTextStyle style = MistakeTextStyle.Plain)
     {

@@ -161,10 +161,11 @@ public sealed class ProjectFileService : IProjectFileService
         }
     }
 
-    private static async Task<Project?> OpenProjectFileWithoutKnowledgeBaseAsync(string projectPath)
+    internal static async Task<Project?> OpenProjectFileWithoutKnowledgeBaseAsync(
+        string projectPath, CancellationToken cancellationToken = default)
     {
-        await using var stream = File.OpenRead(projectPath);
-        return await JsonSerializer.DeserializeAsync<Project>(stream);
+        await using var stream = File.Open(projectPath, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete);
+        return await JsonSerializer.DeserializeAsync<Project>(stream, cancellationToken: cancellationToken);
     }
 
     private static string ResolveProjectRelativePath(string projectPath, string path)

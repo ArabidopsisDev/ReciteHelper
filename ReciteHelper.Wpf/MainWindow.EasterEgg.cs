@@ -16,6 +16,7 @@ public partial class MainWindow
         page.ImportProjectButton.Click += OpenFolder_Click;
         page.ResourceCenterButton.Click += ResourceCenter_Click;
         page.ModelSettingsButton.Click += ModelSettings_Click;
+        page.StudyDashboardButton.Click += StudyDashboard_Click;
         HomeTab.Content = page;
     }
 }
